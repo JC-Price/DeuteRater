@@ -150,7 +150,7 @@ def mida_rates(data,water, measurement, filters, settings):
                     else: 
                         asymptote = settings["fixed"]
                         rate = k[0]
-                    final_row = [name, protein_name, rate, asymptote, np.sqrt(np.diag(pcov))[std_dev_loc], t.ppf(.975, sum(group['number of measurements'])-1)* np.sqrt(np.diag(pcov))[std_dev_loc], sum(group['number of measurements']), len(set(unique_peptides)), '']
+                    final_row = [name, protein_name, rate, asymptote, np.sqrt(np.diag(pcov))[std_dev_loc], t.ppf(.975, sum(group['number of measurements'])-1)* np.sqrt(np.diag(pcov))[std_dev_loc]/np.sqrt(sum(group['number of measurements'])), sum(group['number of measurements']), len(set(unique_peptides)), '']
                     if settings["asymptote"] == "Variable": final_row.append(np.sqrt(np.diag(pcov))[0])
                     rate_data.append(final_row)
                 #way of unpacking excpetion name from http://stackoverflow.com/questions/9823936/python-how-do-i-know-what-type-of-exception-occured answer 1 accessed 2/11/2016
@@ -177,7 +177,7 @@ def mida_rates(data,water, measurement, filters, settings):
                         asymptote = settings["fixed"]
                         rate = k[0]
                     #adjust for t with the std error for 95% C.I.
-                    final_row = [name, protein_name, rate, asymptote, np.sqrt(np.diag(pcov))[std_dev_loc], t.ppf(.975, measurements-1)* np.sqrt(np.diag(pcov))[std_dev_loc], measurements, unique_peptides, '']
+                    final_row = [name, protein_name, rate, asymptote, np.sqrt(np.diag(pcov))[std_dev_loc], t.ppf(.975, measurements-1)* np.sqrt(np.diag(pcov))[std_dev_loc]/np.sqrt(measurements), measurements, unique_peptides, '']
                     if settings["asymptote"] == "Variable": final_row.append(np.sqrt(np.diag(pcov))[0])
                     rate_data.append(final_row)
                 except Exception as c:
