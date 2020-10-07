@@ -1,0 +1,430 @@
+# This code was made to take in 3 files from PEAKs:
+# feature, peptides, protein-peptides
+# TODO: Drop duplicates after sorting for best results
+
+import pandas as pd
+import numpy as np
+from functools import partial
+import json
+import re
+import os
+
+from deuteconvert.base_converter import BaseConverter
+import deuteconvert.peptide_utils as peputils
+import deuteconvert.settings as settings
+
+# TODO: PTMs to resource json
+# TODO: slots
+# TODO: make sure that all of the virtual base class functions are implemented
+
+
+#location = os.path.abspath(sys.executable)
+location = os.path.dirname(os.path.abspath(__file__))
+
+main_location = os.path.dirname(location)
+json_path = os.path.join(main_location, "resources", "ptms.json")
+
+
+# Written for use with peaks version 8.5
+class Peaks85(BaseConverter):
+    # TODO: slots
+
+    # TODO: These constants need organized as well
+    accession_parse_token = '|'
+    PROTON_MASS = 1.007825
+
+    # These are the most likely things to change in different versions
+    correct_header_names = {
+        'peptide': 'Sequence',
+        # change the name of rt_mean to P.R.T (sec)
+        'rt_mean': 'Precursor Retention Time (sec)',
+        'rt_start': 'rt_start',
+        'rt_end': 'rt_end',
+        'rt_width': 'rt_width',
+        'mz': 'Precursor m/z',
+        'theoretical_mass': 'Peptide Theoretical Mass',
+        'z': 'Identification Charge',
+        'first_accession': 'Protein ID',
+        'accessions': 'Homologous Proteins',
+        'ptm': 'ptm',
+        'quality': 'quality',
+        'avg_ppm': 'avg_ppm',
+        'start_loc': 'start_loc',
+        'end_loc': 'end_loc',
+        'num_peptides': 'num_peptides',
+        'num_unique': 'num_unique',
+        'protein': 'Protein Name',
+        'species': 'species',
+        'gene_name': 'gene_name',
+        'protein_existence': 'protein_existence',
+        'sequence_version': 'sequence_version',
+        'cf': 'cf',
+        #'theoretical_mass': 'theoretical_mass',
+        'neutromers_to_extract': 'neutromers_to_extract',
+        'literature_n': 'literature_n'
+    }
+
+    correct_header_order = [
+        'peptide',
+        'first_accession',
+        'protein',
+        'rt_mean',
+        'rt_start',
+        'rt_end',
+        'rt_width',
+        'mz',
+        'theoretical_mass',
+        #'Peptide Theoretical Mass',
+        'z',
+        'ptm',
+        'quality',
+        'avg_ppm',
+        'start_loc',
+        'end_loc',
+        'num_peptides',
+        'num_unique',
+        'accessions',
+        'species',
+        'gene_name',
+        'protein_existence',
+        'sequence_version',
+        'cf',
+        #'theoretical_mass',
+        'neutromers_to_extract',
+        'literature_n'
+    ]
+
+    def __init__(self, proteins_path, protein_peptides_path, feature_path,
+                 settings_path):
+        self.prot_path = proteins_path
+        self.protpep_path = protein_peptides_path
+        self.feat_path = feature_path
+        self._id_df = None
+
+        super().__init__()
+        settings.load(settings_path)
+
+    @property
+    def converted_data(self):
+        if self._id_df.size == 0:
+            raise RuntimeError('The converter has not run to completion')
+        return self._id_df
+
+    def load_files(self, parameter_list):
+        # TODO: load logic, maybe get rid of loading in init?
+        pass
+
+    def convert(self):
+        # try:
+        df_proteins = self._prepare_proteins()
+        df_protein_peptides = self._prepare_protein_peptides()
+        df_feature = self._prepare_feature()
+        # except Exception as e:
+        #     print(e)
+        self._id_df = Peaks85._merge_data(
+            df_feature, df_protein_peptides, df_proteins
+        )
+
+        funcs = [
+            # Peaks85._name_filter,
+            Peaks85._initial_filters,
+            Peaks85._interpret_aa_sequences,
+            Peaks85._set_n_peaks,
+            Peaks85._proximity_filter,
+            Peaks85._finalize
+        ]
+        for fn in funcs:
+            self._id_df = fn(self._id_df)
+
+    def write(self, out):
+        self._id_df.to_csv(out, sep=',', index=False)
+
+    @staticmethod
+    def _parse_accession(acc):
+        return acc.split(Peaks85.accession_parse_token)[1]
+
+    @staticmethod
+    def _process_ptm(ptm_string, peptide_sequence):
+        seq = peptide_sequence
+        ptms = [ptm.strip() for ptm in ptm_string.split(';')]
+        # TODO: dynamically load ptm file reference? should use gui or file?
+        with open(json_path) as ptms_json: #open(settings.ptms_path) as ptms_json:
+            known_ptms = json.load(ptms_json)
+        for ptm in ptms:
+            if ptm in known_ptms.keys():
+                for mod_pair in known_ptms[ptm]:
+                    seq = seq.replace(mod_pair[1], mod_pair[0])
+            elif ptm == 'Mutation':
+                seq = re.sub(r'\(sub [a-zA-Z0-9]\)', '', seq)
+        return seq
+
+    @staticmethod
+    def _merge_data(df_feature, df_protein_peptides, df_proteins):
+        data = df_feature.merge(
+            how='inner',
+            right=df_protein_peptides,
+            left_on='peptide',
+            right_on='peptide'
+        ).sort_values('first_accession')
+        data = data.merge(
+            how='inner',
+            right=df_proteins,
+            left_on='first_accession',
+            right_on='accession'
+        )
+        data = data.drop('accession', axis=1)
+        data = data.sort_values(
+            by=['peptide', 'num_unique', 'rt_mean'],
+            ascending=[True, False, True]
+        ).reset_index(drop=True)
+        return data
+
+    # Rusty's notes on what changes to make so that we can perform E0 calc in
+    # n-value calc:
+
+    # Here I think we should:
+    #   check if each rep has the seq of interest,
+    #   calc the %std error of RT,
+    #   and if there are > 1 row remaining take the row with
+    #      thelowest %std error and discard the rest.
+
+    # We want this to happen before the merge takes place so that replicates
+    # and non-existing observations are discarded from the repsective files.
+
+    # We also NEED to handle the possible RT rep column names becuase those
+    # are based on user inputs when performing Peaks analyses and will be
+    # different everytime.
+
+    def _prepare_feature(self):  # change RT mean (in feature) to rt_mean
+        df = pd.read_csv(self.feat_path)
+        # Get retention time column names
+        rt_names = [col for col in df.columns if 'RT mean' in col]
+        del rt_names[-1]
+
+        keep_cols = [
+            'Peptide',
+            'RT range',
+            'RT mean',
+            'm/z', 'z',
+            'Accession',
+            'PTM'
+        ]
+        keep_cols.extend(rt_names)
+        rename_cols = {
+            'Peptide': 'peptide',
+            'RT range': 'rt_range',
+            'RT mean': 'rt_mean',
+            'm/z': 'mz',
+            'z': 'z',
+            'Accession': 'accessions',
+            'PTM': 'ptm'
+        }
+        dtype_dict = {
+            'rt_start': np.float,
+            'rt_end': np.float,
+            'rt_mean': np.float,
+            'mz': np.float,
+            'z': np.int8
+        }
+
+        df = df[keep_cols].rename(columns=rename_cols)
+        df['rt_start'], df['rt_end'] = df['rt_range'].str.split(' - ').str
+        df = df.drop('rt_range', axis=1).astype(dtype=dtype_dict)
+        df[['rt_start', 'rt_end', 'rt_mean']] = \
+            df[['rt_start', 'rt_end', 'rt_mean']] * 60
+        df['rt_width'] = df['rt_end'].values - df['rt_start'].values
+        df['accessions'] = df['accessions'].str.split(':').fillna('').map(
+            partial(map, Peaks85._parse_accession)).map(list)
+        df['ptm'] = df['ptm'].fillna('')
+        ptm_mask = (df['ptm'] != '')
+        for row in df[ptm_mask].itertuples():
+            df.at[row.Index, 'peptide'] = \
+                Peaks85._process_ptm(row.ptm, row.peptide)
+        df['first_accession'] = df['accessions'].str[0]
+
+#####################################################
+        # replace dashes (NaN values) with 0
+        for col in rt_names:
+            df[col] = df[col].replace('-', 0)
+
+        # filter based on starting time
+        df = df[df['rt_mean'] >= settings.start_time]
+
+        # count number of reps in retention time
+        df['num_reps'] = 0
+        for column_name in rt_names:
+            df.update(df.loc[df[column_name] != 0]['num_reps'] + 1)
+
+        # fix the column types
+        df = df.astype(dict.fromkeys(rt_names, np.float))
+
+        # calculate the standard error of the mean
+        df['std_error'] = df[rt_names].sem(axis='columns').abs()
+
+        df = df.astype({'std_error': np.float})
+        df = df.drop(labels=rt_names, axis='columns')
+
+        # df = df.loc[df.groupby('peptide')['std_error'].idxmin(), ]
+        # df = df.loc[df.groupby('peptide')['num_reps'].idxmax(), ]
+        # df = df.loc[df.groupby('peptide')['rt_width'].idxmin(), ]
+        # df = df.loc[df.groupby('peptide')['z'].idxmin(), ]
+        df = df.sort_values(
+            by=['std_error', 'num_reps', 'rt_width', 'z'],
+            ascending=[True, False, True, True]
+        )
+        df = df.drop_duplicates(subset='peptide', keep='first')
+#####################################################
+
+        df = df.sort_values(by=['peptide'])
+        return df
+
+    def _prepare_protein_peptides(self):
+        df = pd.read_csv(self.protpep_path)
+        keep_cols = [
+            'Peptide',
+            'Quality',
+            'Avg. ppm',
+            'Start',
+            'End',
+            'PTM'
+        ]
+        rename_cols = {
+            'Peptide': 'peptide',
+            'Quality': 'quality',
+            'Avg. ppm': 'avg_ppm',
+            'Start': 'start_loc',
+            'End': 'end_loc',
+            'PTM': 'ptm'
+        }
+        df = df[keep_cols].rename(columns=rename_cols)
+        # df = df[abs(df['avg_ppm']) < settings.required_unique]  # TODO
+        df = df.sort_values(by=['peptide'])
+        df = df.drop_duplicates(subset='peptide', keep='first')
+        df['ptm'] = df['ptm'].fillna('')
+        ptm_mask = (df['ptm'] != '')
+        for row in df[ptm_mask].itertuples():
+            df.at[row.Index, 'peptide'] = \
+                Peaks85._process_ptm(row.ptm, row.peptide)
+        df['peptide'] = df['peptide'].str.split('.').str[1]
+        df = df.drop('ptm', axis=1)
+        return df
+
+    def _prepare_proteins(self):
+        df = pd.read_csv(self.prot_path)
+        keep_cols = ['Accession', '#Peptides', '#Unique', 'Description']
+        rename_cols = {
+            'Accession': 'accession',
+            '#Peptides': 'num_peptides',
+            '#Unique': 'num_unique',
+            'Description': 'protein'
+        }
+        df = df[keep_cols].rename(columns=rename_cols)
+        # df = df[df['num_unique'] >= settings.required_unique]  # TODO
+        df['accession'] = df['accession'].map(Peaks85._parse_accession)
+        description_regex = r'(.*?)OS=(.*?)(?:GN=(.*?))?PE=(.*?)SV=(.*)'
+        description_strings = df['protein'].str.extract(
+            description_regex, expand=True
+        )
+        df['protein'] = description_strings[0]
+        df['species'] = description_strings[1]
+        df['gene_name'] = description_strings[2]
+        df['protein_existence'] = description_strings[3]
+        df['sequence_version'] = description_strings[4]
+        return df
+
+    @staticmethod
+    def _initial_filters(df):
+        # TODO: discuss which parameter is the most important
+        # df = df.loc[df.groupby('peptide')['quality'].idxmax(), ]
+        # df = df.loc[df.groupby('peptide')['avg_ppm'].idxmax(), ]
+        return df
+
+    @staticmethod
+    def _interpret_aa_sequences(df):
+        df.assign(
+            cf='',
+            theoretical_mass=np.nan,
+            literature_n=np.nan
+        )
+        aa_comp_df = pd.read_csv(settings.aa_elem_comp_path, sep='\t')
+        aa_comp_df.set_index('amino_acid', inplace=True)
+
+        aa_label_df = pd.read_csv(settings.aa_label_path, sep='\t')
+        aa_label_df.set_index('study_type', inplace=True)
+        # TODO: Find out where to store settings, then decide which 'studytype'
+        #       to use as default.
+        aa_labeling_dict = aa_label_df.loc[settings.study_type, ].to_dict()
+
+        elem_df = pd.read_csv(settings.elems_path, sep='\t')
+        # This is necessary if we have all of the different isotopes in the tsv
+        element_index_mask = [
+            0,  # Hydrogen
+            10,  # Carbon-12
+            13,  # Nitrogen-14
+            15,  # Oxygen-16
+            31  # Sulfer-32
+        ]
+        elem_df = elem_df.iloc[element_index_mask]
+        elem_df.set_index('isotope_letter', inplace=True)
+
+        for row in df.itertuples():
+            i = row.Index
+            aa_counts = {}
+            for aa in row.peptide:
+                if aa not in aa_counts.keys():
+                    aa_counts[aa] = 0
+                aa_counts[aa] += 1
+            elem_dict = peputils.calc_cf(aa_counts, aa_comp_df, row.z)
+            theoretical_mass = peputils.calc_theory_mass(elem_dict, elem_df)
+            literature_n = peputils.calc_add_n(aa_counts, aa_labeling_dict)
+
+            df.at[i, 'cf'] = ''.join(
+                k + str(v) for k, v in elem_dict.items() if v > 0
+            )
+            df.at[i, 'theoretical_mass'] = theoretical_mass
+            df.at[i, 'literature_n'] = literature_n
+        return df
+
+    @staticmethod
+    def _set_n_peaks(df):
+        for mass_cutoff, n_peaks in settings.mass_cutoffs:
+            df.loc[
+                df['theoretical_mass'] > mass_cutoff,
+                'neutromers_to_extract'
+            ] = n_peaks
+        return df
+
+    @staticmethod
+    def _proximity_filter(df):
+        df['drop'] = False
+        df.sort_values(by='mz', inplace=True)
+        for row in df.itertuples():
+            mz_mask = ((df['mz'] - row.mz).abs() <
+                       settings.mz_proximity_tolerance)
+            rt_mask = ((df['rt_mean'] - row.mz).abs() <
+                       settings.rt_proximity_tolerance)
+            mask = mz_mask & rt_mask
+            if sum(mask) > 1:
+                # TODO: discuss how to keep data
+                df.loc[mask, 'drop'] = True
+        df = df.loc[~df['drop'], :]
+        return df
+
+    # @staticmethod
+    # def _name_filter(df, toSortBy, choose='min'):
+    #     if (choose == 'min'):
+    #         df = df.groupby(["peptide"], as_index=False, sort=False).apply(
+    #             lambda x: x[x[toSortBy] == x[toSortBy].min()])
+    #     elif (choose == 'max'):
+    #         df = df.groupby(["peptide"], as_index=False, sort=False).apply(
+    #             lambda x: x[x[toSortBy] == x[toSortBy].max()])
+    #     return df
+
+    @staticmethod
+    def _finalize(df):
+        df = df[df['peptide'].str.len() >= 6]
+        df = df.sort_index()
+        df = df[Peaks85.correct_header_order].rename(
+            columns=Peaks85.correct_header_names
+        )
+        return df
