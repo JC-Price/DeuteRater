@@ -69,6 +69,7 @@ enrichement_of_zero: float
 min_allowed_abund_max_delta: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
+use_empir_n_value: bool
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
@@ -221,6 +222,9 @@ def load(settings_path):
         
         global min_allowed_n_values
         min_allowed_n_values = s["min_allowed_n_values"]
+
+        global use_empir_n_value
+        use_empir_n_value = s["use_empir_n_value"]
         
 
     except Exception as e:

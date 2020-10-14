@@ -171,3 +171,6 @@ min_aa_sequence_length: !!int 6
 #$minimum allowed n value. if smaller, the maximum theoretical delta will be
 #$too small
 min_allowed_n_values: !!int 10
+
+#$If the empiracily derived n-value should be used instead of the literature.
+use_empir_n_value: !!bool true

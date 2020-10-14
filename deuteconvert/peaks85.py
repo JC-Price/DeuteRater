@@ -31,7 +31,7 @@ class Peaks85(BaseConverter):
 
     # TODO: These constants need organized as well
     accession_parse_token = '|'
-    PROTON_MASS = 1.007825
+    PROTON_MASS = 1.007825  # TODO: Check that this is correct
 
     # These are the most likely things to change in different versions
     correct_header_names = {
@@ -131,7 +131,8 @@ class Peaks85(BaseConverter):
             Peaks85._interpret_aa_sequences,
             Peaks85._set_n_peaks,
             Peaks85._proximity_filter,
-            Peaks85._finalize
+            Peaks85._finalize,
+            Peaks85._expand_to_charge_states
         ]
         for fn in funcs:
             self._id_df = fn(self._id_df)
@@ -401,7 +402,7 @@ class Peaks85(BaseConverter):
         for row in df.itertuples():
             mz_mask = ((df['mz'] - row.mz).abs() <
                        settings.mz_proximity_tolerance)
-            rt_mask = ((df['rt_mean'] - row.mz).abs() <
+            rt_mask = ((df['rt_mean'] - row.rt_mean).abs() <
                        settings.rt_proximity_tolerance)
             mask = mz_mask & rt_mask
             if sum(mask) > 1:
@@ -421,8 +422,23 @@ class Peaks85(BaseConverter):
     #     return df
 
     @staticmethod
+    def _expand_to_charge_states(df):
+        df_new = pd.DataFrame(columns=df.columns)
+
+        for row in df.iterrows():
+            temp_row = row[1]
+            premass = float(temp_row['Precursor m/z']) * float(temp_row['Identification Charge']) - \
+                      float(temp_row['Identification Charge']) * Peaks85.PROTON_MASS
+            for z in range(settings.min_charge_state, settings.max_charge_state + 1):
+                temp_row['Precursor m/z'] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
+                temp_row['Identification Charge'] = float(z)
+                df_new = df_new.append(temp_row)
+
+        return df_new
+
+    @staticmethod
     def _finalize(df):
-        df = df[df['peptide'].str.len() >= 6]
+        df = df[df['peptide'].str.len() >= 6]  # TODO: Make magic number a setting
         df = df.sort_index()
         df = df[Peaks85.correct_header_order].rename(
             columns=Peaks85.correct_header_names

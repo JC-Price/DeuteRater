@@ -15,6 +15,8 @@ aa_elem_comp_path: str
 aa_label_path: str
 elems_path: str
 ptms_path: str
+min_charge_state: int
+max_charge_state: int
 
 #location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,8 +58,14 @@ def load(settings_path):
         elems_path = os.path.join(resource_location, s['elements_path'])
 
         global ptms_path
-        ptms_path = os.path.join(resource_location, 
+        ptms_path = os.path.join(resource_location,
                                  s['post_translational_modifications_path'])
+
+        global min_charge_state
+        min_charge_state = s['min_charge_state']
+
+        global max_charge_state
+        max_charge_state = s['max_charge_state']
 
     except Exception as e:
         print(e)

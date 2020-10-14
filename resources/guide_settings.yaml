@@ -1,7 +1,9 @@
 # how to determine the number of peaks to look for
 mass_cutoffs:
   # initial cutoff is at zero
-  - [0, 5]
+  - [0, 3]
+  - [1500, 4]
+  - [2400, 5]
   # addition cutoffs follow
   # - [2400, 5]
 
@@ -30,3 +32,7 @@ post_translational_modifications_path: "ptms.json"
 # score_cutoff: 0
 
 # rt_min_distance: 3
+
+#Determine the min and max charge state to search for
+min_charge_state: !!int 1
+max_charge_state: !!int 5

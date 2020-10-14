@@ -16,7 +16,7 @@ import multiprocessing as mp
 from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
-
+import utils.data_chunker as nvc
 
 
 
@@ -79,6 +79,9 @@ class TheoryPreparer():
 
         self.model = pd.concat(results)
         self.model = self.model.drop(columns=['drop'])
+
+        if settings.use_empir_n_value:
+            self.model = nvc.data_chunker(self.model)
 
         self._mp_pool.close()
         self._mp_pool.join()

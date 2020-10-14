@@ -179,9 +179,9 @@ class Extractor:  # TODO name change
             else:
                 return 5
 
-        # self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(
-        #     np.int8)  # TODO: Temp value, see note at top of files
-        self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
+        self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(
+            np.int8)  # TODO: Temp value, see note at top of files
+        # self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
 
     def _partition_ids(self, trim):
         '''splits the id file
