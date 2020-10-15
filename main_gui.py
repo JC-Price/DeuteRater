@@ -183,6 +183,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #todo$ see if we can compress the code and make sure it is readable
         previous_output_file = "" 
         extracted_files =[]
+        make_table_in_order = True
         for analysis_step in worklist:
             if analysis_step == "Extract":
                 #$no if for this one, if extract is here it is the start
@@ -202,6 +203,20 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 
                 proceed = self.check_file_removal(extracted_files)
                 if not proceed:  return
+                #$need to run the table if necessary. taken from the 
+                #$"Provide Time and Enrichment" elif
+                if "Provide Time and Enrichment" in worklist:
+                    previous_output_file = step_object_dict[
+                        "Provide Time and Enrichment"].full_filename
+                    self.get_data_table = TimeEnrichmentWindow(self, 
+                            extracted_files, previous_output_file)
+                    self.get_data_table.exec_()
+                    #$don't make the table twice
+                    make_table_in_order = False
+                    #$now that the table is done we need to confirm the user
+                    #$hit the proceed button on the table (same check as in
+                    #$elif analysis_step == "Theory Generation" )
+                    if not os.path.exists(previous_output_file): return
                 #$ modified from the extract-dir argument from the command line
                 for m in range(len(mzml_files)):
                     extractor = Extractor(
@@ -213,7 +228,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
-            elif analysis_step == "Provide Time and Enrichment":
+            elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 #$if coming right after a list
                 if extracted_files == []:
                     extracted_files = self.collect_multiple_files(
