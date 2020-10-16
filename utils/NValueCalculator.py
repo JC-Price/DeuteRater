@@ -7,8 +7,7 @@ import numpy as np
 
 start = time.perf_counter()
 
-output_columns = ['n_value', 'stddev']
-
+output_columns = ['empir_n', 'stddev']
 
 class NValueCalculator:
 	def __init__(self, dataframe, output_columns=['']):

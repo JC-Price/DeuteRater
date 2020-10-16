@@ -101,20 +101,23 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             "files you would like to turn into a guide file. The order is \""
             "proteins.csv\", \"protein-peptides.csv\", \"filter.csv\""))
             
-        protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
-                "Choose protein file to Load", self.file_loc, "CSV (*.csv)")
+        protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
+                "Choose protein file to Load", self.file_loc, "CSV (*.csv)",
+                options=QtWidgets.QFileDialog.DontUseNativeDialog)
         if protein_file == "": return
         else:self.file_loc = os.path.dirname(protein_file)
         protein_peptide_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
             self, "Choose protein_peptide file to Load", self.file_loc, 
-            "CSV (*.csv)")
+            "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
         if protein_peptide_file == "":  return
         else:self.file_loc = os.path.dirname(protein_peptide_file)
         feature_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
-                "Choose features file to Load", self.file_loc, "CSV (*.csv)")
+                "Choose features file to Load", self.file_loc, "CSV (*.csv)",
+                options=QtWidgets.QFileDialog.DontUseNativeDialog)
         if feature_file == "": return
         else:self.file_loc = os.path.dirname(feature_file)
-        
+
+        # TODO: Tell the user that a guide file is being created and to wait with persistent dialog.
         #$do the actual calculations
         converter = Peaks85(protein_file, protein_peptide_file, feature_file,
                             guide_settings_file)
@@ -183,7 +186,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #todo$ see if we can compress the code and make sure it is readable
         previous_output_file = "" 
         extracted_files =[]
-        make_table_in_order = True
         for analysis_step in worklist:
             if analysis_step == "Extract":
                 #$no if for this one, if extract is here it is the start
@@ -203,20 +205,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 
                 proceed = self.check_file_removal(extracted_files)
                 if not proceed:  return
-                #$need to run the table if necessary. taken from the 
-                #$"Provide Time and Enrichment" elif
-                if "Provide Time and Enrichment" in worklist:
-                    previous_output_file = step_object_dict[
-                        "Provide Time and Enrichment"].full_filename
-                    self.get_data_table = TimeEnrichmentWindow(self, 
-                            extracted_files, previous_output_file)
-                    self.get_data_table.exec_()
-                    #$don't make the table twice
-                    make_table_in_order = False
-                    #$now that the table is done we need to confirm the user
-                    #$hit the proceed button on the table (same check as in
-                    #$elif analysis_step == "Theory Generation" )
-                    if not os.path.exists(previous_output_file): return
                 #$ modified from the extract-dir argument from the command line
                 for m in range(len(mzml_files)):
                     extractor = Extractor(
@@ -228,7 +216,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
-            elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
+            elif analysis_step == "Provide Time and Enrichment":
                 #$if coming right after a list
                 if extracted_files == []:
                     extracted_files = self.collect_multiple_files(
@@ -290,6 +278,14 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         "spreadsheet (*.csv *.tsv)"
                     )
                     if previous_output_file == "": return
+                    if settings.use_empir_n_value:
+                        step_object_dict['Fraction New Calculation'].required_columns.append('empir_n')
+                    else:
+                        # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
+                        try:
+                            step_object_dict['Fraction New Calculator'][1].remove('empir_n')
+                        except:
+                            print("oops...")
                     infile_is_good = self.check_input(
                         step_object_dict["Fraction New Calculation"], 
                         previous_output_file)
@@ -377,7 +373,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 "file to load for {} step".format(to_load, step_name)))
         filename, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
                 "Choose {} file to load".format(to_load), self.file_loc, 
-                load_type)
+                load_type, options=QtWidgets.QFileDialog.DontUseNativeDialog)
         return filename
     
     def collect_multiple_files(self, to_load, step_name, load_type):
@@ -385,7 +381,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 "files to load for {} step".format(to_load, step_name)))
         filenames, file_type = QtWidgets.QFileDialog.getOpenFileNames(self, 
                 "Choose {} file to load".format(to_load), self.file_loc, 
-                load_type)
+                load_type, options=QtWidgets.QFileDialog.DontUseNativeDialog)
         return filenames
     
     def change_settings(self):

@@ -7,7 +7,7 @@ from tkinter import filedialog
 from tkinter import Tk
 import os
 
-output_columns = ['n_value', 'stddev']
+output_columns = ['empir_n', 'stddev']
 
 def data_chunker(df_full):
 	# Renames columns to proper names depending on if a lipid or protein is being passed in
@@ -20,15 +20,11 @@ def data_chunker(df_full):
 	df['chemical_formula'] = df['chemical_formula'].astype(str)
 
 	# Clean up Intensity data for normalization
-	to_delete = string.punctuation.replace('.', '')  # remove fullstop
+	# to_delete = string.punctuation.replace('.', '')  # remove fullstop
 
 	# Normalize intensities
 	for row in df.itertuples():  # Normalise the intensity list by sum
-		# this map may need to happen for unlabeled (Day 0) intensities
-		temp = list(map(
-			float, row.intensities.translate(
-				str.maketrans('', '', to_delete)).split()
-		))
+		temp = [float(x) for x in row.intensities.split(', ')]
 		s = sum(temp)
 		df.at[row.Index, 'intensities'] = [float(i) / s for i in temp]
 
@@ -45,19 +41,6 @@ def data_chunker(df_full):
 	chunkSize = 1500
 	numChunks = 0
 
-	# Creates a temporary director to store intermediate files before combining to all for multiple instances running at the same time.
-	# temp_dir = tempfile.mkdtemp()
-
-	# Create a folder to output intermediate data to
-	# inter_dir = (os.getcwd() + "/Intermediates")
-	# if (not os.path.exists(inter_dir)):
-	# 	os.mkdir(inter_dir)
-	# inter_dir = (os.getcwd() + "/Intermediates/Intermediates_" + str(filename)[filename.rfind('/') + 1:-4])
-	# print("Saving Intermediate files at: ", inter_dir)
-	# if (os.path.exists(inter_dir)):
-	# 	shutil.rmtree(inter_dir)
-	# os.mkdir(inter_dir)
-
 	# Create the Chunks
 	for num in range(int(df.shape[0] / chunkSize)):
 		chunkedData.append(
@@ -70,7 +53,7 @@ def data_chunker(df_full):
 	print("Number of Rows to process: " + str(df.shape[0]))
 
 	# Run the Chunks
-	chunked_df = list()
+	chunked_dfs = list()
 
 	currentChunk = 1
 	print("There are " + str(numChunks) + " chunk(s) to compute")
@@ -84,17 +67,17 @@ def data_chunker(df_full):
 
 		calculator.run()
 		calculator.df = calculator.df.sort_index()
-		chunked_df.append(calculator.df)
+		chunked_dfs.append(calculator.df)
 		currentChunk += 1
 		del calculator  # Free Memory
 
-	combined_csv = pd.concat(chunked_df)  # combine all files in the list
+	combined_chunks = pd.concat(chunked_dfs)  # combine all files in the list
 
 	# Merge Intermediates with original file
-	combined_csv = combined_csv.set_index('index')
-	combined_csv = combined_csv.sort_index()
+	combined_chunks = combined_chunks.set_index('index')
+	combined_chunks = combined_chunks.sort_index()
 	df_full = df_full.merge(
-		right=combined_csv[output_columns],
+		right=combined_chunks[output_columns],
 		how='outer',
 		left_index=True,
 		right_index=True

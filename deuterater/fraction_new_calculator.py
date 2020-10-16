@@ -35,13 +35,14 @@ itertuple_renamer = {
     "Protein Name": "Protein_Name",
     "Homologous Proteins": "Homologous_Proteins",
     "n_isos": "num_peaks",
-    "literature_n": "n_value"
+    "literature_n": "n_value",
     }
 class FractionNewCalculator():
     def __init__(self, model_path, out_path, settings_path):
         settings.load(settings_path)
         if settings.use_empir_n_value:
             itertuple_renamer['literature_n'] = 'literature_n'
+            itertuple_renamer['empir_n'] = 'n_value'
         self.model = pd.read_csv(model_path, sep='\t')
         self.model.rename(columns = itertuple_renamer, inplace = True)
         self.out_path = out_path

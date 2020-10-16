@@ -81,6 +81,8 @@ class TheoryPreparer():
         self.model = self.model.drop(columns=['drop'])
 
         if settings.use_empir_n_value:
+            self.model.drop(columns=['index'], inplace=True)
+            self.model = self.model.reset_index(drop=True)
             self.model = nvc.data_chunker(self.model)
 
         self._mp_pool.close()
