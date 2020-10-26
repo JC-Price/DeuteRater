@@ -19,9 +19,6 @@ def data_chunker(df_full):
 	df['intensities'] = df['intensities'].astype(str).apply(lambda x: x[1:-1])
 	df['chemical_formula'] = df['chemical_formula'].astype(str)
 
-	# Clean up Intensity data for normalization
-	# to_delete = string.punctuation.replace('.', '')  # remove fullstop
-
 	# Normalize intensities
 	for row in df.itertuples():  # Normalise the intensity list by sum
 		temp = [float(x) for x in row.intensities.split(', ')]

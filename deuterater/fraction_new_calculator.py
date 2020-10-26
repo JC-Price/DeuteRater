@@ -18,8 +18,8 @@ columns_to_drop = ["Precursor Retention Time (sec)", "rt_start", "rt_end",
                    'gene_name',"protein_existence", "sequence_version",
                    "id_index", "lookback_mzs", "lookback_abundances",
                    "lookahead_mzs", "lookahead_abundances", "rt_min",
-                   "rt_max", "baseline_signal", "mads", 
-    ]
+                   "rt_max", "baseline_signal", "mads",
+                  ]
 
 
 
