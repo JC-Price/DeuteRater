@@ -46,7 +46,7 @@ from collections import namedtuple
 from copy import deepcopy
 import pandas as pd
 import numpy as np
-
+import re
 
 # name comes from Super Atom Data in the original emass program,
 # this is the master list that holds all data throughout the calculations
@@ -58,9 +58,20 @@ ELECTRON_MASS = .00054858
 # obvious error mass to indicate issues
 DUMMY_MASS = -10000000
 
+#$allows use of multiple letters for elemental composition
+def new_parser(input_string):
+    formmap = {}
+    elements_separated = re.findall('[A-Z][^A-Z]*',input_string) 
+    for e in elements_separated:
+        element = e.rstrip('0123456789')
+        number = e[len(element):]
+        if number == "": number =1 #$ need the one to be there if element is alone
+        formmap[element] = int(number)
+    return formmap
+"""
 # takes a sequence string(C2H5 for example) and turns it into a dictionary ( {'C':2, 'H':5} )
 def parser(elem_comp):
-    """NOTE: cannot handle multiple letter symbols like Al or Se.  Modify if such is needed"""
+    #NOTE: cannot handle multiple letter symbols like Al or Se.  Modify if such is needed
     # initialize values
     letter = ''
     num = -100
@@ -83,7 +94,7 @@ def parser(elem_comp):
     # won't put last value in without this last command
     formmap[letter] = num
     return formmap
-
+"""
 
 # combines two patterns (lists of peaks).
 # The idea is that small groups of atoms are combined into large atoms.
@@ -197,6 +208,7 @@ def normalizeM0(old_list):
 isotope = namedtuple('isotope', 'mass abundance')
 
 # X starts at normal isotope frequencies(in this case H. X is positions that can be deuterated, not will be TODO:??
+#$ D is a label applied artificially (as in a standard) and does not change
 master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                         isotope(mass=2.0141021, abundance=0.000156)],  # TODO: this is identical to hydrogen?
                   'H': [isotope(mass=1.0078246, abundance=0.999844),
@@ -214,7 +226,20 @@ master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                         isotope(mass=33.967866, abundance=0.0429),
                         isotope(mass=-1000000, abundance=0),
                         isotope(mass=35.967080, abundance=0.0002)],
-                  'F': [isotope(mass=18.99840322, abundance=1.0)]} # CQ Added to account for Flourine occurring in Lipids
+                  'F': [isotope(mass=18.99840322, abundance=1.0)],
+                  'D': [isotope(mass = 2.0141021, abundance=0.000156)],
+                  'Cl':[isotope(mass= 34.9688527, abundance=0.7576),
+                        isotope(mass=-1000000, abundance=0),
+                        isotope(mass= 36.9659026, abundance=0.2424)],
+                  'Br':[isotope(mass= 78.9183376, abundance=0.5069),
+                        isotope(mass=-1000000, abundance=0),
+                        isotope(mass= 80.9162897, abundance=0.4931)],
+                  'I': [isotope(mass=126.9044719, abundance=1.0)],
+                  'Si':[isotope(mass=27.9769265, abundance=0.92223),
+                        isotope(mass=28.9764946, abundance=0.04685),
+                        isotope(mass=29.9737701, abundance=0.03092)],
+                  
+                  } # CQ Added to account for Flourine occurring in Lipids
 
 # TODO: What are these values and why are they here?
 limit = 0
@@ -266,7 +291,7 @@ def emass(chemical_formula, n_begin, n_end, low_pct, high_pct, num_peaks, step=1
                                isotope(master_isotope['H'][1].mass, master_isotope['H'][1].abundance + pct)]
         for n in range(n_begin, n_end, step):
             n_h = n_end
-            chem_format = parser(chemical_formula.format(n_h - n, n))
+            chem_format = new_parser(chemical_formula.format(n_h - n, n))
             result = calculate([isotope(0, 1)], chem_format, limit, charge)
             mz_list, intensity_list = print_pattern(result, digits)
             # the lengths of these lists are 11+ before truncating
@@ -306,7 +331,7 @@ def emass(chemical_formula, n_begin, n_end, low_pct, high_pct, num_peaks, step=1
 
 def main():
     # uncomment lines below to step through the execution in a debugging tool and/or print example to console
-    unlabeled_dfs, labeled_dfs = emass("C46H{}N1O10P1X{}", 5, 79, 0, .053, 4, step=1)
+    unlabeled_dfs, labeled_dfs = emass("C46H{}BrN1O10Cl20P1X{}", 5, 79, 0, .053, 4, step=1)
     (df_unlabeled_mzs, df_unlabeled_intensities) = unlabeled_dfs
     (df_labeled_mzs, df_labeled_intensities) = labeled_dfs
     print(df_unlabeled_intensities.to_string())

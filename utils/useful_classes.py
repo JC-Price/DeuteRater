@@ -14,14 +14,16 @@ import csv
 #$allows easier calls in the main and one large batch of declarations
 #$limits hard coding issues
 class deuterater_step(object):
-    def __init__(self, output_filename, required_columns):
+    def __init__(self, output_filename, peptide_required_columns,
+                 lipid_required_columns):
         self.output_filename = output_filename
-        self.required_columns = required_columns
+        self.peptide_required_columns = peptide_required_columns
+        self.lipid_required_columns = lipid_required_columns
         
     def complete_filename(self, folder):
         self.full_filename = os.path.join(folder, self.output_filename)
         
-    def check_input_file(self, input_file):
+    def check_input_file(self, input_file, biomolecule_type):
         with open (input_file, 'r') as infile:
             if input_file[-4:] == ".tsv":
                 reader = csv.reader(infile, delimiter = "\t")
@@ -30,8 +32,10 @@ class deuterater_step(object):
             else:
                 raise ValueError("Improper input file")
             firstrow = next(reader)
-        return set(self.required_columns).issubset(firstrow)
-  
+        if biomolecule_type == "Peptide":
+            return set(self.peptide_required_columns).issubset(firstrow)
+        elif biomolecule_type == "Lipid":
+            return set(self.lipid_required_columns).issubset(firstrow)
     
 #$ we're going to make two classes. these will be here so we can swap between
 #$two different settings menus as needed.  we need string and numerical classes

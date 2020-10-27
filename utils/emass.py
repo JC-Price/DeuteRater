@@ -73,15 +73,13 @@ DUMMY_MASS = -10000000
 #$does NOT allow leaving out 1 so if there is one sulfur 
 #$that must be S1 not S
 def new_parser(input_string):
-    #mix of https://stackoverflow.com/questions
-    #4703390/how-to-extract-a-floating-number-from-a-string answer 1 and 
-    #https://www.geeksforgeeks.org/python-splitting-text-and-number-in-string/
-    #split_result = re.findall(r'(\w+?)(\d*\.\d+|\d+)', input_string)
-    #adjusted to only allows integers
-    split_result = re.findall(r'(\w+?)(\d+)', input_string)
-    formmap = {
-        tuple_value[0]: int(tuple_value[1]) for tuple_value in split_result
-    }
+    formmap = {}
+    elements_separated = re.findall('[A-Z][^A-Z]*',input_string) 
+    for e in elements_separated:
+        element = e.rstrip('0123456789')
+        number = e[len(element):]
+        if number == "": number =1 #$ need the one to be there if element is alone
+        formmap[element] = int(number)
     return formmap
 """
 # takes a sequence string(C2H5 for example) and turns it into a dictionary
@@ -244,6 +242,7 @@ isotope = namedtuple('isotope', 'mass abundance')
 
 # X starts at normal isotope frequencies(in this case H.
 # X is positions that can be deuterated, not will be TODO:??
+#$ D is a label applied artificially (as in a standard) and does not change
 master_isotope = {
     # TODO: this is identical to hydrogen?
     'X': [isotope(mass=1.0078246, abundance=0.999844),
@@ -264,7 +263,18 @@ master_isotope = {
           isotope(mass=-1000000, abundance=0),
           isotope(mass=35.967080, abundance=0.0002)],
     # CQ Added to account for Flourine occurring in Lipids
-    'F': [isotope(mass=18.99840322, abundance=1.0)]
+    'F': [isotope(mass=18.99840322, abundance=1.0)],
+    'D': [isotope(mass = 2.0141021, abundance=0.000156)],
+    'Cl':[isotope(mass= 34.9688527, abundance=0.7576),
+          isotope(mass=-1000000, abundance=0),
+          isotope(mass= 36.9659026, abundance=0.2424)],
+    'Br':[isotope(mass= 78.9183376, abundance=0.5069),
+          isotope(mass=-1000000, abundance=0),
+          isotope(mass= 80.9162897, abundance=0.4931)],
+    'I': [isotope(mass=126.9044719, abundance=1.0)],
+    'Si':[isotope(mass=27.9769265, abundance=0.92223),
+          isotope(mass=28.9764946, abundance=0.04685),
+          isotope(mass=29.9737701, abundance=0.03092)]
 }
 
 # TODO: What are these values and why are they here?
