@@ -15,11 +15,14 @@ readability and consistency, as well as easy to use in the command line
 import os
 import multiprocessing as mp
 import csv
+import pandas as pd
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile
 
 from deuteconvert.peaks85 import Peaks85
+from deuteconvert.peaksXplus import PeaksXplus
+from deuteconvert.masshunter_converter import MassHunterConverter
 from deuterater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from deuterater.theory_preparer import TheoryPreparer
@@ -44,19 +47,32 @@ default_guide_settings = os.path.join(location, "resources",
 #$if we add other id types just yank id columns out and make a variable list
 Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                     'Precursor m/z','Identification Charge', 'Sequence',
-                    'Protein ID', "cf"])
-Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
+                    'Protein ID', "cf"],
+                    ['Precursor Retention Time (sec)', 'Precursor m/z',
+                     'Identification Charge', "Lipid Unique Identifier",
+                     "LMP", "Lipid Name", "HMP", "cf"])
+Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", 
+    [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
-    "Sequence", "cf", "abundances", "mzs"])
-Theory_object = deuterater_step("theory_output.tsv", [
-    "Filename", "Time","Enrichment", "Sample_Group"])
+    "Sequence", "cf", "abundances", "mzs"
+    ],
+    ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+    "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+    "Lipid Name", "cf", "abundances", "mzs"])
+Theory_object = deuterater_step("theory_output.tsv", 
+    ["Filename", "Time","Enrichment", "Sample_Group"],
+    ["Filename", "Time","Enrichment", "Sample_Group"])
 Fracnew_object = deuterater_step("frac_new_output.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
-    "Sequence", "cf", "abundances", "mzs", "time", "enrichment", "sample_group"])
+    "Sequence", "cf", "abundances", "mzs", "time", "enrichment", "sample_group"],
+    [
+    "Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+    "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+    "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment", "sample_group"])
 #$rate needs reassignment based on settings so we'll read in and make later
-Rate_object = deuterater_step("calculated_rates.tsv", [])
+Rate_object = deuterater_step("calculated_rates.tsv", [], [])
 
 step_object_dict = {
     "Extract":Extract_object,
@@ -65,6 +81,16 @@ step_object_dict = {
     "Fraction New Calculation":Fracnew_object,
     "Rate Calculation":Rate_object
     }
+
+convert_options = {
+    "Peaks 8.5 - Peptides": Peaks85,
+    "Peaks X+ - Peptides": PeaksXplus,
+    "MassHunter - Lipids": MassHunterConverter,
+    "Template": ""
+    }
+default_converter = "Peaks X+ - Peptides"
+#TODO$ may need to adjust the header or shove in the n-value calculator
+converter_header = PeaksXplus.correct_header_order
 
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
 loaded_ui = uic.loadUiType(main_file_ui_location)[0]
@@ -80,6 +106,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         make_temp_file(default_guide_settings, guide_settings_file)
         self.file_loc = location
         
+        #$set up the guide file options
+        self.guide_file_options.addItems(convert_options.keys())
+        #$set the default value for the converter
+        index = self.guide_file_options.findText(default_converter)
+        self.guide_file_options.setCurrentIndex(index)
+        
         self.GuideFileButton.clicked.connect(self.create_guide_file)
         self.RateCalculationButton.clicked.connect(self.run_rate_workflow)
         self.actionSettings.triggered.connect(self.change_settings)
@@ -91,37 +123,65 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.Logo.setPixmap(myPixmap)
         self.Logo.setScaledContents(True)
     
-    
-    #$we'll start with only Peaks 8.5 output. if we add other id file types 
-    #$later we can adjust this function.
-    def create_guide_file(self):
-        #$ get the files we need
+    def Peaks_File_Collection(self):
+         #$ get the files we need
         #TODO switch to reading from a folder instead of individual files?$
         QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
             "files you would like to turn into a guide file. The order is \""
-            "proteins.csv\", \"protein-peptides.csv\", \"filter.csv\""))
+            "proteins.csv\", \"protein-peptides.csv\", \"feature.csv\""))
             
-        protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
+        protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
                 "Choose protein file to Load", self.file_loc, "CSV (*.csv)",
                 options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if protein_file == "": return
-        else:self.file_loc = os.path.dirname(protein_file)
+        if protein_file == "": 
+            return ""
+        else:
+            self.file_loc = os.path.dirname(protein_file)
         protein_peptide_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
             self, "Choose protein_peptide file to Load", self.file_loc, 
             "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if protein_peptide_file == "":  return
-        else:self.file_loc = os.path.dirname(protein_peptide_file)
+        if protein_peptide_file == "":  
+            return ""
+        else:
+            self.file_loc = os.path.dirname(protein_peptide_file)
         feature_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
                 "Choose features file to Load", self.file_loc, "CSV (*.csv)",
                 options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if feature_file == "": return
-        else:self.file_loc = os.path.dirname(feature_file)
-
-        # TODO: Tell the user that a guide file is being created and to wait with persistent dialog.
-        #$do the actual calculations
-        converter = Peaks85(protein_file, protein_peptide_file, feature_file,
-                            guide_settings_file)
-        converter.convert()
+        if feature_file == "": return ""
+        else:
+            self.file_loc = os.path.dirname(feature_file)
+        return [protein_file, protein_peptide_file, feature_file]
+    
+    def Masshunter_File_Collection(self):
+         QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
+            "MassHunter file you would like to turn into a guide file."))
+         masshunter_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Choose MassHunter file to Load", self.file_loc, 
+            "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
+         if masshunter_file == "": return ""
+         else:
+            self.file_loc = os.path.dirname(masshunter_file)
+            return [masshunter_file]
+    
+    #$this is to govern the different guide file functions
+    #TODO$ when we have added lipid data adjust template and the function calls
+    def create_guide_file(self):
+        guide_file_type = str(self.guide_file_options.currentText())
+        #$collect any guide files needed
+        #$template doesn't need one since it just needs one output
+        if guide_file_type in ["Peaks 8.5 - Peptides", "Peaks X+ - Peptides"]:
+             input_files = self.Peaks_File_Collection()
+        elif guide_file_type == "MassHunter - Lipids":
+            input_files = self.Masshunter_File_Collection()
+        
+        #$guide_file_type has to be first or input_files may not be defined
+        if guide_file_type != "Template" and input_files =="":
+            return
+        if guide_file_type != "Template":
+             #$do the actual calculations
+            converter = convert_options[guide_file_type](input_files,
+                guide_settings_file)
+            converter.convert()                               
         
         #$get output file
         QtWidgets.QMessageBox.information(self, "Info", ("Your guide file was "
@@ -131,7 +191,11 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 "Provide Save File", self.file_loc, "CSV (*.csv)")
             if save_file == "": return
             try:
-                converter.write(save_file)
+                if guide_file_type != "Template":
+                    converter.write(save_file)
+                else:
+                    df = pd.DataFrame(columns =converter_header )
+                    df.to_csv(save_file, sep=',', index=False)
                 break
             except IOError:
                 QtWidgets.QMessageBox.information(self, "Error", 
@@ -144,6 +208,11 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
     def run_rate_workflow(self):
         #$will need some settings
         settings.load(rate_settings_file)
+        
+        if self.PeptideButton.isChecked():
+            biomolecule_type = "Peptide"
+        elif self.LipidButton.isChecked():
+            biomolecule_type = "Lipid"
         
         #$first we need to check which steps are checked 
         worklist = self.check_table_checklist()
@@ -186,6 +255,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #todo$ see if we can compress the code and make sure it is readable
         previous_output_file = "" 
         extracted_files =[]
+        make_table_in_order = True
         for analysis_step in worklist:
             if analysis_step == "Extract":
                 #$no if for this one, if extract is here it is the start
@@ -193,18 +263,36 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 if id_file == "": return
                 #$always check if is good since it is first
                 infile_is_good = self.check_input(step_object_dict["Extract"],
-                                                                   id_file)
+                                        id_file, biomolecule_type)
                 if not infile_is_good:  return
                 
                 mzml_files = self.collect_multiple_files("Centroided Data",
                                 "Extract", "mzML (*.mzML)")
                 if mzml_files ==[]: return
                 
+                mzml_filenames = [os.path.basename(filename) for filename in
+                                 mzml_files]
                 extracted_files = [filename.replace(".mzML", ".tsv") for
-                                        filename in mzml_files]
+                                        filename in mzml_filenames]
+                extracted_files = [os.path.join(output_folder, filename) for
+                                   filename in extracted_files]
                 
                 proceed = self.check_file_removal(extracted_files)
                 if not proceed:  return
+                #$need to run the table if necessary. taken from the 
+                #$"Provide Time and Enrichment" elif
+                if "Provide Time and Enrichment" in worklist:
+                    previous_output_file = step_object_dict[
+                        "Provide Time and Enrichment"].full_filename
+                    self.get_data_table = TimeEnrichmentWindow(self, 
+                            extracted_files, previous_output_file)
+                    self.get_data_table.exec_()
+                    #$don't make the table twice
+                    make_table_in_order = False
+                    #$now that the table is done we need to confirm the user
+                    #$hit the proceed button on the table (same check as in
+                    #$elif analysis_step == "Theory Generation" )
+                    if not os.path.exists(previous_output_file): return
                 #$ modified from the extract-dir argument from the command line
                 for m in range(len(mzml_files)):
                     extractor = Extractor(
@@ -216,7 +304,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
-            elif analysis_step == "Provide Time and Enrichment":
+            elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 #$if coming right after a list
                 if extracted_files == []:
                     extracted_files = self.collect_multiple_files(
@@ -229,7 +317,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     #$if the user just selected
                     for e_file in extracted_files:
                         infile_is_good = self.check_input(
-                            step_object_dict["Provide Time and Enrichment"], e_file)
+                            step_object_dict["Provide Time and Enrichment"], 
+                            e_file, biomolecule_type)
                         if not infile_is_good: return
                     
                 #$ now that we have the extracted files we can make a table
@@ -249,7 +338,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     )
                     if previous_output_file == "": return
                     infile_is_good = self.check_input(
-                        step_object_dict["Theory Generation"], previous_output_file)
+                        step_object_dict["Theory Generation"], 
+                        previous_output_file, biomolecule_type)
                     if not infile_is_good: return
                 #$else is to deal with a failed write from the previous table
                 #$ don't need an error message just return
@@ -279,16 +369,22 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     )
                     if previous_output_file == "": return
                     if settings.use_empir_n_value:
-                        step_object_dict['Fraction New Calculation'].required_columns.append('empir_n')
+                        if biomolecule_type == "Peptide":
+                            step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
+                        elif biomolecule_type == "Lipid":
+                            step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
                     else:
                         # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
                         try:
-                            step_object_dict['Fraction New Calculator'][1].remove('empir_n')
+                            if biomolecule_type == "Peptide":
+                                step_object_dict['Fraction New Calculator'].peptide_required_columns.remove('empir_n')
+                            elif biomolecule_type == "Lipid":
+                                step_object_dict['Fraction New Calculator'].lipid_required_columns.remove('empir_n')
                         except:
                             print("oops...")
                     infile_is_good = self.check_input(
                         step_object_dict["Fraction New Calculation"], 
-                        previous_output_file)
+                        previous_output_file, biomolecule_type)
                     if not infile_is_good: return
                 #$not sure why this would happen but we'll put it here
                 #$to avoid future error
@@ -296,9 +392,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 fnewcalc = FractionNewCalculator(
                     model_path=previous_output_file,
                     out_path=step_object_dict["Fraction New Calculation"].full_filename,
-                    settings_path=rate_settings_file
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
                 )
                 fnewcalc.generate()
+                if fnewcalc.error != "":
+                    QtWidgets.QMessageBox.information(self, "Error", fnewcalc.error)
+                    return
                 fnewcalc.write()
                 previous_output_file = step_object_dict[
                     "Fraction New Calculation"].full_filename
@@ -312,8 +412,16 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     if previous_output_file == "": return
                     #$need to ensure that we have proper colmns which varies
                     #$by setting
-                    needed_columns = [settings.analyte_id_column,
-                                      "sample_group"]
+                    if biomolecule_type == "Peptide":
+                        needed_columns = [
+                            settings.peptide_analyte_id_column,
+                            settings.peptide_analyte_name_column,
+                            "sample_group"]
+                    elif biomolecule_type == "Lipid":
+                        needed_columns = [
+                            settings.lipid_analyte_id_column,
+                            settings.lipid_analyte_name_column,
+                            "sample_group"]
                     if settings.use_abundance:
                         needed_columns.extend(["afn", "frac_new_abunds_std_dev"])
                     if settings.use_neutromer_spacing:
@@ -323,7 +431,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     step_object_dict["Rate Calculation"].required_columns =needed_columns
                     infile_is_good = self.check_input(
                         step_object_dict["Rate Calculation"], 
-                        previous_output_file)
+                        previous_output_file, biomolecule_type)
                     if not infile_is_good: return
                 
                 #$need to get a graph folder and ensure it exists
@@ -334,7 +442,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     model_path = previous_output_file,
                     out_path = step_object_dict["Rate Calculation"].full_filename,
                     graph_folder = GraphFolder,
-                    settings_path = rate_settings_file
+                    settings_path = rate_settings_file,
+                    biomolecule_type = biomolecule_type
                 )
                 ratecalc.calculate()
                 ratecalc.write()
@@ -348,7 +457,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         for i in range(self.RequestedStepsTable.rowCount()):
             if self.RequestedStepsTable.item(i,0).checkState() == QtCore.Qt.Checked:
                 current_worklist.append(str(
-                    self.RequestedStepsTable.item(i,1).text()))
+                    self.RequestedStepsTable.item(i,0).text()))
                 error_check.append(i)
         #$the point of the error check is to ensure ther are no gaps in the 
         #$checklist since then we will be missing critical info for the next
@@ -421,8 +530,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #$overwrite and they can be removed so we have permission
         return True
         
-    def check_input (self, relevant_object, filename):
-        has_needed_columns = relevant_object.check_input_file(filename)
+    def check_input (self, relevant_object, filename, biomolecule_type):
+        has_needed_columns = relevant_object.check_input_file(filename,
+                                                              biomolecule_type)
         if not has_needed_columns:
             QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
                 "missing needed columns. Please correct and try again".format(
@@ -464,8 +574,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                              object_dict.output_filename)
                 needed_files.append(full_filename)
         return needed_files
-            
-   
     
 #$since we have to load settings in each file, and need a way to adjust
 #$settings, we'll 
