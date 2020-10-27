@@ -14,14 +14,14 @@ import deuterater.settings as settings
 #$troubleshooting and visibility
 columns_to_drop = ["Precursor Retention Time (sec)", "rt_start", "rt_end", 
                    "rt_width", "Precursor m/z", "Identification Charge",
-                   "quality", "avg_ppm", "start_loc", "end_loc", "species",
-                   'gene_name',"protein_existence", "sequence_version",
                    "id_index", "lookback_mzs", "lookback_abundances",
                    "lookahead_mzs", "lookahead_abundances", "rt_min",
-                   "rt_max", "baseline_signal", "mads",
-                  ]
+                   "rt_max", "baseline_signal", "mads", 
+    ]
 
-
+peptide_extra_columns_to_drop = ["quality", "avg_ppm", "start_loc", 
+                                 "end_loc", "species", 'gene_name',
+                                 "protein_existence", "sequence_version"]
 
 
 #itertuples doesn't like some characters
@@ -30,19 +30,37 @@ columns_to_drop = ["Precursor Retention Time (sec)", "rt_start", "rt_end",
 #therefore we will declare any particularly problematic.  
 #we'll force that to change here 
 #$if we're swapping between literature_n and theory_n use this dictionary
-itertuple_renamer = {
+protein_itertuple_renamer = {
     "Protein ID": "Protein_ID",
     "Protein Name": "Protein_Name",
     "Homologous Proteins": "Homologous_Proteins",
     "n_isos": "num_peaks",
-    "literature_n": "n_value",
+    "literature_n": "n_value"
     }
+
+lipid_itertuple_renamer = {
+    "n_isos": "num_peaks",
+    "literature_n": "n_value",
+    "Lipid Unique Identifier": "Lipid_Unique_Identifier",
+    "Lipid Name": "Lipid_Name"
+    }
+
 class FractionNewCalculator():
-    def __init__(self, model_path, out_path, settings_path):
+    def __init__(self, model_path, out_path, settings_path, biomolecule_type):
         settings.load(settings_path)
+        if biomolecule_type == "Peptide":
+            itertuple_renamer = protein_itertuple_renamer
+        elif biomolecule_type == "Lipid":
+            itertuple_renamer = lipid_itertuple_renamer
+               
+        self.biomolecule_type = biomolecule_type
+        
+        self.error = ""
+        
+        #$ adjust the itertuple renamer to use the proper n_value
         if settings.use_empir_n_value:
             itertuple_renamer['literature_n'] = 'literature_n'
-            itertuple_renamer['empir_n'] = 'n_value'
+            itertuple_renamer['empir_n'] = 'n_value' 
         self.model = pd.read_csv(model_path, sep='\t')
         self.model.rename(columns = itertuple_renamer, inplace = True)
         self.out_path = out_path
@@ -62,6 +80,18 @@ class FractionNewCalculator():
         
         #$just drop the unneeded columns
         self.model = self.model.drop(columns_to_drop, axis =1)
+        if self.biomolecule_type == "Peptide":
+            self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1)
+        
+        if self.model["n_value"].isna().all():
+            self.error = ("N value is not present.  "
+                          "Please ensure the n value has been provided in the "
+                          "literature_n column or has been calculated in the "
+                          "n_value column. If the proper column is filled "
+                          "please check your settings for using the proper "
+                          "column")
+            return
+        
         if settings.use_abundance:
             self.model = self.model.assign(
                 theory_unlabeled_abunds="",
@@ -96,8 +126,10 @@ class FractionNewCalculator():
                 self.error_method(row, "N value is less than {}".format(
                     settings.min_allowed_n_values))
                 continue
-            #$this will need to adjusted for lipids or similar if we use such.
-            if len(row.Sequence) < settings.min_aa_sequence_length:
+            if self.biomolecule_type == "Peptide" and \
+                    len(row.Sequence) < settings.min_aa_sequence_length:
+                        
+                
                 self.error_method(row, "Fewer than {} amino acids".format(
                     settings.min_aa_sequence_length))
                 continue

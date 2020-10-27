@@ -18,12 +18,14 @@ from utils.graphing_tools import graph_rate
 group_column = "sample_group"
 
 class RateCalculator():
-    def __init__(self, model_path, out_path, graph_folder, settings_path):
+    def __init__(self, model_path, out_path, graph_folder, settings_path,
+                 biomolecule_type):
         settings.load(settings_path)
         self.model = pd.read_csv(model_path, sep ="\t")
         self.out_path = out_path
         self.rate_model = None
         self.graph_folder = graph_folder
+        self.biomolecule_type = biomolecule_type
 
     def write(self):
         self.rate_model.to_csv(
@@ -39,7 +41,10 @@ class RateCalculator():
         w.filterwarnings("error")
         rate_results = []
         max_time = max(self.model["time"])
-        id_col = settings.analyte_id_column
+        if self.biomolecule_type == "Peptide":
+            id_col = settings.peptide_analyte_id_column
+        elif self.biomolecule_type == "Lipid":
+            id_col = settings.lipid_analyte_id_column
         #$could put manual bias correction here, would be slightly more 
         #$efficient, but make the logic less clear
         groups = self.model.groupby(by=[id_col, group_column])
@@ -90,7 +95,10 @@ class RateCalculator():
         for id, group in tqdm(groups):
             id_name = id[0]
             sample_group_name =id[1]
-            common_name = group[settings.analyte_name_column].iloc[0]
+            if self.biomolecule_type == "Peptide":
+                common_name = group[settings.peptide_analyte_name_column].iloc[0]
+            if self.biomolecule_type == "Lipid":
+                common_name = group[settings.lipid_analyte_name_column].iloc[0]
             #$drop error string could do earlier for more speed, but this is 
             #$clearer and allows errors that affect only one calculation type
             group = RateCalculator._error_trimmer(
@@ -126,7 +134,12 @@ class RateCalculator():
             
             # Get the number of unique time points, and continue if not enough
             num_unique_times = len(set(group['time']))
-            unique_length = len(set(group[settings.unique_sequence_column]))
+            if self.biomolecule_type == "Peptide":
+                unique_length = len(set(group[settings.unique_sequence_column]))
+            #$for lipids or metaboloites or similar, the unique length means
+            #$nothing.  if needed can add the elif
+            else:
+                unique_length = ""
             num_measurements = len(group.index)
             #TODO$ this is not ideal but this is a good first attempt
             num_files = len(set(group["mzml_path"]))
@@ -176,14 +189,21 @@ class RateCalculator():
                     #$'calculation_type': calc_type
                 }
                 #$ if there is an asymptote need to provide it
+                if self.biomolecule_type == "Peptide":
+                    graph_name = "{}_{}_{}".format(id_name, sample_group_name, 
+                                                   fn_col)
+                elif self.biomolecule_type == "Lipid":
+                    graph_name = "{}_{}_{}".format(common_name, 
+                                                   sample_group_name, fn_col)
                 if settings.roll_up_rate_calc:
-                    graph_rate("{}_{}_{}".format(id_name, sample_group_name, fn_col), 
-                               xs, ys, rate, asymptote, confint, rate_eq,
-                               self.graph_folder, max_time, settings.asymptote, devs)
+                    graph_rate(graph_name, xs, ys, rate, asymptote, confint, 
+                               rate_eq, self.graph_folder, max_time, 
+                               settings.asymptote, devs)
                 else:
-                    graph_rate("{}_{}_{}".format(id_name, sample_group_name, fn_col),  
-                               xs, ys, rate, asymptote, confint, rate_eq, 
-                               self.graph_folder, max_time, settings.asymptote)
+                    graph_rate(graph_name,  xs, ys, rate, asymptote, confint, 
+                               rate_eq, self.graph_folder, max_time, 
+                               settings.asymptote)
+                               
                                
             
             except Exception as c:

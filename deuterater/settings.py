@@ -48,8 +48,10 @@ baseline_lookback: int
 peak_ratio_denominator: int
 zscore_cutoff: int
 mz_proximity_tolerance: float
-analyte_id_column: str
-analyte_name_column: str
+peptide_analyte_id_column: str
+peptide_analyte_name_column: str
+lipid_analyte_id_column: str
+lipid_analyte_name_column: str
 unique_sequence_column: str
 roll_up_rate_calc: bool
 asymptote: str
@@ -160,11 +162,17 @@ def load(settings_path):
         global mz_proximity_tolerance
         mz_proximity_tolerance = s['mz_proximity_tolerance']
         
-        global analyte_id_column
-        analyte_id_column = s['analyte_id_column']
+        global peptide_analyte_id_column
+        peptide_analyte_id_column = s['peptide_analyte_id_column']
         
-        global analyte_name_column
-        analyte_name_column = s['analyte_name_column']
+        global peptide_analyte_name_column
+        peptide_analyte_name_column = s['peptide_analyte_name_column']
+        
+        global lipid_analyte_id_column
+        lipid_analyte_id_column = s['lipid_analyte_id_column']
+        
+        global lipid_analyte_name_column
+        lipid_analyte_name_column = s['lipid_analyte_name_column']
         
         global unique_sequence_column
         unique_sequence_column = s["unique_sequence_column"]
@@ -260,8 +268,10 @@ def freeze(path=None, settings_dict = None):
             'peak_ratio_denominator': peak_ratio_denominator,
             'zscore_cutoff': zscore_cutoff,
             'mz_proximity_tolerance': mz_proximity_tolerance,
-            "analyte_id_column": analyte_id_column,
-            "analyte_name_column": analyte_name_column,
+            "peptide_analyte_id_column": peptide_analyte_id_column,
+            "peptide_analyte_name_column": peptide_analyte_name_column,
+            "lipid_analyte_id_column": lipid_analyte_id_column,
+            "lipid_analyte_name_column": lipid_analyte_name_column,
             "unique_sequence_column": unique_sequence_column,
             "roll_up_rate_calc": roll_up_rate_calc,
             "asymptote": asymptote,
