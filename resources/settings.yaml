@@ -105,10 +105,15 @@ zscore_cutoff: !!float 1
 mz_proximity_tolerance: !!float 0.00
 
 #$what column to sort on before rate calculations
-analyte_id_column: !!str "Protein_ID"
+peptide_analyte_id_column: !!str "Protein_ID"
 
 #$common name for ease of identification
-analyte_name_column: !!str "Protein_Name"
+peptide_analyte_name_column: !!str "Protein_Name"
+
+lipid_analyte_id_column: !!str "Lipid_Unique_Identifier"
+
+lipid_analyte_name_column: !!str "Lipid_Name"
+
 
 #$column to get the number of unique sequences used for a fit
 #$this is made for peptide sequences in proteins, but could be used for 
@@ -173,4 +178,4 @@ min_aa_sequence_length: !!int 6
 min_allowed_n_values: !!int 10
 
 #$If the empiracily derived n-value should be used instead of the literature.
-use_empir_n_value: !!bool true
+use_empir_n_value: !!bool false
