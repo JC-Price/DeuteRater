@@ -81,6 +81,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.heavy_isotope, False),
             setting_string_info(self.label_key, "label_key",
                                 settings.label_key, False),
+            setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                settings.use_empir_n_value, True),
             setting_string_info(self.use_abundance, "use_abundance",
                                 settings.use_abundance, True),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
@@ -161,8 +163,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "chunking_method_threshold" : settings.chunking_method_threshold,
             "max_valid_angle" : settings.max_valid_angle,
             "peak_ratio_denominator" : settings.peak_ratio_denominator,
-            "analyte_id_column" : settings.analyte_id_column,
-            "analyte_name_column" : settings.analyte_name_column,
+            "peptide_analyte_id_column" : settings.peptide_analyte_id_column,
+            "lipid_analyte_id_column" : settings.lipid_analyte_id_column,
+            "peptide_analyte_name_column" : settings.peptide_analyte_name_column,
+            "lipid_analyte_name_column" : settings.lipid_analyte_name_column,
             "unique_sequence_column" : settings.unique_sequence_column,
             "maximum_theoretical_pct" : settings.maximum_theoretical_pct,
             "labeling_step_size" : settings.labeling_step_size,
@@ -178,7 +182,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "combined_agreement_filter" : settings.combined_agreement_filter,
             "error_of_non_replicated_point" : settings.error_of_non_replicated_point,
             "y_intercept_of_fit" : settings.y_intercept_of_fit,
-            "enrichement_of_zero" : settings.enrichement_of_zero
+            "enrichement_of_zero" : settings.enrichement_of_zero,
             }
         return unalterable_settings
         
