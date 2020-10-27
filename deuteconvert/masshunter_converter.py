@@ -1,21 +1,26 @@
+# -*- coding: utf-8 -*-
+"""
+
+"""
+
 # This code was made to take in 3 files from PEAKs:
 # feature, peptides, protein-peptides
 import pandas as pd
 import numpy as np
-from functools import partial
-import json
-import re
+#from functools import partial
+#import json
+#import re
 
-from base_converter import BaseConverter
+from deuteconvert.base_converter import BaseConverter
 
-import peptide_utils as peputils
-import settings
+#import peptide_utils as peputils
+import deuteconvert.settings as settings
 
 
 class MassHunterConverter(BaseConverter):
     # TODO: slots
 
-    settings.load('../resources/converter_settings.yaml')
+    #settings.load('../resources/converter_settings.yaml')
     # TODO: These constants need organized as well
     accession_parse_token = '|'
     PROTON_MASS = 1.007825
@@ -114,11 +119,12 @@ class MassHunterConverter(BaseConverter):
         'literature_n'
     ]
 
-    def __init__(self, precursor):
-        self.precursor_path = precursor
+    def __init__(self, precursor, settings_path):
+        self.precursor_path = precursor[0]
         self._id_df = None
 
         super().__init__()
+        settings.load(settings_path)
 
     @property
     def converted_data(self):
@@ -136,7 +142,7 @@ class MassHunterConverter(BaseConverter):
         self._finalize()
 
     def write(self, out):
-        self._id_df.to_csv(out, sep='\t', index=False)
+        self._id_df.to_csv(out, index=False)
 
     # NOTE: add functions for additional formats here if we need them
 
