@@ -79,9 +79,10 @@ class FractionNewCalculator():
         #enrichment_col = 'enrichment'
         
         #$just drop the unneeded columns
-        self.model = self.model.drop(columns_to_drop, axis =1)
+        self.model = self.model.drop(columns_to_drop, axis =1, errors = "ignore")
         if self.biomolecule_type == "Peptide":
-            self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1)
+            self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1,
+                                         errors = "ignore")
         
         if self.model["n_value"].isna().all():
             self.error = ("N value is not present.  "
