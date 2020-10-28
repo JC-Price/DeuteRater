@@ -79,8 +79,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                     settings.ppm_window, True),
             setting_string_info(self.heavy_label, "heavy_isotope",
                                 settings.heavy_isotope, False),
-            setting_string_info(self.label_key, "label_key",
-                                settings.label_key, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                 settings.use_empir_n_value, True),
             setting_string_info(self.use_abundance, "use_abundance",
