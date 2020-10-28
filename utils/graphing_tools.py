@@ -30,23 +30,40 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     
     
     #$make the values for the line
+    #$make_error_lines is just to remove unoptimal fits for plus and minus
+    #$the main should have triggered the try except in rate_calculator.py if
+    #$it is the issue.
+    make_error_lines = True
     fit_line_x = np.arange(0,maximum + maximum/10, .1)
     if asymptote_option == 'variable':
         fit_line_y = rate_equation(fit_line_x, k = rate, a  = asymptote)
+        try:
+            fit_line_y_minus_error = rate_equation(fit_line_x, 
+                                               k = rate - ci, a  = asymptote)
+            fit_line_y_plus_error =  rate_equation(fit_line_x, 
+                                               k = rate + ci, a  = asymptote)
+        except:
+            make_error_lines = False
     else:
         fit_line_y = rate_equation(fit_line_x, rate)
-    fit_line_y_minus_error = fit_line_y - ci
-    fit_line_y_plus_error = fit_line_y + ci
+        try:
+            fit_line_y_minus_error = rate_equation(fit_line_x, rate - ci)
+            fit_line_y_plus_error = rate_equation(fit_line_x, rate + ci)
+        except:
+            make_error_lines = False
+        
     #$ if add multiple conditions put each in parentheses  and use | or &
-    fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = \
-        MAXIMUM_GRAPH_RATE_ERROR
-    fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = \
-        MINIMUM_GRAPH_RATE_ERROR   
+    if make_error_lines:
+        fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = \
+            MAXIMUM_GRAPH_RATE_ERROR
+        fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = \
+            MINIMUM_GRAPH_RATE_ERROR   
     
     #$plot  lines and points
     plt.plot(fit_line_x, fit_line_y, main_line_symbol)
-    plt.plot(fit_line_x, fit_line_y_plus_error, error_line_symbol)
-    plt.plot(fit_line_x, fit_line_y_minus_error, error_line_symbol)
+    if make_error_lines:
+        plt.plot(fit_line_x, fit_line_y_plus_error, error_line_symbol)
+        plt.plot(fit_line_x, fit_line_y_minus_error, error_line_symbol)
     plt.plot(x_values, y_values, data_points_symbol)
     if errors != [] : #$ only if roll up so need error bars
         plt.errorbar(x_values, y_values, yerr = errors,  elinewidth = 1, 
