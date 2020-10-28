@@ -35,7 +35,6 @@ max_valid_angle: float
 time_window: float
 ppm_window: int
 heavy_isotope: str
-label_key: str
 use_abundance: bool
 use_neutromer_spacing: bool
 maximum_theoretical_pct: float
@@ -122,9 +121,6 @@ def load(settings_path):
 
         global heavy_isotope
         heavy_isotope = s['heavy_isotope']
-
-        global label_key
-        label_key = s["label_key"]
 
         global use_abundance
         use_abundance = s['use_abundance']
@@ -255,7 +251,6 @@ def freeze(path=None, settings_dict = None):
             'time_window': time_window,
             'ppm_window': ppm_window,
             'heavy_isotope': heavy_isotope,
-            "label_key": label_key,
             'use_abundance': use_abundance,
             'use_neutromer_spacing': use_neutromer_spacing,
             'maximum_theoretical_pct': maximum_theoretical_pct,
