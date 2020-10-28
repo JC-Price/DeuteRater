@@ -65,8 +65,6 @@ ppm_window: !!int 30
 # Isotope used for labeling
 heavy_isotope:  !!str "H"
 
-# Labeling schema key
-label_key:  !!str "tissue"
 
 # Whether or not to use abundance
 use_abundance: !!bool true
