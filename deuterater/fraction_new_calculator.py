@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np  # noqa
+from copy import copy
 
 from tqdm import tqdm  # noqa: 401
 
@@ -49,9 +50,9 @@ class FractionNewCalculator():
     def __init__(self, model_path, out_path, settings_path, biomolecule_type):
         settings.load(settings_path)
         if biomolecule_type == "Peptide":
-            itertuple_renamer = protein_itertuple_renamer
+            itertuple_renamer = copy(protein_itertuple_renamer)
         elif biomolecule_type == "Lipid":
-            itertuple_renamer = lipid_itertuple_renamer
+            itertuple_renamer = copy(lipid_itertuple_renamer)
                
         self.biomolecule_type = biomolecule_type
         
