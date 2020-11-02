@@ -177,3 +177,9 @@ min_allowed_n_values: !!int 10
 
 #$If the empiracily derived n-value should be used instead of the literature.
 use_empir_n_value: !!bool false
+
+#$peaks that have a low minimum abundance change possible tend to be either 
+#$noisy, or increase and then decrease which our calculations does not account
+#$for.  either way it tends to result in high std dev and improperly dropping
+#$a good peak
+minimum_abund_change: !!float .04
