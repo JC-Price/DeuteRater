@@ -71,6 +71,7 @@ min_allowed_abund_max_delta: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
 use_empir_n_value: bool
+minimum_abund_change: float
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
@@ -230,6 +231,9 @@ def load(settings_path):
         global use_empir_n_value
         use_empir_n_value = s["use_empir_n_value"]
         
+        global minimum_abund_change
+        minimum_abund_change = s["minimum_abund_change"]
+        
 
     except Exception as e:
         print(e)
@@ -285,7 +289,8 @@ def freeze(path=None, settings_dict = None):
             "enrichement_of_zero": enrichement_of_zero,
             "min_allowed_abund_max_delta": min_allowed_abund_max_delta,
             "min_aa_sequence_length": min_aa_sequence_length,
-            "min_allowed_n_values": min_allowed_n_values
+            "min_allowed_n_values": min_allowed_n_values,
+            "minimum_abund_change": minimum_abund_change
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

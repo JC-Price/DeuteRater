@@ -99,6 +99,7 @@ class FractionNewCalculator():
                 theory_unlabeled_abunds="",
                 theory_labeled_abunds="",
                 normalized_empirical_abundances = "",
+                low_labeling_peaks = "",
                 frac_new_abunds="",
                 frac_new_abunds_std_dev  = "",
                 afn = ""
@@ -171,11 +172,23 @@ class FractionNewCalculator():
                     [float(x) for x in normalized_empirical_abunds.split(", ")],
                     e_abunds.loc[0][1:]
                 )
-                all_frac_new_abunds = self._calculate_fractions(
-                    empirical_abund_deltas, theory_abund_deltas
-                )
-                self.final_calculations(row, "abunds", all_frac_new_abunds,
-                                         "afn", theory_abund_deltas[0])
+                theory_abund_deltas, empirical_abund_deltas, removed_peaks = \
+                    self._trim_abunds(theory_abund_deltas, empirical_abund_deltas)
+                
+                self.model.at[row.Index, "low_labeling_peaks"] = removed_peaks
+                
+                #$don't need to break if we only have one or zero. combined and
+                #$spacing are still fine, we just shouldn't do the other calculations
+                #$here
+                if len(theory_abund_deltas) <2:
+                    self.model.at[row.Index, "afn"] = \
+                        f"Insufficient peaks with theory above {settings.minimum_abund_change}"
+                else:
+                    all_frac_new_abunds = self._calculate_fractions(
+                        empirical_abund_deltas, theory_abund_deltas
+                    )
+                    self.final_calculations(row, "abunds", all_frac_new_abunds,
+                                             "afn", theory_abund_deltas[0])
             
             if settings.use_neutromer_spacing:     
                 self.prepare_row(row, "mzs", e_mzs)
@@ -278,6 +291,20 @@ class FractionNewCalculator():
            normalized_list = normalize([float(a) for a in abundance_list])
            return ", ".join([str(n) for n in normalized_list])
     
+   #$need to remove the abundances with a low maximum. usually caused by the
+   #$peak rising and falling. since we are calculating based on unidirectional
+   #$change this can cause problems for the std dev filter
+    @staticmethod 
+    def _trim_abunds (theory, empirical):
+        drop_list, new_theory, new_empirical = [], [], []
+        for t in range(len(theory)):
+            if abs(theory[t]) < settings.minimum_abund_change:
+                drop_list.append(f'M{t}')
+            else:
+                new_theory.append(theory[t])
+                new_empirical.append(empirical[t])
+        return new_theory, new_empirical, ", ".join(drop_list)
+    
     #$for right now this is not necessary but we may need to expand it later
     #$ can add a length check or outlier checkto this later
     @staticmethod
@@ -301,4 +328,6 @@ class FractionNewCalculator():
         if len(good_turnovers) > 1:
             return good_turnovers
         else: return data_to_check
+        
+    
         
