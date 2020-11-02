@@ -181,6 +181,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "error_of_non_replicated_point" : settings.error_of_non_replicated_point,
             "y_intercept_of_fit" : settings.y_intercept_of_fit,
             "enrichement_of_zero" : settings.enrichement_of_zero,
+            "minimum_abund_change": settings.minimum_abund_change
             }
         return unalterable_settings
         
