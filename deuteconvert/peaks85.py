@@ -400,7 +400,8 @@ class Peaks85(BaseConverter):
         df['drop'] = False
         df.sort_values(by='mz', inplace=True)
         for row in df.itertuples():
-            mz_mask = ((df['mz'] - row.mz).abs() <
+            #$ppm error (row.mz might be wrong but should not be too far off)
+            mz_mask = (((df['mz'] - row.mz)/row.mz *1000000) .abs() <
                        settings.mz_proximity_tolerance)
             rt_mask = ((df['rt_mean'] - row.rt_mean).abs() <
                        settings.rt_proximity_tolerance)
