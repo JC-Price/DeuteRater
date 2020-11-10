@@ -183,6 +183,7 @@ class FractionNewCalculator():
                 if len(theory_abund_deltas) <2:
                     self.model.at[row.Index, "afn"] = \
                         f"Insufficient peaks with theory above {settings.minimum_abund_change}"
+                    all_frac_new_abunds = []
                 else:
                     all_frac_new_abunds = self._calculate_fractions(
                         empirical_abund_deltas, theory_abund_deltas
