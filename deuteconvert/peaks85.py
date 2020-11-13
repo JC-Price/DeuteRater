@@ -9,6 +9,8 @@ import json
 import re
 import os
 
+from copy import copy
+
 from deuteconvert.base_converter import BaseConverter
 import deuteconvert.peptide_utils as peputils
 import deuteconvert.settings as settings
@@ -396,21 +398,28 @@ class Peaks85(BaseConverter):
         return df
 
     @staticmethod
+    def _ppm_calculator(target, actual):
+        ppm = (target-actual)/target * 1000000
+        return abs(ppm)
+    #$swapped to use multiple for loops instead of df.  need to recalculate
+    #$all ppms based on current row, and there should a small number of relevant
+    #$masses so we can break out of the internal for quickly
+    @staticmethod
     def _proximity_filter(df):
-        df['drop'] = False
         df.sort_values(by='mz', inplace=True)
-        for row in df.itertuples():
-            #$ppm error (row.mz might be wrong but should not be too far off)
-            mz_mask = (((df['mz'] - row.mz)/row.mz *1000000) .abs() <
-                       settings.mz_proximity_tolerance)
-            rt_mask = ((df['rt_mean'] - row.rt_mean).abs() <
-                       settings.rt_proximity_tolerance)
-            mask = mz_mask & rt_mask
-            if sum(mask) > 1:
-                # TODO: discuss how to keep data
-                df.loc[mask, 'drop'] = True
-        df = df.loc[~df['drop'], :]
-        return df
+        mz_index = list(df.columns).index("mz") 
+        rt_index = list(df.columns).index("rt_mean")
+        list_of_lists = df.values.tolist()
+        too_close = []
+        for i in range(len(list_of_lists)):
+            for j in range(i+1, len(list_of_lists)):
+                current_ppm = Peaks85._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
+                if current_ppm > settings.mz_proximity_tolerance: 
+                    break
+                if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance:
+                    too_close.extend([i,j])
+        too_close = list(set(too_close))
+        return df.drop(df.index[too_close])
 
     # @staticmethod
     # def _name_filter(df, toSortBy, choose='min'):
@@ -424,6 +433,21 @@ class Peaks85(BaseConverter):
 
     @staticmethod
     def _expand_to_charge_states(df):
+        all_columns = list(df.columns)
+        precursor_mz_index = list(df.columns).index('Precursor m/z') 
+        id_charge_index = list(df.columns).index('Identification Charge')
+        list_of_lists = df.values.tolist()
+        all_data = []
+        for sub_list in list_of_lists:
+            premass = sub_list[precursor_mz_index] * sub_list[id_charge_index] - \
+                sub_list[id_charge_index] * Peaks85.PROTON_MASS
+            for z in range(settings.min_charge_state, settings.max_charge_state + 1):
+                quick_list =copy(sub_list)
+                quick_list[precursor_mz_index] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
+                quick_list[id_charge_index] = z
+                all_data.append(quick_list)
+        return pd.DataFrame(all_data, columns = all_columns)
+        """
         df_new = pd.DataFrame(columns=df.columns)
 
         for row in df.iterrows():
@@ -436,7 +460,7 @@ class Peaks85(BaseConverter):
                 df_new = df_new.append(temp_row)
 
         return df_new
-
+        """
     @staticmethod
     def _finalize(df):
         df = df[df['peptide'].str.len() >= 6]  # TODO: Make magic number a setting
