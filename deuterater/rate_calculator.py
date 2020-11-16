@@ -155,10 +155,11 @@ class RateCalculator():
 
             # perform fit
             try: 
+                #$DO NOT use std dev as the Sigma because it creates influential outliers
+                #$don't use sigma unless we have a different 
                 popt, pcov = curve_fit(
                     f=rate_eq, xdata=xs, ydata=ys,
-                    p0=p0, sigma=devs
-                )
+                    p0=p0)
     
                 # pull results of fit into variables
                 rate = popt[0]
