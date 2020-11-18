@@ -171,6 +171,10 @@ class RateCalculator():
                     t.ppf(.975, num_files - 1) * \
                     np.sqrt(np.diag(pcov))[0] / \
                     np.sqrt(num_files)
+                
+                y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
+                r_2 = dur.calculate_r2(ys, y_predicted)    
+                
                 result = {
                     'analyte_id': id_name,
                     'analyte_name': common_name,
@@ -180,6 +184,7 @@ class RateCalculator():
                     '{} std_dev'.format(calc_type): np.sqrt(np.diag(pcov))[0],
                     '{} 95pct_confidence'.format(calc_type): confint,
                     '{} half life'.format(calc_type): self._halflife(rate),
+                    '{} R2'.format(calc_type): r_2,
                     "{} files observed in".format(calc_type): num_files,
                     '{} num_measurements'.format(calc_type): 
                         num_measurements,
@@ -291,6 +296,7 @@ class RateCalculator():
                   '{} std_dev'.format(calc_type): main_error,
                   '{} 95pct_confidence'.format(calc_type): main_error,
                   '{} half life'.format(calc_type): main_error,
+                  '{} R2'.format(calc_type): main_error,
                   "{} files observed in".format(calc_type): num_files,
                   '{} num_measurements'.format(calc_type): num_m,
                   '{} num_time_points'.format(calc_type): num_times,
