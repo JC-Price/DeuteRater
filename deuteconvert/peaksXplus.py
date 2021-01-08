@@ -414,7 +414,8 @@ class PeaksXplus(BaseConverter):
             0,  # Hydrogen
             10,  # Carbon-12
             13,  # Nitrogen-14
-            15,  # Oxygen-16
+            15,  # Oxygen-16,
+            30, # Phosphorous
             31  # Sulfer-32
         ]
         elem_df = elem_df.iloc[element_index_mask]
@@ -427,7 +428,7 @@ class PeaksXplus(BaseConverter):
                 if aa not in aa_counts.keys():
                     aa_counts[aa] = 0
                 aa_counts[aa] += 1
-            elem_dict = peputils.calc_cf(aa_counts, aa_comp_df, row.z)
+            elem_dict = peputils.calc_cf(aa_counts, aa_comp_df)
             theoretical_mass = peputils.calc_theory_mass(elem_dict, elem_df)
             literature_n = peputils.calc_add_n(aa_counts, aa_labeling_dict)
 

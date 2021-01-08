@@ -1,12 +1,12 @@
 # TODO: Documentation is great.
 
 
-def calc_cf(aa_counts, aa_composition_df,z):
+def calc_cf(aa_counts, aa_composition_df):
     elem_dict = {elem: 0 for elem in aa_composition_df.loc[:, 'C':].columns}
     for aa, count in aa_counts.items():
         for elem in elem_dict.keys():
             elem_dict[elem] += count * aa_composition_df.at[aa, elem]
-    elem_dict = positive_cf_change(elem_dict, z)
+    elem_dict = positive_cf_change(elem_dict)
     return elem_dict
 
 #the calc_cf function calculates elemental composition well
@@ -18,10 +18,10 @@ def calc_cf(aa_counts, aa_composition_df,z):
 #adds 1 O and z+2 H values to the elemental dict.
 #takes elemental_dict (dictionary) and z (an int)
 #returns the updated elemental dictionary
-def positive_cf_change(elemental_dict, z):
+def positive_cf_change(elemental_dict):
     # since we are assuming positve and +H adduct we can just be direct
     elemental_dict["O"] +=1
-    elemental_dict["H"] += 2 + z
+    elemental_dict["H"] += 2# + z
     return elemental_dict
 
 
