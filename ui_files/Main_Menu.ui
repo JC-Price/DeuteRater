@@ -105,7 +105,7 @@
      </spacer>
     </item>
     <item row="6" column="0" colspan="2">
-     <widget class="QPushButton" name="GuideFileButton">
+     <widget class="QPushButton" name="IDFileButton">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
         <horstretch>0</horstretch>
@@ -118,7 +118,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Create Guide File</string>
+       <string>Create ID File</string>
       </property>
      </widget>
     </item>
@@ -174,7 +174,7 @@
        </font>
       </property>
       <property name="text">
-       <string>Guide File Format:</string>
+       <string>ID File Format:</string>
       </property>
      </widget>
     </item>
@@ -319,7 +319,7 @@
      </widget>
     </item>
     <item row="8" column="0" colspan="3">
-     <widget class="QComboBox" name="guide_file_options">
+     <widget class="QComboBox" name="id_file_options">
       <property name="font">
        <font>
         <pointsize>16</pointsize>
