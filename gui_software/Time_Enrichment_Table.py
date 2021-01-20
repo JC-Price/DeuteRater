@@ -19,11 +19,14 @@ location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ui_file = os.path.join(location, "ui_files", "Time_Enrichment_Table.ui")
 
+
 loaded_ui = uic.loadUiType(ui_file)[0]
 
 #$ it is tricky to actually get the header out of the qtablewidget and they
 #$ need different checks anyway so we'll just declare it here
 current_columns = ["Filename", "Time", "Enrichment", "Sample_Group"]
+
+enrich_col_loc = current_columns.index("Enrichment")
 
 class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
     def __init__(self, parent = None, filenames = [], outfile = None):
@@ -77,9 +80,14 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
             #$filename is not editable so can be ignored
             current_row = [str(self.TimeEnrichmentTable.item(r,0).text())]
             for i in range(1, len(current_columns)-1):
+                if i != enrich_col_loc: 
+                    provide_as_percent = False
+                else:
+                    provide_as_percent = True
+                #$r + 1 because it is for an error message.  it will help the user
                 test_value = TimeEnrichmentWindow._basic_number_error_check(
                     self.TimeEnrichmentTable.item(r,i).text(),
-                    current_columns[i], r)
+                    current_columns[i], r+1, provide_as_percent)
                 if type(test_value) == str:
                     QtWidgets.QMessageBox.information(self, "Error", test_value)
                     return 
@@ -87,7 +95,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
             #get the sample group name (no need for it to be )
             test_value, error_code = TimeEnrichmentWindow._basic_string_check(
                     self.TimeEnrichmentTable.item(r,len(current_columns)-1).text(),
-                    current_columns[-1], r)
+                    current_columns[-1], r+1)
             if error_code:
                 QtWidgets.QMessageBox.information(self, "Error", test_value)
                 return
@@ -173,7 +181,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         
     #$does some basic error checking for numerical data 
     @staticmethod
-    def _basic_number_error_check(text_value, column_name, row_number):
+    def _basic_number_error_check(text_value, column_name, row_number, percent_as_decimal):
         append_to_error = " at \"{}\" column, row {}. Correct to proceed.".format(
             column_name, row_number)
         if text_value == "":
@@ -184,6 +192,9 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
             return "Non-numerical value" + append_to_error
         if num_value < 0:
             return "Negative value" + append_to_error
+        if percent_as_decimal and num_value >1: #$allow up to 100%
+            return "Enrichment is a decimal not a percent. Value is too large" + append_to_error
+        
         #$we could also check if it is under some maximum, but for now
         #$trust the user
         return num_value
