@@ -20,6 +20,9 @@ data_points_symbol = 'ro'
 MAXIMUM_GRAPH_RATE_ERROR = 10
 MINIMUM_GRAPH_RATE_ERROR = -5
 
+#$the colon is not allowed but seems to make an empty file with a partial name.
+#$either way the check is here to prevent problems if it is necessary
+bad_save_file_characters = ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]
 
 def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation, 
                save_folder_name, maximum, asymptote_option, errors = []):
@@ -69,7 +72,20 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         plt.errorbar(x_values, y_values, yerr = errors,  elinewidth = 1, 
             ecolor = 'red', linewidth = 0)
     #$save figure and clear it for next time
-    filename = os.path.join(save_folder_name, name) + ".pdf"
-    plt.savefig(filename)
+    try:
+        filename = os.path.join(save_folder_name, name) + ".pdf"
+        
+        
+        plt.savefig(filename)
+
+    #$the following characters are not allowed in windows file names: /\ : * ? " <> |
+    #$replace them with underscores (yes this could erase duplicates, but this is unlikely 
+    #$first place, that situation is unlikely problematic enough to bother with)
+    except OSError:
+        for bad_char in bad_save_file_characters:
+           name = name.replace(bad_char, "_")
+        filename = os.path.join(save_folder_name, name) + ".pdf"
+        plt.savefig(filename)
+
     plt.clf()
 
