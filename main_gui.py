@@ -22,6 +22,7 @@ from shutil import copyfile
 
 from deuteconvert.peaks85 import Peaks85
 from deuteconvert.peaksXplus import PeaksXplus
+from deuteconvert.peaksXpro import PeaksXpro
 from deuteconvert.masshunter_converter import MassHunterConverter
 from deuterater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
@@ -37,10 +38,10 @@ location = os.path.dirname(os.path.abspath(__file__))
 
 rate_settings_file = os.path.join(location, "resources","temp_settings.yaml")
 default_rate_settings = os.path.join(location, "resources","settings.yaml")
-guide_settings_file = os.path.join(location, "resources", 
-                                   "temp_guide_settings.yaml")
-default_guide_settings = os.path.join(location, "resources", 
-                                      "guide_settings.yaml")
+id_settings_file = os.path.join(location, "resources", 
+                                   "temp_id_settings.yaml")
+default_id_settings = os.path.join(location, "resources", 
+                                      "id_settings.yaml")
 
 #$make some basic classes to hold some data.  If need to adjust
 #$output names or columns required from input, do it here
@@ -85,10 +86,11 @@ step_object_dict = {
 convert_options = {
     "Peaks 8.5 - Peptides": Peaks85,
     "Peaks X+ - Peptides": PeaksXplus,
+    "Peaks XPro - Peptides": PeaksXpro,
     "MassHunter - Lipids": MassHunterConverter,
     "Template": ""
     }
-default_converter = "Peaks X+ - Peptides"
+default_converter = "Peaks XPro - Peptides"
 #TODO$ may need to adjust the header or shove in the n-value calculator
 converter_header = PeaksXplus.correct_header_order
 
@@ -103,16 +105,16 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         
         self.setupUi(self)
         make_temp_file(default_rate_settings, rate_settings_file)
-        make_temp_file(default_guide_settings, guide_settings_file)
+        make_temp_file(default_id_settings, id_settings_file)
         self.file_loc = location
         
-        #$set up the guide file options
-        self.guide_file_options.addItems(convert_options.keys())
+        #$set up the id file options
+        self.id_file_options.addItems(convert_options.keys())
         #$set the default value for the converter
-        index = self.guide_file_options.findText(default_converter)
-        self.guide_file_options.setCurrentIndex(index)
+        index = self.id_file_options.findText(default_converter)
+        self.id_file_options.setCurrentIndex(index)
         
-        self.GuideFileButton.clicked.connect(self.create_guide_file)
+        self.IDFileButton.clicked.connect(self.create_id_file)
         self.RateCalculationButton.clicked.connect(self.run_rate_workflow)
         self.actionSettings.triggered.connect(self.change_settings)
         
@@ -127,7 +129,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
          #$ get the files we need
         #TODO switch to reading from a folder instead of individual files?$
         QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
-            "files you would like to turn into a guide file. The order is \""
+            "files you would like to turn into a ID file. The order is \""
             "proteins.csv\", \"protein-peptides.csv\", \"feature.csv\""))
             
         protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
@@ -154,7 +156,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
     
     def Masshunter_File_Collection(self):
          QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
-            "MassHunter file you would like to turn into a guide file."))
+            "MassHunter file you would like to turn into a id file."))
          masshunter_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
             self, "Choose MassHunter file to Load", self.file_loc, 
             "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
@@ -163,35 +165,35 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             self.file_loc = os.path.dirname(masshunter_file)
             return [masshunter_file]
     
-    #$this is to govern the different guide file functions
+    #$this is to govern the different id file functions
     #TODO$ when we have added lipid data adjust template and the function calls
-    def create_guide_file(self):
-        guide_file_type = str(self.guide_file_options.currentText())
-        #$collect any guide files needed
+    def create_id_file(self):
+        id_file_type = str(self.id_file_options.currentText())
+        #$collect any id files needed
         #$template doesn't need one since it just needs one output
-        if guide_file_type in ["Peaks 8.5 - Peptides", "Peaks X+ - Peptides"]:
+        if id_file_type in ["Peaks 8.5 - Peptides", "Peaks X+ - Peptides", "Peaks XPro - Peptides"]:
              input_files = self.Peaks_File_Collection()
-        elif guide_file_type == "MassHunter - Lipids":
+        elif id_file_type == "MassHunter - Lipids":
             input_files = self.Masshunter_File_Collection()
         
-        #$guide_file_type has to be first or input_files may not be defined
-        if guide_file_type != "Template" and input_files =="":
+        #$id_file_type has to be first or input_files may not be defined
+        if id_file_type != "Template" and input_files =="":
             return
-        if guide_file_type != "Template":
+        if id_file_type != "Template":
              #$do the actual calculations
-            converter = convert_options[guide_file_type](input_files,
-                guide_settings_file)
+            converter = convert_options[id_file_type](input_files,
+                id_settings_file)
             converter.convert()                               
         
         #$get output file
-        QtWidgets.QMessageBox.information(self, "Info", ("Your guide file was "
+        QtWidgets.QMessageBox.information(self, "Info", ("Your id file was "
             "created. Please select the output file location"))
         while (True):
             save_file, filetype = QtWidgets.QFileDialog.getSaveFileName(self, 
                 "Provide Save File", self.file_loc, "CSV (*.csv)")
             if save_file == "": return
             try:
-                if guide_file_type != "Template":
+                if id_file_type != "Template":
                     converter.write(save_file)
                 else:
                     df = pd.DataFrame(columns =converter_header )
@@ -203,7 +205,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     "try again or select a different file".format(save_file)))
         self.file_loc = os.path.dirname(save_file)
         QtWidgets.QMessageBox.information(self, "Success", 
-                "Guide file successfully saved")
+                "ID file successfully saved")
         
     def run_rate_workflow(self):
         #$will need some settings
@@ -540,7 +542,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         return has_needed_columns
     
     #$there are cases (specifically the table going to theory) where there
-    #$is a chance that the files referenced in a guide file may not exist
+    #$is a chance that the files referenced in a id file may not exist
     #$this will check for that
     def check_files_from_files(self, input_file, filename_column):
         with open (input_file, 'r') as infile:
