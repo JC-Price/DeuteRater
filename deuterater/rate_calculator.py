@@ -8,6 +8,7 @@ import numpy as np
 from scipy.stats import t  # pearsonr?
 from scipy.optimize import curve_fit  # least_sq?
 import warnings as w
+import multiprocessing as mp
 
 from tqdm import tqdm  # noqa: 401
 
@@ -26,11 +27,18 @@ class RateCalculator():
         self.rate_model = None
         self.graph_folder = graph_folder
         self.biomolecule_type = biomolecule_type
+        self.settings_path = settings_path
+        #$get the number of cores we're using for multiprocessing
+        if settings.recognize_available_cores is True:
+            self._n_partitions = mp.cpu_count()
+        else:
+            self._n_partitions = settings.n_partitions
+        
+        self._mp_pool = mp.Pool(self._n_partitions)
 
     def write(self):
         self.rate_model.to_csv(
             path_or_buf=self.out_path,
-            sep='\t',
             index=False
         )
     
@@ -62,22 +70,67 @@ class RateCalculator():
                 p_adj=settings.proliferation_adjustment,
                 a=settings.fixed_asymptote_value
             )
+            
+        #$we're going to load up a function for mp.  we need to load up the 
+        #$function. don't add fn_col, fn_std_dev, calc_type, and manual_bias,
+        #$they will be added later
+        rate_function = partial(RateCalculator._mp_function, 
+                                settings_path = self.settings_path,
+                                biomolecule_type = self.biomolecule_type,
+                                graph_folder = self.graph_folder,
+                                rate_eq = rate_eq,
+                                max_time = max_time,
+                                p0 = p0)
+            
         #$call the rate for each relevant measurement type
+        #$add measurement specific arguments to partial function
         if settings.use_abundance:
-            rate_results.append(self.rate_for_calc_type(
-                groups, p0, "Abundance", "afn", "frac_new_abunds_std_dev", 
-                rate_eq, settings.abundance_agreement_filter,
-                settings.abundance_manual_bias, max_time))
+            temp_rate_function = partial(rate_function,
+                                         calc_type = "Abundance",
+                                         fn_col = "afn",
+                                         fn_std_dev = "frac_new_abunds_std_dev",
+                                         manual_bias = settings.abundance_manual_bias,
+                                         std_dev_filter = settings.abundance_agreement_filter)
+            results = list(
+                tqdm(
+                    self._mp_pool.imap_unordered(temp_rate_function, groups),
+                    total=len(groups)
+                )
+            )
+            rate_results.append(pd.DataFrame(results))
+            
+
         if settings.use_neutromer_spacing:
-            rate_results.append(self.rate_for_calc_type(
-                groups, p0, "Spacing", "nsfn", "frac_new_mzs_std_dev", 
-                rate_eq, settings.spacing_agreement_filter,
-                settings.spacing_manual_bias, max_time))
+            temp_rate_function = partial(rate_function,
+                                         calc_type = "Spacing",
+                                         fn_col = "nsfn",
+                                         fn_std_dev = "frac_new_mzs_std_dev",
+                                         manual_bias = settings.spacing_manual_bias,
+                                         std_dev_filter = settings.spacing_agreement_filter)
+            results = list(
+                tqdm(
+                    self._mp_pool.imap_unordered(temp_rate_function, groups),
+                    total=len(groups)
+                )
+            )
+            rate_results.append(pd.DataFrame(results))
+
         if settings.use_abundance and settings.use_neutromer_spacing:
-            rate_results.append(self.rate_for_calc_type(
-                groups, p0, "Combined", "cfn", "frac_new_combined_std_dev", 
-                rate_eq, settings.combined_agreement_filter,
-                settings.combined_manual_bias, max_time))
+            temp_rate_function = partial(rate_function,
+                                         calc_type = "Combined",
+                                         fn_col = "cfn",
+                                         fn_std_dev = "frac_new_combined_std_dev",
+                                         manual_bias = settings.combined_manual_bias,
+                                         std_dev_filter = settings.combined_agreement_filter)
+            results = list(
+                tqdm(
+                    self._mp_pool.imap_unordered(temp_rate_function, groups),
+                    total=len(groups)
+                )
+            )
+            rate_results.append(pd.DataFrame(results))
+            
+ 
         #$ from https://stackoverflow.com/questions/44327999/python
         #$-pandas-merge-multiple-dataframes answer 1 accessed 9/16/2020
         #$merges any number of dfs into one df
@@ -87,151 +140,148 @@ class RateCalculator():
         #$swap back to normal warning behaviour
         w.filterwarnings("default")
         
-    #$actually does the rate calculation and returns results or an error
-    def rate_for_calc_type(self, groups,p0, calc_type, fn_col, fn_std_dev, 
-                           rate_eq, std_dev_filter, manual_bias, max_time):
-        calc_results = []
-        # fit each group
-        for id, group in tqdm(groups):
-            id_name = id[0]
-            sample_group_name =id[1]
-            if self.biomolecule_type == "Peptide":
-                common_name = group[settings.peptide_analyte_name_column].iloc[0]
-            if self.biomolecule_type == "Lipid":
-                common_name = group[settings.lipid_analyte_name_column].iloc[0]
-            #$drop error string could do earlier for more speed, but this is 
-            #$clearer and allows errors that affect only one calculation type
-            group = RateCalculator._error_trimmer(
-                group, [fn_col, fn_std_dev])
-            #$the copy is just to avoid a SettingWithCopy warning in a few
-            #$operations.  if it causes problems remove and suppress warning
-            group = group[group[fn_std_dev] < std_dev_filter].copy()
-            if len(group) == 0:
-                result = self._make_error_message(
-                    "No Isotope Envelopes Agree","", id_name, common_name,  
-                    sample_group_name, calc_type, 0, 0, 0, 0)
-                calc_results.append(result)
-                continue
+        self._mp_pool.close()
+        self._mp_pool.join()
             
-            #offset all values by a certain amount (instrument bias)
-            if settings.bias_calculation == "calculated":
-                bias = self._calc_bias(group, fn_col)
-                group[fn_col] = group[fn_col] - bias
-            elif settings.bias_calculation == "manual": #$ user designated bias  
-                group[fn_col] = group[fn_col] - manual_bias
-                
-            xs = np.concatenate(([0], group['time'].to_numpy()))
-
-            ys = np.concatenate(([settings.y_intercept_of_fit], 
-                                 group[fn_col].to_numpy()))
             
-            if settings.roll_up_rate_calc:
-                xs, ys, devs = self._roll(xs, ys)
-            else:
-                devs = np.concatenate((
-                    [settings.error_of_zero],
-                    group[fn_std_dev].to_numpy()))
-            
-            # Get the number of unique time points, and continue if not enough
-            num_unique_times = len(set(group['time']))
-            if self.biomolecule_type == "Peptide":
-                unique_length = len(set(group[settings.unique_sequence_column]))
-            #$for lipids or metaboloites or similar, the unique length means
-            #$nothing.  if needed can add the elif
-            else:
-                unique_length = ""
-            num_measurements = len(group.index)
-            #TODO$ this is not ideal but this is a good first attempt
-            num_files = len(set(group["mzml_path"]))
-            
-            if num_unique_times < settings.minimum_nonzero_points:
-                result = self._make_error_message(
-                    "Insufficient Timepoints","", id_name, common_name, sample_group_name,
-                    calc_type, num_measurements, num_unique_times, unique_length,
-                    num_files)
-                
-                calc_results.append(result)
-                continue
-
-            # perform fit
-            try: 
-                #$DO NOT use std dev as the Sigma because it creates influential outliers
-                #$don't use sigma unless we have a different 
-                popt, pcov = curve_fit(
-                    f=rate_eq, xdata=xs, ydata=ys,
-                    p0=p0)
-    
-                # pull results of fit into variables
-                rate = popt[0]
-                asymptote = \
-                    popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
-                #TODO$ may need to adjust the ci value to calculate, but for 
-                #$now num_files works
-                confint = \
-                    t.ppf(.975, num_files - 1) * \
-                    np.sqrt(np.diag(pcov))[0] / \
-                    np.sqrt(num_files)
-                
-                y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
-                r_2 = dur.calculate_r2(ys, y_predicted)    
-                
-                result = {
-                    'analyte_id': id_name,
-                    'analyte_name': common_name,
-                    'group_name': sample_group_name,
-                    '{} rate'.format(calc_type) : rate,
-                    '{} asymptote'.format(calc_type) : asymptote,
-                    '{} std_dev'.format(calc_type): np.sqrt(np.diag(pcov))[0],
-                    '{} 95pct_confidence'.format(calc_type): confint,
-                    '{} half life'.format(calc_type): self._halflife(rate),
-                    '{} R2'.format(calc_type): r_2,
-                    "{} files observed in".format(calc_type): num_files,
-                    '{} num_measurements'.format(calc_type): 
-                        num_measurements,
-                    '{} num_time_points'.format(calc_type): 
-                        num_unique_times,
-                    '{} uniques'.format(calc_type): unique_length,
-                    '{} exceptions'.format(calc_type): "",
-                    #$'calculation_type': calc_type
-                }
-                #$ if there is an asymptote need to provide it
-                if self.biomolecule_type == "Peptide":
-                    graph_name = "{}_{}_{}".format(id_name, sample_group_name, 
-                                                   fn_col)
-                elif self.biomolecule_type == "Lipid":
-                    graph_name = "{}_{}_{}".format(common_name, 
-                                                   sample_group_name, fn_col)
-                if settings.roll_up_rate_calc:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint, 
-                               rate_eq, self.graph_folder, max_time, 
-                               settings.asymptote, devs)
-                else:
-                    graph_rate(graph_name,  xs, ys, rate, asymptote, confint, 
-                               rate_eq, self.graph_folder, max_time, 
-                               settings.asymptote)
-                               
-                               
-            
-            except Exception as c:
-                #$"we have a guess but are unsure" warning
-                if type(c).__name__ == "OptimizeWarning":
-                    current_exception = \
-                        'OptimizeWarning: optimal fit could not be found'
-                #$couldn't find the minimum
-                elif type(c).__name__ == "RuntimeError":
-                    current_exception = \
-                        'fit could not be found'
-                else:
-                    raise c #$will stop here so don't need to consider further
-                result = self._make_error_message(
-                    "value could not be determined", current_exception, id_name, 
-                    common_name, sample_group_name, calc_type,num_measurements,  
-                    num_unique_times, unique_length, num_files)
-            
-            calc_results.append(result)
+    def _mp_function(data_tuple, settings_path, biomolecule_type, fn_col, 
+                     fn_std_dev, calc_type,manual_bias, std_dev_filter, graph_folder,
+                     rate_eq, max_time, p0):
+        w.filterwarnings("error")
+        settings.load(settings_path)
+        id_values, group = data_tuple[0], data_tuple[1]
+        id_name = id_values[0]
+        sample_group_name =id_values[1]
+        if biomolecule_type == "Peptide":
+            common_name = group[settings.peptide_analyte_name_column].iloc[0]
+        if biomolecule_type == "Lipid":
+            common_name = group[settings.lipid_analyte_name_column].iloc[0]
+        #$drop error string could do earlier for more speed, but this is 
+        #$clearer and allows errors that affect only one calculation type
+        group = RateCalculator._error_trimmer(
+            group, [fn_col, fn_std_dev])    
+        #$the copy is just to avoid a SettingWithCopy warning in a few
+        #$operations.  if it causes problems remove and suppress warning
+        group = group[group[fn_std_dev] < std_dev_filter].copy()    
            
-        return pd.DataFrame(calc_results)
+        if len(group) == 0:
+            result = RateCalculator._make_error_message(
+                "No Isotope Envelopes Agree","", id_name, common_name,  
+                sample_group_name, calc_type, 0, 0, 0, 0)
+            return result
+    
+        #offset all values by a certain amount (instrument bias)
+        if settings.bias_calculation == "calculated":
+            bias = RateCalculator._calc_bias(group, fn_col)
+            group[fn_col] = group[fn_col] - bias
+        elif settings.bias_calculation == "manual": #$ user designated bias  
+            group[fn_col] = group[fn_col] - manual_bias    
+        
+        xs = np.concatenate(([0], group['time'].to_numpy()))
 
+        ys = np.concatenate(([settings.y_intercept_of_fit], 
+                                 group[fn_col].to_numpy()))
+        
+            
+        if settings.roll_up_rate_calc:
+                xs, ys, devs = RateCalculator._roll(xs, ys)
+        else:
+            devs = np.concatenate((
+                [settings.error_of_zero],
+                group[fn_std_dev].to_numpy()))        
+            
+        # Get the number of unique time points, and continue if not enough
+        num_unique_times = len(set(group['time']))
+        if biomolecule_type == "Peptide":
+            unique_length = len(set(group[settings.unique_sequence_column]))
+        #$for lipids or metaboloites or similar, the unique length means
+        #$nothing.  if needed can add the elif
+        else:
+            unique_length = ""
+        num_measurements = len(group.index)
+            
+        #TODO$ this is not ideal but this is a good first attempt
+        num_files = len(set(group["mzml_path"]))    
+            
+        if num_unique_times < settings.minimum_nonzero_points:
+            result = RateCalculator._make_error_message(
+                "Insufficient Timepoints","", id_name, common_name, sample_group_name,
+                calc_type, num_measurements, num_unique_times, unique_length,
+                num_files)
+            return result    
+        # perform fit
+        try: 
+            #$DO NOT use std dev as the Sigma because it creates influential outliers
+            #$don't use sigma unless we have a different 
+            popt, pcov = curve_fit(
+                f=rate_eq, xdata=xs, ydata=ys,
+                p0=p0)    
+            
+             # pull results of fit into variables
+            rate = popt[0]
+            asymptote = \
+                popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
+            #TODO$ may need to adjust the ci value to calculate, but for 
+            #$now num_files works
+            confint = \
+                t.ppf(.975, num_files - 1) * \
+                np.sqrt(np.diag(pcov))[0] / \
+                np.sqrt(num_files)
+            y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
+            r_2 = dur.calculate_r2(ys, y_predicted)    
+            
+            result = {
+                'analyte_id': id_name,
+                'analyte_name': common_name,
+                'group_name': sample_group_name,
+                '{} rate'.format(calc_type) : rate,
+                '{} asymptote'.format(calc_type) : asymptote,
+                '{} std_dev'.format(calc_type): np.sqrt(np.diag(pcov))[0],
+                '{} 95pct_confidence'.format(calc_type): confint,
+                '{} half life'.format(calc_type): RateCalculator._halflife(rate),
+                '{} R2'.format(calc_type): r_2,
+                "{} files observed in".format(calc_type): num_files,
+                '{} num_measurements'.format(calc_type): 
+                    num_measurements,
+                '{} num_time_points'.format(calc_type): 
+                    num_unique_times,
+                '{} uniques'.format(calc_type): unique_length,
+                '{} exceptions'.format(calc_type): "",
+                #$'calculation_type': calc_type
+            }
+            #$ if there is an asymptote need to provide it
+            if biomolecule_type == "Peptide":
+                graph_name = "{}_{}_{}".format(id_name, sample_group_name, 
+                                               fn_col)
+            elif biomolecule_type == "Lipid":
+                graph_name = "{}_{}_{}".format(common_name, 
+                                               sample_group_name, fn_col)
+            if settings.roll_up_rate_calc:
+                graph_rate(graph_name, xs, ys, rate, asymptote, confint, 
+                           rate_eq, graph_folder, max_time, 
+                           settings.asymptote, devs)
+            else:
+                graph_rate(graph_name,  xs, ys, rate, asymptote, confint, 
+                           rate_eq, graph_folder, max_time, 
+                           settings.asymptote)
+        except Exception as c:
+            #$"we have a guess but are unsure" warning
+            if type(c).__name__ == "OptimizeWarning":
+                current_exception = \
+                    'OptimizeWarning: optimal fit could not be found'
+            #$couldn't find the minimum
+            elif type(c).__name__ == "RuntimeError":
+                current_exception = \
+                    'fit could not be found'
+            else:
+                raise c #$will stop here so don't need to consider further
+            result = RateCalculator._make_error_message(
+                "value could not be determined", current_exception, id_name, 
+                common_name, sample_group_name, calc_type,num_measurements,  
+                num_unique_times, unique_length, num_files)
+        
+        return result            
+            
     #$funciton that does a mad oulier check on a numpy array
     @staticmethod
     def _mask_outliers(y_values):
