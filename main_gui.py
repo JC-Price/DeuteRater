@@ -73,7 +73,7 @@ Fracnew_object = deuterater_step("frac_new_output.tsv", [
     "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
     "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment", "sample_group"])
 #$rate needs reassignment based on settings so we'll read in and make later
-Rate_object = deuterater_step("calculated_rates.tsv", [], [])
+Rate_object = deuterater_step("calculated_rates.csv", [], [])
 
 step_object_dict = {
     "Extract":Extract_object,
