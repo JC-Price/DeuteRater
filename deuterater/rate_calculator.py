@@ -149,6 +149,8 @@ class RateCalculator():
                      rate_eq, max_time, p0):
         w.filterwarnings("error")
         settings.load(settings_path)
+        pd.options.mode.chained_assignment = None
+        
         id_values, group = data_tuple[0], data_tuple[1]
         id_name = id_values[0]
         sample_group_name =id_values[1]

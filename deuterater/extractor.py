@@ -164,7 +164,7 @@ class Extractor:  # TODO name change
         '''
         self.ids = pd.read_csv(self.id_path)
         if self._id_rt_unit == 'sec':
-            self.ids['rt'] = self.ids['Precursor Retention Time (sec)'] / 60
+            self.ids['rt'] = self.ids['Precursor Retention Time (sec)'].apply(lambda x: x / 60.0)
         elif self._id_rt_unit == 'min':
             self.ids['rt'] = self.ids['Precursor Retention Time (sec)']
         self.ids.sort_values(by=['rt'], inplace=True)
