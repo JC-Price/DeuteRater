@@ -10,6 +10,36 @@ maybe one or two basic functions
 import os
 import csv
 
+
+#$similar to deuterater step the goal is to force the the correct headers.
+#$useful for peaks only. could adjust this and deuterater step to inherit from a common parent class
+#$or merge into one class, but not worth it right now
+class deuteconvert_peaks_required_headers(object):
+    def __init__(self,protein_header, protein_peptide_header, features_header):
+        self.protein_header = protein_header
+        self.protein_peptide_header = protein_peptide_header
+        self.features_header = features_header
+        
+    def protein_file_check(self, full_path):
+        return self.check_input_file(full_path, self.protein_header)
+    
+    def protein_peptide_check(self, full_path):
+        return self.check_input_file(full_path, self.protein_peptide_header)
+    
+    def features_check(self, full_path):
+        return self.check_input_file(full_path, self.features_header)
+        
+    def check_input_file(self, full_path, header):
+        with open (full_path, 'r') as infile:
+            if full_path[-4:] == ".tsv":
+                reader = csv.reader(infile, delimiter = "\t")
+            elif full_path[-4:] == ".csv":
+                reader = csv.reader(infile)
+            else:
+                raise ValueError("Improper input file")
+            firstrow = next(reader)
+        return set(header).issubset(firstrow)
+
 #$this class holds data for each deuterater step
 #$allows easier calls in the main and one large batch of declarations
 #$limits hard coding issues
