@@ -11,6 +11,9 @@ import os
 import csv
 import pandas as pd
 
+from pathlib import Path
+
+
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 
 
@@ -37,8 +40,9 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         self.setupUi(self)
         
         self.outfile = outfile
+        self.filepaths = [Path(f) for f in filenames]
         
-        self.set_up_table(filenames)
+        self.set_up_table()
         self.CancelButton.clicked.connect(self.close)
         self.ProceedButton.clicked.connect(self.check_and_save)
         
@@ -54,13 +58,13 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
                             self).activated.connect(self.Paste)
         
     #$ initial table set up
-    def set_up_table(self, row_names):
+    def set_up_table(self):
         #$block signals so if we use undo and redo the basic table is unaffected
         #self.TimeEnrichmentTable.blockSignals(True)
-        self.TimeEnrichmentTable.setRowCount(len(row_names))
-        for n in range(len(row_names)):
+        self.TimeEnrichmentTable.setRowCount(len(self.filepaths))
+        for n in range(len(self.filepaths)):
             #$make an item
-            name_item = QtWidgets.QTableWidgetItem(row_names[n])
+            name_item = QtWidgets.QTableWidgetItem(self.filepaths[n].stem)
             #$ this makes the item uneditable so the user can't mess it up
             #$ from https://stackoverflow.com/questions/17104413/pyqt4-how-to-
             #$ select-table-rows-and-disable-editing-cells anser 2 accessed 9/25/20
@@ -78,7 +82,8 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         results =[current_columns]
         for r in range(self.TimeEnrichmentTable.rowCount()):
             #$filename is not editable so can be ignored
-            current_row = [str(self.TimeEnrichmentTable.item(r,0).text())]
+            #current_row = [str(self.TimeEnrichmentTable.item(r,0).text())]
+            current_row = [self.filepaths[r].resolve()]
             for i in range(1, len(current_columns)-1):
                 if i != enrich_col_loc: 
                     provide_as_percent = False
@@ -212,7 +217,7 @@ if __name__ == '__main__':
     #$needed for windows multiprocessing which will happen at some point
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    output_file = "C:\\Software\\Testing\\DeuteRater_Initial\\test_table_out.csv"
-    gui_object = TimeEnrichmentWindow(None, ["A", "B", "C"], output_file)
+    output_file = "C:\\Software\\Testing\\DeuteRater_Initial\\test_table_out.tsv"
+    gui_object = TimeEnrichmentWindow(None, ["C:\\test_folder_name\\A.tsv", "C:\\test_folder_name\\B.tsv", "C:\\test_folder_name\\C.tsv"], output_file)
     gui_object.show()
     app.exec_()
