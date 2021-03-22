@@ -18,7 +18,7 @@ debug_level: !!int 0
 recognize_available_cores: !!bool true
 
 # This will be used if automation fails or is set to false
-n_processors: !!int 2
+n_partitions: !!int 2
 
 # ID file retention time unit
 #   Set to "sec" for seconds or "min" for minutes
@@ -112,6 +112,12 @@ lipid_analyte_id_column: !!str "Lipid_Unique_Identifier"
 
 lipid_analyte_name_column: !!str "Lipid_Name"
 
+
+
+
+study_type: "tissue"
+
+aa_labeling_sites_path: "aa_labeling_sites.tsv"
 
 #$column to get the number of unique sequences used for a fit
 #$this is made for peptide sequences in proteins, but could be used for 
