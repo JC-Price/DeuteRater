@@ -18,7 +18,7 @@ import csv
 import pandas as pd
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
-from shutil import copyfile
+from shutil import copyfile, rmtree
 
 from deuteconvert.peaks85 import Peaks85
 from deuteconvert.peaksXplus import PeaksXplus
@@ -29,7 +29,7 @@ from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from deuterater.theory_preparer import TheoryPreparer
 from deuterater.fraction_new_calculator import FractionNewCalculator
 from deuterater.rate_calculator import RateCalculator
-from utils.useful_classes import deuterater_step
+from utils.useful_classes import deuterater_step, deuteconvert_peaks_required_headers
 import deuterater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 
@@ -55,7 +55,7 @@ Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
 Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", 
     [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
-    "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
+    "Identification Charge", "Homologous Proteins", "n_isos", 
     "Sequence", "cf", "abundances", "mzs"
     ],
     ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
@@ -90,6 +90,28 @@ convert_options = {
     "MassHunter - Lipids": MassHunterConverter,
     "Template": ""
     }
+
+convert_needed_headers = {
+    "Peaks 8.5 - Peptides": deuteconvert_peaks_required_headers(
+        ['Accession', '#Peptides', '#Unique', 'Description'],
+        ['Peptide', 'Quality', 'Avg. ppm', 'Start', 'End', 'PTM'],
+        ['Peptide', 'RT range', 'RT mean', 'm/z', 'z', 'Accession', 'PTM']
+        ),
+    "Peaks X+ - Peptides": deuteconvert_peaks_required_headers(
+        ['Accession', '#Peptides', '#Unique', 'Description'],
+        ['Peptide', 'ppm', 'Start', 'End', 'PTM'],
+        ['DB Peptide', 'Denovo Peptide', 'RT Begin', 'RT End',
+            'RT', 'm/z', 'z', 'Accession']
+        ),
+    "Peaks XPro - Peptides": deuteconvert_peaks_required_headers(
+        ['Accession', '#Peptides', '#Unique', 'Description'],
+        ['Peptide', 'ppm', 'Start', 'End', 'PTM'],
+        ['DB Peptide', 'Denovo Peptide', 'RT Begin', 'RT End',
+            'RT', 'm/z', 'z', 'Accession']
+        )
+    }
+
+
 default_converter = "Peaks XPro - Peptides"
 #TODO$ may need to adjust the header or shove in the n-value calculator
 converter_header = PeaksXplus.correct_header_order
@@ -125,7 +147,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.Logo.setPixmap(myPixmap)
         self.Logo.setScaledContents(True)
     
-    def Peaks_File_Collection(self):
+    def Peaks_File_Collection(self, header_checker_object):
          #$ get the files we need
         #TODO switch to reading from a folder instead of individual files?$
         QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
@@ -138,19 +160,39 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         if protein_file == "": 
             return ""
         else:
+            has_needed_columns = header_checker_object.protein_file_check(protein_file)
+            if not has_needed_columns:
+                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
+                    "missing needed columns. Please correct and try again".format(
+                    protein_file)))
+                return ""
             self.file_loc = os.path.dirname(protein_file)
+            
         protein_peptide_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
             self, "Choose protein_peptide file to Load", self.file_loc, 
             "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
         if protein_peptide_file == "":  
             return ""
         else:
+            has_needed_columns = header_checker_object.protein_peptide_check(protein_peptide_file)
+            if not has_needed_columns:
+                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
+                    "missing needed columns. Please correct and try again".format(
+                    protein_peptide_file)))
+                return ""
             self.file_loc = os.path.dirname(protein_peptide_file)
+            
         feature_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self, 
                 "Choose features file to Load", self.file_loc, "CSV (*.csv)",
                 options=QtWidgets.QFileDialog.DontUseNativeDialog)
         if feature_file == "": return ""
         else:
+            has_needed_columns = header_checker_object.features_check(feature_file)
+            if not has_needed_columns:
+                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
+                    "missing needed columns. Please correct and try again".format(
+                    feature_file)))
+                return ""
             self.file_loc = os.path.dirname(feature_file)
         return [protein_file, protein_peptide_file, feature_file]
     
@@ -172,7 +214,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #$collect any id files needed
         #$template doesn't need one since it just needs one output
         if id_file_type in ["Peaks 8.5 - Peptides", "Peaks X+ - Peptides", "Peaks XPro - Peptides"]:
-             input_files = self.Peaks_File_Collection()
+             input_files = self.Peaks_File_Collection(convert_needed_headers[id_file_type])
         elif id_file_type == "MassHunter - Lipids":
             input_files = self.Masshunter_File_Collection()
         
@@ -238,7 +280,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #$change location we start asking for things at
         #$don't change since all output is going in here
         self.file_loc = output_folder
-        MainGuiObject._make_folder(output_folder)
+        self.make_folder(output_folder, non_graph=True)
         
         #$then need to check if the files exist. if so warn the user. function
         no_extract_list = [w for w in worklist if w !="Extract"]
@@ -357,7 +399,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 theorist = TheoryPreparer(
                     enrichment_path=previous_output_file,
                     out_path= step_object_dict["Theory Generation"].full_filename,
-                    settings_path=rate_settings_file
+                    settings_path=rate_settings_file,
+                    biomolecule_type = biomolecule_type
                 )
                 theorist.prepare()
                 theorist.write()
@@ -439,7 +482,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 #$need to get a graph folder and ensure it exists
                 #$don't worry about overwriting files
                 GraphFolder = os.path.join(self.file_loc, "Graph_Folder")
-                MainGuiObject._make_folder(GraphFolder)
+                self.make_folder(GraphFolder)
                 ratecalc = RateCalculator(
                     model_path = previous_output_file,
                     out_path = step_object_dict["Rate Calculation"].full_filename,
@@ -561,10 +604,25 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     return False
         return True
     
-    #$ensures a folder exists by making it if it does not.
-    @staticmethod    
-    def _make_folder(folder):
-        if not os.path.isdir(folder):
+    #$ensures a folder exists by making it if it does not.  
+    def make_folder(self, folder, non_graph = False):
+        if non_graph: #$ don't care aobut overwriting graph folder, that is necessary.   the main output folder might have necessary things in it the user wants to keep
+            if not os.path.isdir(folder):
+                os.makedirs(folder)    
+            """
+            #$this is for is we want to delete the entire folder.  this particular use is far too crude.  Any subfolders or files
+            #$even unrelated to DeuteRater will be deleted.  If we need to put this back in we need to target only DeuteRater files
+            #$that should be unnecessary because we have the the overwrite warning
+            if os.path.isdir(folder):
+                answer = self.question_for_user(f"Would you like to delete the contents of folder {folder}?")
+                if answer:
+                    rmtree(folder)
+                    os.makedirs(folder)
+            else:
+                os.makedirs(folder)"""
+        else:
+            if os.path.isdir(folder):
+                rmtree(folder)
             os.makedirs(folder)
             
     @staticmethod
