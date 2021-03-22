@@ -18,13 +18,25 @@ from tqdm import tqdm  # noqa: 401
 import deuterater.settings as settings
 import utils.data_chunker as nvc
 
+import deuteconvert.peptide_utils as peputils
 
+
+literature_n_name = "literature_n"
+sequence_column_name = "Sequence"
 
 class TheoryPreparer():
-    def __init__(self, enrichment_path, out_path, settings_path):
+    def __init__(self, enrichment_path, out_path, settings_path, biomolecule_type):
         settings.load(settings_path)
         self.settings_path = settings_path
         self.enrichment_path = Path(enrichment_path)
+        
+        if biomolecule_type == "Peptide":
+            aa_label_df = pd.read_csv(settings.aa_label_path, sep='\t')
+            aa_label_df.set_index('study_type', inplace=True)
+            self.aa_labeling_dict = aa_label_df.loc[settings.study_type, ].to_dict()
+        else:
+            self.aa_labeling_dict = ""
+        
         if self.enrichment_path.suffix == '.tsv':
             self._enrichment_df = pd.read_csv(
                 filepath_or_buffer=str(self.enrichment_path),
@@ -54,7 +66,7 @@ class TheoryPreparer():
     def prepare(self):
         if settings.debug_level == 0:
             args_list = self._enrichment_df.to_records(index=False).tolist()
-            func = partial(TheoryPreparer._mp_prepare, self.settings_path)
+            func = partial(TheoryPreparer._mp_prepare, self.settings_path, self.aa_labeling_dict)
             results = list(
                 tqdm(
                     self._mp_pool.imap_unordered(func, args_list),
@@ -64,7 +76,7 @@ class TheoryPreparer():
             )
             
             
-        if settings.debug_level >= 1:
+        elif settings.debug_level >= 1:
             print('Beginning single-processor theory preparation.')
             results = []
             for row in tqdm(self._enrichment_df.itertuples(),
@@ -72,6 +84,11 @@ class TheoryPreparer():
                 # TODO: how to handle functions. Default I would think
                 df = pd.read_csv(filepath_or_buffer=row.file, sep='\t')
                 df = TheoryPreparer._apply_filters(df)
+                #$don't include an else for either if statement.  no need to calculate if column exists
+                #$ and we don't want to add the column if we can't calculate it since checking for it is an error check for later steps
+                if literature_n_name not in df.columns:
+                    if self.aa_labeling_dict != "":
+                        df = df.apply(TheoryPreparer._calculate_literature_n, axis =1 , args = (self.aa_labeling_dict,))
                 df['time'] = row.time
                 df['enrichment'] = row.enrichment
                 df["sample_group"]  = row.sample_group
@@ -88,16 +105,32 @@ class TheoryPreparer():
         self._mp_pool.join()
 
     @staticmethod
-    def _mp_prepare(settings_path, args):
+    def _mp_prepare(settings_path, aa_labeling_dict, args):
         settings.load(settings_path)
         #file_path, time, enrichment = args
         file_path, time, enrichment, sample_group = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         df = TheoryPreparer._apply_filters(df)
+        #$don't include an else for either if statement.  no need to calculate if column exists
+        #$ and we don't want to add the column if we can't calculate it since checking for it is an error check for later steps
+        if literature_n_name not in df.columns:
+            if aa_labeling_dict != "":
+                df = df.apply(TheoryPreparer._calculate_literature_n, axis =1 , args = (aa_labeling_dict,))
         df['time'] = time
         df['enrichment'] = enrichment
         df["sample_group"]  = sample_group
         return df
+
+    @staticmethod
+    def _calculate_literature_n(row, aa_labeling_dict):
+        aa_counts = {}
+        for aa in row[sequence_column_name]:
+            if aa not in aa_counts.keys():
+                aa_counts[aa] = 0
+            aa_counts[aa] += 1
+        literature_n = peputils.calc_add_n(aa_counts, aa_labeling_dict)
+        row[literature_n_name] = literature_n
+        return row
 
     # def _load(self):
     #     '''Pulls in the relevant data from the model.
