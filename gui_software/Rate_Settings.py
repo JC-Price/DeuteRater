@@ -69,8 +69,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.all_settings=[
             setting_string_info(self.recognize_available_cores, "recognize_available_cores",
                                  settings.recognize_available_cores, True),
-            setting_numerical_info(self.default_cores, "n_processors",
-                                   settings.n_processors, True),
+            setting_numerical_info(self.default_cores, "n_partitions",
+                                   settings.n_partitions, True),
             setting_string_info(self.rt_unit, "id_file_rt_unit",
                                 settings.id_file_rt_unit, False),
             setting_numerical_info(self.time_window, "time_window",
