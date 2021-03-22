@@ -1,5 +1,6 @@
 import yaml
 import traceback
+import os
 
 from pathlib import Path
 
@@ -23,9 +24,14 @@ from utils.exc import InvalidSettingsError  # noqa: 401
 
 # NOTE: we can use LibYAML c bindings if we need more speed
 
+#location = os.path.dirname(os.path.abspath(sys.executable))
+location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+resource_location = os.path.join(location, "resources")
+
+
 debug_level: int
 recognize_available_cores: bool
-n_processors: int
+n_partitions: int
 id_file_rt_unit: str
 trim_ids_to_mzml_bounds: bool
 fpe_tolerance: bool
@@ -35,6 +41,8 @@ max_valid_angle: float
 time_window: float
 ppm_window: int
 heavy_isotope: str
+study_type: str
+aa_label_path: str
 use_abundance: bool
 use_neutromer_spacing: bool
 maximum_theoretical_pct: float
@@ -93,8 +101,8 @@ def load(settings_path):
         global recognize_available_cores
         recognize_available_cores = s['recognize_available_cores']
 
-        global n_processors
-        n_processors = s['n_processors']
+        global n_partitions
+        n_partitions = s['n_partitions']
 
         global id_file_rt_unit
         id_file_rt_unit = s['id_file_rt_unit']
@@ -122,6 +130,13 @@ def load(settings_path):
 
         global heavy_isotope
         heavy_isotope = s['heavy_isotope']
+        
+        global study_type
+        study_type = s['study_type']
+        
+        global aa_label_path
+        aa_label_path = os.path.join(resource_location, 
+                                     s['aa_labeling_sites_path'])
 
         global use_abundance
         use_abundance = s['use_abundance']
@@ -245,7 +260,7 @@ def freeze(path=None, settings_dict = None):
         settings_dict = {
             'debug_level': debug_level,
             'recognize_available_cores': recognize_available_cores,
-            'n_processors': n_processors,
+            'n_partitions': n_partitions,
             'id_file_rt_unit': id_file_rt_unit,
             'trim_ids_to_mzml_bounds': trim_ids_to_mzml_bounds,
             'fpe_tolerance': fpe_tolerance,
@@ -255,6 +270,8 @@ def freeze(path=None, settings_dict = None):
             'time_window': time_window,
             'ppm_window': ppm_window,
             'heavy_isotope': heavy_isotope,
+            'study_type': study_type,
+            'aa_labeling_sites_path': aa_label_path,
             'use_abundance': use_abundance,
             'use_neutromer_spacing': use_neutromer_spacing,
             'maximum_theoretical_pct': maximum_theoretical_pct,
