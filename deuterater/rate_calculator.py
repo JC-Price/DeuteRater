@@ -223,12 +223,16 @@ class RateCalculator():
             rate = popt[0]
             asymptote = \
                 popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
-            #TODO$ may need to adjust the ci value to calculate, but for 
-            #$now num_files works
+            #TODO$ ci uses degrees of freedom = n-k where n is the number of points and k is the number of parameters estimated
+            #$including intercept in linear regression.  if asymptote is fixed k =1 otherwise k =2 (intercept is fit by equation, not data)
+            #$not counting charge states and different peptides as unique measurements.
+            #$despite the claim in the documentation, acorrding to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]  
+            #$is standard error, not std dev, so don't divide by sqrt of n
+            
             confint = \
-                t.ppf(.975, num_files - 1) * \
-                np.sqrt(np.diag(pcov))[0] / \
-                np.sqrt(num_files)
+                t.ppf(.975, num_files - len(popt)) * \
+                np.sqrt(np.diag(pcov))[0] 
+                
             y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
             r_2 = dur.calculate_r2(ys, y_predicted)    
             
@@ -238,7 +242,7 @@ class RateCalculator():
                 'group_name': sample_group_name,
                 '{} rate'.format(calc_type) : rate,
                 '{} asymptote'.format(calc_type) : asymptote,
-                '{} std_dev'.format(calc_type): np.sqrt(np.diag(pcov))[0],
+                '{} std_error'.format(calc_type): np.sqrt(np.diag(pcov))[0],
                 '{} 95pct_confidence'.format(calc_type): confint,
                 '{} half life'.format(calc_type): RateCalculator._halflife(rate),
                 '{} R2'.format(calc_type): r_2,
@@ -345,7 +349,7 @@ class RateCalculator():
                   'group_name': group_name,
                   '{} rate'.format(calc_type): main_error,
                   '{} asymptote'.format(calc_type): main_error,
-                  '{} std_dev'.format(calc_type): main_error,
+                  '{} std_error'.format(calc_type): main_error,
                   '{} 95pct_confidence'.format(calc_type): main_error,
                   '{} half life'.format(calc_type): main_error,
                   '{} R2'.format(calc_type): main_error,
