@@ -15,10 +15,10 @@ import numpy as np
 import os
 
 main_line_symbol = 'k-'
-error_line_symbol = 'k--'
+#error_line_symbol = 'k--'
 data_points_symbol = 'ro'
-MAXIMUM_GRAPH_RATE_ERROR = 10
-MINIMUM_GRAPH_RATE_ERROR = -5
+MAXIMUM_GRAPH_RATE_ERROR = 5
+MINIMUM_GRAPH_RATE_ERROR = -2
 
 #$the colon is not allowed but seems to make an empty file with a partial name.
 #$either way the check is here to prevent problems if it is necessary
@@ -65,8 +65,9 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     #$plot  lines and points
     plt.plot(fit_line_x, fit_line_y, main_line_symbol)
     if make_error_lines:
-        plt.plot(fit_line_x, fit_line_y_plus_error, error_line_symbol)
-        plt.plot(fit_line_x, fit_line_y_minus_error, error_line_symbol)
+        plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color = 'black', alpha = .15)
+        #plt.plot(fit_line_x, fit_line_y_plus_error, error_line_symbol)
+        #plt.plot(fit_line_x, fit_line_y_minus_error, error_line_symbol)
     plt.plot(x_values, y_values, data_points_symbol)
     if errors != [] : #$ only if roll up so need error bars
         plt.errorbar(x_values, y_values, yerr = errors,  elinewidth = 1, 
