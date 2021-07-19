@@ -1,3 +1,37 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+
 import yaml
 import traceback
 import os
@@ -8,21 +42,7 @@ from pathlib import Path
 from utils.exc import InvalidSettingsWarning
 from utils.exc import InvalidSettingsError  # noqa: 401 
 
-# TODO: How would I dynamically load a different settings file?
-# TODO: ^^^This really should be able to be passed in
-# TODO: should different steps have different settings files?
-# TODO: add reasonable constraints on settings
-# TODO: verbose exception output
-# TODO: add documentation on what this file is for
-# TODO: Shorten variable names where possible
-# TODO: add error checking where applicable
-# TODO: set type annotations and default values
-# TODO: determine good defaults
-# TODO: type annotations for path variable
-# TODO: Discuss this style vs settings class style
-# TODO: Figure out how to reduce redundancy. Like a better singleton
 
-# NOTE: we can use LibYAML c bindings if we need more speed
 
 #location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -51,14 +71,11 @@ minimum_nonzero_points: int
 peak_lookback: int
 peak_lookahead: int
 baseline_lookback: int
-#condense_peak_zscore_cutoff: int
 peak_ratio_denominator: int
 zscore_cutoff: int
 mz_proximity_tolerance: float
 peptide_analyte_id_column: str
 peptide_analyte_name_column: str
-lipid_analyte_id_column: str
-lipid_analyte_name_column: str
 unique_sequence_column: str
 roll_up_rate_calc: bool
 asymptote: str
@@ -78,8 +95,8 @@ enrichement_of_zero: float
 min_allowed_abund_max_delta: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
-use_empir_n_value: bool
 minimum_abund_change: float
+verbose_rate: bool
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
@@ -180,12 +197,6 @@ def load(settings_path):
         global peptide_analyte_name_column
         peptide_analyte_name_column = s['peptide_analyte_name_column']
         
-        global lipid_analyte_id_column
-        lipid_analyte_id_column = s['lipid_analyte_id_column']
-        
-        global lipid_analyte_name_column
-        lipid_analyte_name_column = s['lipid_analyte_name_column']
-        
         global unique_sequence_column
         unique_sequence_column = s["unique_sequence_column"]
         
@@ -243,11 +254,12 @@ def load(settings_path):
         global min_allowed_n_values
         min_allowed_n_values = s["min_allowed_n_values"]
 
-        global use_empir_n_value
-        use_empir_n_value = s["use_empir_n_value"]
         
         global minimum_abund_change
         minimum_abund_change = s["minimum_abund_change"]
+        
+        global verbose_rate
+        verbose_rate = s["verbose_rate"]
         
 
     except Exception as e:
@@ -286,8 +298,6 @@ def freeze(path=None, settings_dict = None):
             'mz_proximity_tolerance': mz_proximity_tolerance,
             "peptide_analyte_id_column": peptide_analyte_id_column,
             "peptide_analyte_name_column": peptide_analyte_name_column,
-            "lipid_analyte_id_column": lipid_analyte_id_column,
-            "lipid_analyte_name_column": lipid_analyte_name_column,
             "unique_sequence_column": unique_sequence_column,
             "roll_up_rate_calc": roll_up_rate_calc,
             "asymptote": asymptote,
@@ -307,7 +317,8 @@ def freeze(path=None, settings_dict = None):
             "min_allowed_abund_max_delta": min_allowed_abund_max_delta,
             "min_aa_sequence_length": min_aa_sequence_length,
             "min_allowed_n_values": min_allowed_n_values,
-            "minimum_abund_change": minimum_abund_change
+            "minimum_abund_change": minimum_abund_change,
+            "verbose_rate": verbose_rate
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

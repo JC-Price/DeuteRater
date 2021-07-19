@@ -1,3 +1,37 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2016-2020 Bradley Naylor, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+
 '''Calculation of turnover rates
 
 '''
@@ -19,14 +53,17 @@ from utils.graphing_tools import graph_rate
 group_column = "sample_group"
 
 class RateCalculator():
-    def __init__(self, model_path, out_path, graph_folder, settings_path,
-                 biomolecule_type):
+    def __init__(self, model_path, out_path, graph_folder, settings_path):
         settings.load(settings_path)
-        self.model = pd.read_csv(model_path, sep ="\t")
+        if model_path[-4:] == ".tsv":
+            self.model = pd.read_csv(model_path, sep='\t')
+        elif model_path[-4:] == ".csv":
+            self.model = pd.read_csv(model_path)
+        else: #$should never trigger unless we are fiddling with the gui
+            raise ValueError("invalid file extension")
         self.out_path = out_path
         self.rate_model = None
         self.graph_folder = graph_folder
-        self.biomolecule_type = biomolecule_type
         self.settings_path = settings_path
         #$get the number of cores we're using for multiprocessing
         if settings.recognize_available_cores is True:
@@ -49,10 +86,7 @@ class RateCalculator():
         w.filterwarnings("error")
         rate_results = []
         max_time = max(self.model["time"])
-        if self.biomolecule_type == "Peptide":
-            id_col = settings.peptide_analyte_id_column
-        elif self.biomolecule_type == "Lipid":
-            id_col = settings.lipid_analyte_id_column
+        id_col = settings.peptide_analyte_id_column
         #$could put manual bias correction here, would be slightly more 
         #$efficient, but make the logic less clear
         groups = self.model.groupby(by=[id_col, group_column])
@@ -76,7 +110,6 @@ class RateCalculator():
         #$they will be added later
         rate_function = partial(RateCalculator._mp_function, 
                                 settings_path = self.settings_path,
-                                biomolecule_type = self.biomolecule_type,
                                 graph_folder = self.graph_folder,
                                 rate_eq = rate_eq,
                                 max_time = max_time,
@@ -135,16 +168,34 @@ class RateCalculator():
         #$-pandas-merge-multiple-dataframes answer 1 accessed 9/16/2020
         #$merges any number of dfs into one df
         self.rate_model = reduce(lambda  left,right: pd.merge(left,right,
-                                on=['analyte_id', 'analyte_name'], 
+                                on=['analyte_id', 'analyte_name', "group_name"], 
                                 how='outer'), rate_results)
         #$swap back to normal warning behaviour
         w.filterwarnings("default")
         
         self._mp_pool.close()
         self._mp_pool.join()
+        
+        if not settings.verbose_rate:
+            self.trim_verbose_data()
+        
+    def trim_verbose_data(self):
+        needed_columns = ['analyte_id', 'analyte_name', "group_name"]
+        potential_columns = ["{} rate", "{} 95pct_confidence", "{} half life"]
+        if settings.asymptote != "Fixed":
+            potential_columns.insert(1, "{} asymptote")
+        if settings.use_abundance:
+            for p in potential_columns:
+                needed_columns.append(p.format("Abundance"))
+        if settings.use_neutromer_spacing:
+            for p in potential_columns:
+                needed_columns.append(p.format("Spacing"))
+        if settings.use_abundance and settings.use_neutromer_spacing:
+            for p in potential_columns:
+                needed_columns.append(p.format("Combined"))
+        self.rate_model = self.rate_model[needed_columns]
             
-            
-    def _mp_function(data_tuple, settings_path, biomolecule_type, fn_col, 
+    def _mp_function(data_tuple, settings_path, fn_col, 
                      fn_std_dev, calc_type,manual_bias, std_dev_filter, graph_folder,
                      rate_eq, max_time, p0):
         w.filterwarnings("error")
@@ -154,10 +205,7 @@ class RateCalculator():
         id_values, group = data_tuple[0], data_tuple[1]
         id_name = id_values[0]
         sample_group_name =id_values[1]
-        if biomolecule_type == "Peptide":
-            common_name = group[settings.peptide_analyte_name_column].iloc[0]
-        if biomolecule_type == "Lipid":
-            common_name = group[settings.lipid_analyte_name_column].iloc[0]
+        common_name = group[settings.peptide_analyte_name_column].iloc[0]
         #$drop error string could do earlier for more speed, but this is 
         #$clearer and allows errors that affect only one calculation type
         group = RateCalculator._error_trimmer(
@@ -165,7 +213,6 @@ class RateCalculator():
         #$the copy is just to avoid a SettingWithCopy warning in a few
         #$operations.  if it causes problems remove and suppress warning
         group = group[group[fn_std_dev] < std_dev_filter].copy()    
-           
         if len(group) == 0:
             result = RateCalculator._make_error_message(
                 "No Isotope Envelopes Agree","", id_name, common_name,  
@@ -194,12 +241,8 @@ class RateCalculator():
             
         # Get the number of unique time points, and continue if not enough
         num_unique_times = len(set(group['time']))
-        if biomolecule_type == "Peptide":
-            unique_length = len(set(group[settings.unique_sequence_column]))
-        #$for lipids or metaboloites or similar, the unique length means
-        #$nothing.  if needed can add the elif
-        else:
-            unique_length = ""
+        
+        unique_length = len(set(group[settings.unique_sequence_column]))
         num_measurements = len(group.index)
             
         #TODO$ this is not ideal but this is a good first attempt
@@ -256,12 +299,8 @@ class RateCalculator():
                 #$'calculation_type': calc_type
             }
             #$ if there is an asymptote need to provide it
-            if biomolecule_type == "Peptide":
-                graph_name = "{}_{}_{}".format(id_name, sample_group_name, 
+            graph_name = "{}_{}_{}".format(id_name, sample_group_name, 
                                                fn_col)
-            elif biomolecule_type == "Lipid":
-                graph_name = "{}_{}_{}".format(common_name, 
-                                               sample_group_name, fn_col)
             if settings.roll_up_rate_calc:
                 graph_rate(graph_name, xs, ys, rate, asymptote, confint, 
                            rate_eq, graph_folder, max_time, 
@@ -370,23 +409,3 @@ class RateCalculator():
         df[error_columns] = df[error_columns].apply(
                 pd.to_numeric, errors = 'coerce')
         return df.dropna(axis =0, subset = error_columns)
-    """
-    #$function has been moved to the fraction new creator
-    #$if need be we can turn that off and use this instead
-    #$ this function has not been tested so would need some work to 
-    def _summarize_acfn(self, calculation_type):
-        # TODO: this needs to add columns, not just be a simple eq
-        fraction_news = []
-        # TODO: make sure to deal with outliers
-        if (calculation_type == 'abundance'):
-            fraction_news.extend(self.model['frac_new_abunds'].tolist())
-        elif calculation_type == 'spacing':
-            fraction_news.extend(self.model['frac_new_mzs'].tolist())
-        elif calculation_type == 'combined':
-            fraction_news.extend(
-                self.model['frac_new_abunds'].tolist() +
-                self.model['frac_new_mzs'].tolist()
-            )
-        summaries = [mean, stdev, len]
-        return [fn(fraction_news) for fn in summaries]
-    """

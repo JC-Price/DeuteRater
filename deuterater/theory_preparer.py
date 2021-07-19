@@ -1,3 +1,36 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 '''Theoretical Value Preparation
 
 This purpose of this module is to calculate the expected theoretical values
@@ -16,7 +49,6 @@ import multiprocessing as mp
 from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
-import utils.data_chunker as nvc
 
 import deuteconvert.peptide_utils as peputils
 
@@ -25,17 +57,14 @@ literature_n_name = "literature_n"
 sequence_column_name = "Sequence"
 
 class TheoryPreparer():
-    def __init__(self, enrichment_path, out_path, settings_path, biomolecule_type):
+    def __init__(self, enrichment_path, out_path, settings_path):
         settings.load(settings_path)
         self.settings_path = settings_path
         self.enrichment_path = Path(enrichment_path)
         
-        if biomolecule_type == "Peptide":
-            aa_label_df = pd.read_csv(settings.aa_label_path, sep='\t')
-            aa_label_df.set_index('study_type', inplace=True)
-            self.aa_labeling_dict = aa_label_df.loc[settings.study_type, ].to_dict()
-        else:
-            self.aa_labeling_dict = ""
+        aa_label_df = pd.read_csv(settings.aa_label_path, sep='\t')
+        aa_label_df.set_index('study_type', inplace=True)
+        self.aa_labeling_dict = aa_label_df.loc[settings.study_type, ].to_dict()
         
         if self.enrichment_path.suffix == '.tsv':
             self._enrichment_df = pd.read_csv(
@@ -87,8 +116,7 @@ class TheoryPreparer():
                 #$don't include an else for either if statement.  no need to calculate if column exists
                 #$ and we don't want to add the column if we can't calculate it since checking for it is an error check for later steps
                 if literature_n_name not in df.columns:
-                    if self.aa_labeling_dict != "":
-                        df = df.apply(TheoryPreparer._calculate_literature_n, axis =1 , args = (self.aa_labeling_dict,))
+                    df = df.apply(TheoryPreparer._calculate_literature_n, axis =1 , args = (self.aa_labeling_dict,))
                 df['time'] = row.time
                 df['enrichment'] = row.enrichment
                 df["sample_group"]  = row.sample_group
@@ -96,10 +124,6 @@ class TheoryPreparer():
 
         self.model = pd.concat(results)
         self.model = self.model.drop(columns=['drop'])
-
-        if settings.use_empir_n_value:
-            self.model = self.model.reset_index(drop=True)
-            self.model = nvc.data_chunker(self.model)
 
         self._mp_pool.close()
         self._mp_pool.join()

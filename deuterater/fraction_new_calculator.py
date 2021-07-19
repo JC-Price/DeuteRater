@@ -1,3 +1,36 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 import pandas as pd
 import numpy as np  # noqa
 from copy import copy
@@ -42,23 +75,11 @@ protein_itertuple_renamer = {
     "literature_n": "n_value"
     }
 
-lipid_itertuple_renamer = {
-    "n_isos": "num_peaks",
-    "literature_n": "n_value",
-    "Lipid Unique Identifier": "Lipid_Unique_Identifier",
-    "Lipid Name": "Lipid_Name"
-    }
-
 class FractionNewCalculator():
-    def __init__(self, model_path, out_path, settings_path, biomolecule_type):
+    def __init__(self, model_path, out_path, settings_path):
         settings.load(settings_path)
         self.settings_path = settings_path
-        if biomolecule_type == "Peptide":
-            itertuple_renamer = copy(protein_itertuple_renamer)
-        elif biomolecule_type == "Lipid":
-            itertuple_renamer = copy(lipid_itertuple_renamer)
-               
-        self.biomolecule_type = biomolecule_type
+        itertuple_renamer = copy(protein_itertuple_renamer)
         
         self.error = ""
         
@@ -69,12 +90,13 @@ class FractionNewCalculator():
             self._n_partitions = settings.n_partitions
         
         self._mp_pool = mp.Pool(self._n_partitions)
-        
-        #$ adjust the itertuple renamer to use the proper n_value
-        if settings.use_empir_n_value:
-            itertuple_renamer['literature_n'] = 'literature_n'
-            itertuple_renamer['empir_n'] = 'n_value' 
-        self.model = pd.read_csv(model_path, sep='\t')
+        if model_path[-4:] == ".tsv":
+            self.model = pd.read_csv(model_path, sep='\t')
+        elif model_path[-4:] == ".csv":
+            self.model = pd.read_csv(model_path)
+        else: #$should never trigger unless we are fiddling with the gui
+            raise ValueError("invalid file extension")
+            
         self.model.rename(columns = itertuple_renamer, inplace = True)
         self.out_path = out_path
 
@@ -93,8 +115,7 @@ class FractionNewCalculator():
         
         #$just drop the unneeded columns
         self.model = self.model.drop(columns_to_drop, axis =1, errors = "ignore")
-        if self.biomolecule_type == "Peptide":
-            self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1,
+        self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1,
                                          errors = "ignore")
         
         if self.model["n_value"].isna().all():
@@ -135,15 +156,14 @@ class FractionNewCalculator():
                 )
         #$now that we have dropped useless columns we can start the multiprocessing
         #$don't use np.split or it will error if chunks are not equal sized
-        model_pieces = np.array_split(self.model, self._n_partitions)
+        model_pieces = np.array_split(self.model, len(self.model))
         func= partial(FractionNewCalculator._mp_prepare)
         func = partial(func, settings_path = self.settings_path)
-        func = partial(func, biomolecule_type = self.biomolecule_type)
         
         results = list(
                 tqdm(
                     self._mp_pool.imap_unordered(func, model_pieces),
-                    total=len(model_pieces)
+                    total=len(self.model)
                 )
             
             )
@@ -167,7 +187,7 @@ class FractionNewCalculator():
         return df
 
     @staticmethod
-    def _mp_prepare(df, settings_path, biomolecule_type):
+    def _mp_prepare(df, settings_path):
         settings.load(settings_path)
         #$can start with itertuples.  if need be can swap to apply
         for row in df.itertuples(index=True):
@@ -177,10 +197,8 @@ class FractionNewCalculator():
                     "N value is less than {}".format(
                     settings.min_allowed_n_values))
                 continue
-            if biomolecule_type == "Peptide" and \
-                    len(row.Sequence) < settings.min_aa_sequence_length:
-                        
-                
+            if len(row.Sequence) < settings.min_aa_sequence_length:
+                    
                 df = FractionNewCalculator._error_method(df, row, 
                     "Fewer than {} amino acids".format(
                     settings.min_aa_sequence_length))
@@ -201,7 +219,7 @@ class FractionNewCalculator():
                 n_H=num_h,
                 low_pct=0,
                 high_pct=use_enrich,
-                num_peaks=row.num_peaks,
+                num_peaks=int(row.num_peaks),
                 testing=False
             )
             e_mzs, e_abunds = enriched_results
