@@ -1,16 +1,37 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Created on Thu Oct  1 08:04:31 2020
-
-@author: Naylor
-
-for the moment we are going to create two settings menus.  this is for the
-sake of quick creation and separating the values
-Will not use all of the settings, can swap in or out as necessary
-Also since .yaml files can be opened by notepad and are not encrypted
-we will not give the user the option to change the defaults in the gui.
-we'll start with the rate settings as I am more familiar with
+Copyright (c) 2016-2020 Bradley Naylor,  J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
 
 """
 the following are settings that are in use in DeuteRater but are not alerable
@@ -44,8 +65,8 @@ enrichement_of_zero - adjusting this is usually unnecessary. troubleshooting
         only so no need for normal settings
 
 """
-import os
-
+import os, sys
+import pandas as pd
 from PyQt5 import uic, QtWidgets
 
 import deuterater.settings as settings
@@ -63,14 +84,19 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         super(Rate_Setting_Menu, self).__init__(parent)
         settings.load(current_setting_file)
         self.current_setting_file =current_setting_file
+        
         #$this is needed to slim things down a bit
         self.setWindowTitle("Rate Settings Menu")
         self.setupUi(self)
+        
+        self.fill_study_type_combobox()
         self.all_settings=[
             setting_string_info(self.recognize_available_cores, "recognize_available_cores",
                                  settings.recognize_available_cores, True),
             setting_numerical_info(self.default_cores, "n_partitions",
                                    settings.n_partitions, True),
+            setting_string_info(self.study_type_combobox, "study_type",
+                                settings.study_type, False),
             setting_string_info(self.rt_unit, "id_file_rt_unit",
                                 settings.id_file_rt_unit, False),
             setting_numerical_info(self.time_window, "time_window",
@@ -79,8 +105,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                     settings.ppm_window, True),
             setting_string_info(self.heavy_label, "heavy_isotope",
                                 settings.heavy_isotope, False),
-            setting_string_info(self.calculate_n_values, "use_empir_n_value",
-                                settings.use_empir_n_value, True),
             setting_string_info(self.use_abundance, "use_abundance",
                                 settings.use_abundance, True),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
@@ -108,12 +132,20 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.min_sequence_length, "min_aa_sequence_length",
                                    settings.min_aa_sequence_length, True),
             setting_numerical_info(self.min_n_value, "min_allowed_n_values", 
-                                   settings.min_allowed_n_values, True)
+                                   settings.min_allowed_n_values, True),
+            setting_string_info(self.verbose_rate, "verbose_rate",
+                                 settings.verbose_rate, True)
             ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
         self.SaveButton.clicked.connect(self.save_settings)
         self.ExitButton.clicked.connect(self.close)
+        
+    def fill_study_type_combobox(self):
+        temp_df = pd.read_csv(settings.aa_label_path, sep = "\t")
+        self.study_types =  list(temp_df["study_type"].unique())
+        for study_type in self.study_types:
+            self.study_type_combobox.addItem(study_type)
         
     def save_settings(self):
         #$we need to provide the values that are not altred for the dump
@@ -160,11 +192,11 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "chunk_size" : settings.chunk_size,
             "chunking_method_threshold" : settings.chunking_method_threshold,
             "max_valid_angle" : settings.max_valid_angle,
+            'study_type': settings.study_type,
             "peak_ratio_denominator" : settings.peak_ratio_denominator,
             "peptide_analyte_id_column" : settings.peptide_analyte_id_column,
-            "lipid_analyte_id_column" : settings.lipid_analyte_id_column,
             "peptide_analyte_name_column" : settings.peptide_analyte_name_column,
-            "lipid_analyte_name_column" : settings.lipid_analyte_name_column,
+            "aa_labeling_sites_path": settings.aa_label_path,
             "unique_sequence_column" : settings.unique_sequence_column,
             "maximum_theoretical_pct" : settings.maximum_theoretical_pct,
             "labeling_step_size" : settings.labeling_step_size,
