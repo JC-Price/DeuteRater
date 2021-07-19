@@ -1,12 +1,37 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Created on Tue Sep 29 12:52:01 2020
-
-hold various classes that are just holding variables for easy reference
-maybe one or two basic functions
-
-@author: JCPrice
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
 import os
 import csv
 
@@ -44,16 +69,14 @@ class deuteconvert_peaks_required_headers(object):
 #$allows easier calls in the main and one large batch of declarations
 #$limits hard coding issues
 class deuterater_step(object):
-    def __init__(self, output_filename, peptide_required_columns,
-                 lipid_required_columns):
+    def __init__(self, output_filename, peptide_required_columns):
         self.output_filename = output_filename
         self.peptide_required_columns = peptide_required_columns
-        self.lipid_required_columns = lipid_required_columns
         
     def complete_filename(self, folder):
         self.full_filename = os.path.join(folder, self.output_filename)
         
-    def check_input_file(self, input_file, biomolecule_type):
+    def check_input_file(self, input_file):
         with open (input_file, 'r') as infile:
             if input_file[-4:] == ".tsv":
                 reader = csv.reader(infile, delimiter = "\t")
@@ -62,10 +85,7 @@ class deuterater_step(object):
             else:
                 raise ValueError("Improper input file")
             firstrow = next(reader)
-        if biomolecule_type == "Peptide":
-            return set(self.peptide_required_columns).issubset(firstrow)
-        elif biomolecule_type == "Lipid":
-            return set(self.lipid_required_columns).issubset(firstrow)
+        return set(self.peptide_required_columns).issubset(firstrow)
     
 #$ we're going to make two classes. these will be here so we can swap between
 #$two different settings menus as needed.  we need string and numerical classes

@@ -244,7 +244,6 @@ isotope = namedtuple('isotope', 'mass abundance')
 # X is positions that can be deuterated, not will be TODO:??
 #$ D is a label applied artificially (as in a standard) and does not change
 master_isotope = {
-    # TODO: this is identical to hydrogen?
     'X': [isotope(mass=1.0078246, abundance=0.999844),
           isotope(mass=2.0141021, abundance=0.000156)],
     'H': [isotope(mass=1.0078246, abundance=0.999844),

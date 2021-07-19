@@ -1,14 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 18 12:10:22 2020
-
-@author: JCPrice
-
-holds  basic functions for graphing. should be called as needed, no need to 
-run as the main.
-we'll call directly from the calculator, which will simplify the code here
-by a significant amount
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,7 +61,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     #$it is the issue.
     make_error_lines = True
     fit_line_x = np.arange(0,maximum + maximum/10, .1)
-    if asymptote_option == 'variable':
+    if asymptote_option == 'variable' or asymptote_option == "Variable":
         fit_line_y = rate_equation(fit_line_x, k = rate, a  = asymptote)
         try:
             fit_line_y_minus_error = rate_equation(fit_line_x, 
@@ -56,7 +79,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
             make_error_lines = False
         
     #$ if add multiple conditions put each in parentheses  and use | or &
-    if make_error_lines:
+    #$ unfortunately nans can cause errors.  only seem to occur if using one timepoint and only error in an .exe but may as well sort this out
+    if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
         fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = \
             MAXIMUM_GRAPH_RATE_ERROR
         fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = \
@@ -64,7 +88,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     
     #$plot  lines and points
     plt.plot(fit_line_x, fit_line_y, main_line_symbol)
-    if make_error_lines:
+    if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
         plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color = 'black', alpha = .15)
         #plt.plot(fit_line_x, fit_line_y_plus_error, error_line_symbol)
         #plt.plot(fit_line_x, fit_line_y_minus_error, error_line_symbol)
