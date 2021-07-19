@@ -1,3 +1,37 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
+
 from obs.envelope import Envelope  # noqa: 401
 from obs.peak import Peak
 from utils.math import angle_between  # noqa: 401
@@ -50,14 +84,6 @@ class ID(object):
         'mass',
         'z',
         'n_isos',
-        #'cf',
-        # 'envelopes_before_angle_filter',
-        # 'envelopes_after_angle_filter',
-        # 'deviation_before_angle_filter',
-        # 'deviation_after_angle_filter',
-        # 'deviation_outside_angle_filter',
-        # TODO: Do we need the max m0 abundance for anything else?
-        # 'max_m0_abundance',
         'mads'
     )
 
@@ -195,66 +221,16 @@ class ID(object):
 
             # return angle_list, invalid_indices, valid_indices
 
-        # reference vector angle filter
-        def DR_4_0_angle_filter(self, max_valid_angle=3.14159, reference_vector=None):
-            # Angles are in Radians
-            # Determine the reference vector
-
-            # Access the abundances in each of the envelopes in this identification
-            #   and organize as a list of lists. (Uses nested list comprehensions)
-            vector_list = [[peak.ab for peak in envelope.get_peaks()]
-                           for envelope
-                           in self._envelopes]
-
-            def reference_vector_max_m0(vector_list):
-                m0_list = [v[0] for v in vector_list]
-                max_m0_ab, i_max = max([(v, i) for i, v in enumerate(m0_list)])
-
-                max_vector = vector_list[i_max]
-
-                return max_vector
-
-            if reference_vector is None:
-                reference_vector = reference_vector_max_m0(vector_list)
-                print(reference_vector)
-
-            # TODO: check if its faster to use generator expression
-            angle_list = [angle_between(reference_vector, vector)
-                          for vector in vector_list]
-
-            # self.envelopes_before_angle_filter = len(self._envelopes)
-            # self.deviation_before_angle_filter = std(angle_list)
-
-            # Throw away bad envelopes
-            valid_indices = []
-            invalid_indices = []
-            for i, angle in enumerate(angle_list):
-                if angle < max_valid_angle:
-                    valid_indices.append(i)
-                else:
-                    invalid_indices.append(i)
-
-            return angle_list, invalid_indices, valid_indices
-
-        def highest_intensity_scans_filter(self, MAX_SCANS=60, MAX_SCANS_TYPE="M0"):
+        def highest_intensity_scans_filter(self, MAX_SCANS=60):
             if len(self._envelopes) >= MAX_SCANS:
-                if MAX_SCANS_TYPE == "angle":
-                    sorted_angles = argsort(angle_list)
-                    self._envelopes = [self._envelopes[sorted_angles[i]] for i in range(MAX_SCANS)]
-                elif MAX_SCANS_TYPE == "M0":
-                    vector_list = [[peak.ab for peak in envelope.get_peaks()]
-                                   for envelope
-                                   in self._envelopes]
-                    m0_list = [v[0] for v in vector_list]
-                    sorted_M0_scans = argsort(m0_list)
-                    self._envelopes = [self._envelopes[sorted_M0_scans[-(i + 1)]] for i in range(MAX_SCANS)]
+                vector_list = [[peak.ab for peak in envelope.get_peaks()]
+                               for envelope
+                               in self._envelopes]
+                m0_list = [v[0] for v in vector_list]
+                sorted_M0_scans = argsort(m0_list)
+                self._envelopes = [self._envelopes[sorted_M0_scans[-(i + 1)]] for i in range(MAX_SCANS)]
 
             return self._envelopes
-
-        # from deuterater.emass import emass
-        # emass_output = emass(self.cf, 0, 1, 0, 0, self.n_isos)
-        # reference_vector = emass_output[1].iloc[0].to_list()[1:]
-        # angle_list, invalid_indices, valid_indices = DR_4_0_angle_filter(self, settings.max_valid_angle, reference_vector)
 
         self._envelopes = cut_finger_filter(self)
 
