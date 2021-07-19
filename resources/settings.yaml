@@ -108,12 +108,6 @@ peptide_analyte_id_column: !!str "Protein_ID"
 #$common name for ease of identification
 peptide_analyte_name_column: !!str "Protein_Name"
 
-lipid_analyte_id_column: !!str "Lipid_Unique_Identifier"
-
-lipid_analyte_name_column: !!str "Lipid_Name"
-
-
-
 
 study_type: "tissue"
 
@@ -181,11 +175,11 @@ min_aa_sequence_length: !!int 6
 #$too small
 min_allowed_n_values: !!int 10
 
-#$If the empiracily derived n-value should be used instead of the literature.
-use_empir_n_value: !!bool false
 
 #$peaks that have a low minimum abundance change possible tend to be either 
 #$noisy, or increase and then decrease which our calculations does not account
 #$for.  either way it tends to result in high std dev and improperly dropping
 #$a good peak
 minimum_abund_change: !!float .04
+
+verbose_rate: !!bool False
