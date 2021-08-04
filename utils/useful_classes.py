@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 """
 Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
@@ -31,7 +30,6 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 import os
 import csv
 
@@ -69,14 +67,16 @@ class deuteconvert_peaks_required_headers(object):
 #$allows easier calls in the main and one large batch of declarations
 #$limits hard coding issues
 class deuterater_step(object):
-    def __init__(self, output_filename, peptide_required_columns):
+    def __init__(self, output_filename, peptide_required_columns,
+                 lipid_required_columns):
         self.output_filename = output_filename
         self.peptide_required_columns = peptide_required_columns
+        self.lipid_required_columns = lipid_required_columns
         
     def complete_filename(self, folder):
         self.full_filename = os.path.join(folder, self.output_filename)
         
-    def check_input_file(self, input_file):
+    def check_input_file(self, input_file, biomolecule_type):
         with open (input_file, 'r') as infile:
             if input_file[-4:] == ".tsv":
                 reader = csv.reader(infile, delimiter = "\t")
@@ -85,7 +85,10 @@ class deuterater_step(object):
             else:
                 raise ValueError("Improper input file")
             firstrow = next(reader)
-        return set(self.peptide_required_columns).issubset(firstrow)
+        if biomolecule_type == "Peptide":
+            return set(self.peptide_required_columns).issubset(firstrow)
+        elif biomolecule_type == "Lipid":
+            return set(self.lipid_required_columns).issubset(firstrow)
     
 #$ we're going to make two classes. these will be here so we can swap between
 #$two different settings menus as needed.  we need string and numerical classes
