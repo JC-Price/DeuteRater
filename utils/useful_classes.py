@@ -162,3 +162,19 @@ class setting_string_info(object):
                 return False
         else:
             return value == self.current_value
+
+class setting_checkbox_info(object):
+    def __init__(self, data_object, setting_name, starting_value):
+        self.data_object = data_object
+        self.current_value = starting_value
+        self.setting_name = setting_name
+    
+    def set_object_value(self):
+        self.data_object.setChecked(self.current_value)
+    
+    def save_value(self):
+        self.current_value = self.data_object.isChecked()
+        return self.setting_name, self.current_value
+    
+    def compare_value(self):
+        return self.current_value == self.data_object.isChecked()

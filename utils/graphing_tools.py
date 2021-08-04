@@ -48,12 +48,13 @@ MINIMUM_GRAPH_RATE_ERROR = -2
 bad_save_file_characters = ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]
 
 def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation, 
-               save_folder_name, maximum, asymptote_option, errors = []):
+               save_folder_name, maximum, asymptote_option, biomolecule, errors = [], full_data=None, title=None):
     #$start naming things
-    plt.title(name)
+    if title is None:
+        title = name
+    plt.title(title)
     plt.xlabel('Time')
-    plt.ylabel('Fraction of Total Protein that is new')
-    
+    plt.ylabel(f'Fraction of Total {biomolecule} that is new')
     
     #$make the values for the line
     #$make_error_lines is just to remove unoptimal fits for plus and minus
@@ -80,6 +81,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         
     #$ if add multiple conditions put each in parentheses  and use | or &
     #$ unfortunately nans can cause errors.  only seem to occur if using one timepoint and only error in an .exe but may as well sort this out
+    plt.plot(fit_line_x, fit_line_y, main_line_symbol)
     if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
         fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = \
             MAXIMUM_GRAPH_RATE_ERROR
@@ -87,18 +89,58 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
             MINIMUM_GRAPH_RATE_ERROR   
     
     #$plot  lines and points
-    plt.plot(fit_line_x, fit_line_y, main_line_symbol)
-    if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
+    if full_data is None:
+        plt.plot(x_values, y_values, data_points_symbol)
+    else:
+        color_list = {"M+H": 'r',
+                      "M+Na": 'b',
+                      "M+NH4": 'g',
+                      'M+H-[H20]': 'magenta',
+                      "M+Na-[H2O]": 'gold',
+                      "M+NH4-[H2O]": 'lime'}
+        shapes = {"M1": 'o', "M2": 's', "M4": '^'}
+        charge_fill = {1: False, 2: True}
+        adduct_groups = full_data.groupby("Adduct")
+        for adduct_group in adduct_groups:
+            adduct = adduct_group[0]
+            color = color_list[adduct]
+            adduct_data = adduct_group[1]
+            rep_groups = adduct_data.groupby("bio_rep")
+            for rep_group in rep_groups:
+                rep = rep_group[0]
+                shape = shapes[rep]
+                rep_data = rep_group[1]
+                charge_groups = rep_data.groupby("z")
+                for charge_group in charge_groups:
+                    charge = charge_group[0]
+                    should_fill = charge_fill[charge]
+                    charge_data = charge_group[1]
+                    n_val = charge_data['n_value'].unique()[0]
+                    x = charge_data['time']
+                    y = charge_data['abund_fn']
+                    label = f'{rep}_z{charge}_{adduct} n={n_val}'
+                    if should_fill:
+                        plt.scatter(x, y, marker=shape,
+                                    facecolor=color, edgecolor='k',
+                                    label=label)
+                    else:
+                        plt.scatter(x, y, marker=shape,
+                                    facecolor='none', edgecolor=color,
+                                    label=label)
+    if make_error_lines:
         plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color = 'black', alpha = .15)
         #plt.plot(fit_line_x, fit_line_y_plus_error, error_line_symbol)
         #plt.plot(fit_line_x, fit_line_y_minus_error, error_line_symbol)
-    plt.plot(x_values, y_values, data_points_symbol)
     if errors != [] : #$ only if roll up so need error bars
         plt.errorbar(x_values, y_values, yerr = errors,  elinewidth = 1, 
             ecolor = 'red', linewidth = 0)
     #$save figure and clear it for next time
+    from matplotlib.font_manager import FontProperties
+    font = FontProperties()
+    font.set_size("small")
+    plt.legend(prop=font)
     try:
-        filename = os.path.join(save_folder_name, name) + ".pdf"
+        filename = os.path.join(save_folder_name, name) + ".png"
         
         
         plt.savefig(filename)
@@ -109,7 +151,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     except OSError:
         for bad_char in bad_save_file_characters:
            name = name.replace(bad_char, "_")
-        filename = os.path.join(save_folder_name, name) + ".pdf"
+        filename = os.path.join(save_folder_name, name) + ".png"
         plt.savefig(filename)
 
     plt.clf()

@@ -82,7 +82,7 @@ class Extractor:  # TODO name change
 
     Attributes
     ----------
-    n_partitions : int
+    n_processors : int
         The number of partitions in which to process the data.
     max_chunk_size : int
         The upper limit of how large a chunk can be
@@ -123,13 +123,13 @@ class Extractor:  # TODO name change
         self.ids = {}
         self._id_chunks = ()
         self._mzml_native_id_bounds = []
-        self.model = {}
+        self.model = pd.DataFrame()
 
         try:
             if settings.recognize_available_cores is True:
-                self._n_partitions = mp.cpu_count()
+                self._n_processors = mp.cpu_count()
             else:
-                self._n_partitions = settings.n_partitions
+                self._n_processors = settings.n_processors
             self._chunk_size = settings.chunk_size
             self._chunking_threshold = mul(
                 settings.chunking_method_threshold,
@@ -138,7 +138,7 @@ class Extractor:  # TODO name change
             self._id_rt_unit = settings.id_file_rt_unit
             self._trim_ids = settings.trim_ids_to_mzml_bounds
             self._rt_window = settings.time_window
-            self._mp_pool = mp.Pool(self._n_partitions)
+            self._mp_pool = mp.Pool(self._n_processors)
 
             if not os.path.exists(self.out_path):
                 open(self.out_path, 'w').close()
@@ -233,7 +233,7 @@ class Extractor:  # TODO name change
             self.ids.reset_index(inplace=True, drop=True)
 
         if len(self.ids.index) <= self._chunking_threshold:
-            self._chunk_size = ceil(len(self.ids.index) / self._n_partitions)
+            self._chunk_size = ceil(len(self.ids.index) / self._n_processors)
 
         try:
             self._id_chunks = [
@@ -317,16 +317,21 @@ class Extractor:  # TODO name change
         func = partial(func, self._index_ID_map)  # pass the index mapping
 
         if settings.debug_level == 0:
-            results = list(
-                # tqdm is creates our progress bar
-                tqdm(
-                    self._mp_pool.imap_unordered(
-                        func,
-                        self._id_chunks
-                    ),
-                    total=len(self._id_chunks)
+            try:
+                results = list(
+                    # tqdm creates our progress bar
+                    tqdm(
+                        self._mp_pool.imap_unordered(
+                            func,
+                            self._id_chunks
+                        ),
+                        total=len(self._id_chunks),
+                        desc="Extracting: ",
+                        leave=False
+                    )
                 )
-            )
+            except Exception as e:
+                print("The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
 
         if settings.debug_level >= 1:
             print('Beginning single-processor extraction.')
@@ -355,11 +360,10 @@ class Extractor:  # TODO name change
                 left_index=True,
                 right_on='id_index'
             )
-            self.model.to_csv(self.out_path, sep='\t', index=False)
-
+            
         self._mp_pool.close()
         self._mp_pool.join()
-
+    
 
 def main():
     print('please use the main program interface')

@@ -38,20 +38,32 @@ import os
 
 from pathlib import Path
 
-
 from utils.exc import InvalidSettingsWarning
 from utils.exc import InvalidSettingsError  # noqa: 401 
 
+# TODO: How would I dynamically load a different settings file?
+# TODO: ^^^This really should be able to be passed in
+# TODO: should different steps have different settings files?
+# TODO: add reasonable constraints on settings
+# TODO: verbose exception output
+# TODO: add documentation on what this file is for
+# TODO: Shorten variable names where possible
+# TODO: add error checking where applicable
+# TODO: set type annotations and default values
+# TODO: determine good defaults
+# TODO: type annotations for path variable
+# TODO: Discuss this style vs settings class style
+# TODO: Figure out how to reduce redundancy. Like a better singleton
 
+# NOTE: we can use LibYAML c bindings if we need more speed
 
 #location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
-
 debug_level: int
 recognize_available_cores: bool
-n_partitions: int
+n_processors: int
 id_file_rt_unit: str
 trim_ids_to_mzml_bounds: bool
 fpe_tolerance: bool
@@ -63,7 +75,7 @@ ppm_window: int
 heavy_isotope: str
 study_type: str
 aa_label_path: str
-use_abundance: bool
+use_abundance: str
 use_neutromer_spacing: bool
 maximum_theoretical_pct: float
 labeling_step_size: float
@@ -76,6 +88,8 @@ zscore_cutoff: int
 mz_proximity_tolerance: float
 peptide_analyte_id_column: str
 peptide_analyte_name_column: str
+lipid_analyte_id_column: str
+lipid_analyte_name_column: str
 unique_sequence_column: str
 roll_up_rate_calc: bool
 asymptote: str
@@ -95,8 +109,23 @@ enrichement_of_zero: float
 min_allowed_abund_max_delta: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
+use_empir_n_value: bool
 minimum_abund_change: float
+intensity_filter: int
+rel_height: float
+sampling_rate: int
+smoothing_width: int
+smoothing_order: int
+allowed_peak_variance_min: float
+allowed_neutromer_peak_variance: float
+adduct_weight: float
+variance_weight: float
+ID_weight: float
+intensity_weight: float
+how_divided: str
+use_chromatography_division: str
 verbose_rate: bool
+
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
@@ -114,37 +143,37 @@ def load(settings_path):
             )
             print('Running with debug level 0')
             debug_level = 0
-
+        
         global recognize_available_cores
         recognize_available_cores = s['recognize_available_cores']
-
-        global n_partitions
-        n_partitions = s['n_partitions']
-
+        
+        global n_processors
+        n_processors = s['n_processors']
+        
         global id_file_rt_unit
         id_file_rt_unit = s['id_file_rt_unit']
-
+        
         global trim_ids_to_mzml_bounds
         trim_ids_to_mzml_bounds = s['trim_ids_to_mzml_bounds']
-
+        
         global fpe_tolerance
         fpe_tolerance = s['fpe_tolerance']
-
+        
         global chunk_size
         chunk_size = s['chunk_size']
-
+        
         global chunking_method_threshold
         chunking_method_threshold = s['chunking_method_threshold']
-
+        
         global max_valid_angle
         max_valid_angle = s['max_valid_angle']
-
+        
         global time_window
         time_window = s['time_window']
-
+        
         global ppm_window
         ppm_window = s['ppm_window']
-
+        
         global heavy_isotope
         heavy_isotope = s['heavy_isotope']
         
@@ -152,42 +181,42 @@ def load(settings_path):
         study_type = s['study_type']
         
         global aa_label_path
-        aa_label_path = os.path.join(resource_location, 
+        aa_label_path = os.path.join(resource_location,
                                      s['aa_labeling_sites_path'])
 
         global use_abundance
         use_abundance = s['use_abundance']
-
+        
         global use_neutromer_spacing
         use_neutromer_spacing = s['use_neutromer_spacing']
-
+        
         global maximum_theoretical_pct
         maximum_theoretical_pct = s['maximum_theoretical_pct']
-
+        
         global labeling_step_size
         labeling_step_size = s['labeling_step_size']
-
+        
         global minimum_nonzero_points
         minimum_nonzero_points = s['minimum_nonzero_points']
-
+        
         global peak_lookback
         peak_lookback = s['peak_lookback']
-
+        
         global peak_lookahead
         peak_lookahead = s['peak_lookahead']
-
+        
         global baseline_lookback
         baseline_lookback = s['baseline_lookback']
-
+        
         global min_envelopes_to_combine
         min_envelopes_to_combine = s['min_envelopes_to_combine']
-
+        
         global peak_ratio_denominator
         peak_ratio_denominator = s['peak_ratio_denominator']
-
+        
         global zscore_cutoff
         zscore_cutoff = s['zscore_cutoff']
-
+        
         global mz_proximity_tolerance
         mz_proximity_tolerance = s['mz_proximity_tolerance']
         
@@ -196,6 +225,12 @@ def load(settings_path):
         
         global peptide_analyte_name_column
         peptide_analyte_name_column = s['peptide_analyte_name_column']
+        
+        global lipid_analyte_id_column
+        lipid_analyte_id_column = s['lipid_analyte_id_column']
+        
+        global lipid_analyte_name_column
+        lipid_analyte_name_column = s['lipid_analyte_name_column']
         
         global unique_sequence_column
         unique_sequence_column = s["unique_sequence_column"]
@@ -253,26 +288,69 @@ def load(settings_path):
         
         global min_allowed_n_values
         min_allowed_n_values = s["min_allowed_n_values"]
-
+        
+        global use_empir_n_value
+        use_empir_n_value = s["use_empir_n_value"]
         
         global minimum_abund_change
         minimum_abund_change = s["minimum_abund_change"]
         
+        global intensity_filter
+        intensity_filter = s["intensity_filter"]
+        
+        global rel_height
+        rel_height = s["rel_height"]
+        
+        global sampling_rate
+        sampling_rate = s["sampling_rate"]
+        
+        global smoothing_width
+        smoothing_width = s["smoothing_width"]
+
         global verbose_rate
         verbose_rate = s["verbose_rate"]
         
-
+        global smoothing_order
+        smoothing_order = s["smoothing_order"]
+        
+        global allowed_peak_variance_min
+        allowed_peak_variance_min = s["allowed_peak_variance_min"]
+        
+        global adduct_weight
+        adduct_weight = s["adduct_weight"]
+        
+        global variance_weight
+        variance_weight = s["variance_weight"]
+        
+        global ID_weight
+        ID_weight = s["ID_weight"]
+        
+        global intensity_weight
+        intensity_weight = s["intensity_weight"]
+        
+        global how_divided
+        how_divided = s["how_divided"]
+        
+        global allowed_neutromer_peak_variance
+        allowed_neutromer_peak_variance = s["allowed_neutromer_peak_variance"]
+        
+        global ms_level
+        ms_level = s["ms_level"]
+        
+        global use_chromatography_division
+        use_chromatography_division = s["use_chromatography_division"]
+        
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
 
 
-def freeze(path=None, settings_dict = None):
+def freeze(path=None, settings_dict=None):
     if not settings_dict:
         settings_dict = {
             'debug_level': debug_level,
             'recognize_available_cores': recognize_available_cores,
-            'n_partitions': n_partitions,
+            'n_processors': n_processors,
             'id_file_rt_unit': id_file_rt_unit,
             'trim_ids_to_mzml_bounds': trim_ids_to_mzml_bounds,
             'fpe_tolerance': fpe_tolerance,
@@ -298,6 +376,8 @@ def freeze(path=None, settings_dict = None):
             'mz_proximity_tolerance': mz_proximity_tolerance,
             "peptide_analyte_id_column": peptide_analyte_id_column,
             "peptide_analyte_name_column": peptide_analyte_name_column,
+            "lipid_analyte_id_column": lipid_analyte_id_column,
+            "lipid_analyte_name_column": lipid_analyte_name_column,
             "unique_sequence_column": unique_sequence_column,
             "roll_up_rate_calc": roll_up_rate_calc,
             "asymptote": asymptote,
@@ -309,7 +389,7 @@ def freeze(path=None, settings_dict = None):
             "combined_agreement_filter": combined_agreement_filter,
             "bias_calculation": bias_calculation,
             "abundance_manual_bias": abundance_manual_bias,
-            "spacing_manual_bias": spacing_manual_bias, 
+            "spacing_manual_bias": spacing_manual_bias,
             "combined_manual_bias": combined_manual_bias,
             "y_intercept_of_fit": y_intercept_of_fit,
             "error_of_non_replicated_point": error_of_non_replicated_point,
@@ -318,7 +398,10 @@ def freeze(path=None, settings_dict = None):
             "min_aa_sequence_length": min_aa_sequence_length,
             "min_allowed_n_values": min_allowed_n_values,
             "minimum_abund_change": minimum_abund_change,
-            "verbose_rate": verbose_rate
+            "verbose_rate": verbose_rate,
+            "intensity_filter": intensity_filter,
+            "ms_level": ms_level,
+            "use_chromatography_division": use_chromatography_division
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
@@ -329,4 +412,3 @@ def freeze(path=None, settings_dict = None):
             )
     else:
         print(yaml.dump(data=settings_dict, canonical=False))
-

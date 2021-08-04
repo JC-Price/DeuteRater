@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 """
 Copyright (c) 2016-2020 Bradley Naylor,  J.C. Price, and Brigham Young University
 All rights reserved.
@@ -31,7 +30,6 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 
 """
 the following are settings that are in use in DeuteRater but are not alerable
@@ -84,7 +82,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         super(Rate_Setting_Menu, self).__init__(parent)
         settings.load(current_setting_file)
         self.current_setting_file =current_setting_file
-        
         #$this is needed to slim things down a bit
         self.setWindowTitle("Rate Settings Menu")
         self.setupUi(self)
@@ -93,8 +90,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.all_settings=[
             setting_string_info(self.recognize_available_cores, "recognize_available_cores",
                                  settings.recognize_available_cores, True),
-            setting_numerical_info(self.default_cores, "n_partitions",
-                                   settings.n_partitions, True),
+            setting_numerical_info(self.default_cores, "n_processors",
+                                   settings.n_processors, True),
             setting_string_info(self.study_type_combobox, "study_type",
                                 settings.study_type, False),
             setting_string_info(self.rt_unit, "id_file_rt_unit",
@@ -105,8 +102,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                     settings.ppm_window, True),
             setting_string_info(self.heavy_label, "heavy_isotope",
                                 settings.heavy_isotope, False),
+            setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                settings.use_empir_n_value, True),
             setting_string_info(self.use_abundance, "use_abundance",
-                                settings.use_abundance, True),
+                                settings.use_abundance, False),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
                                 settings.use_neutromer_spacing, True),
             setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
@@ -133,8 +132,12 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.min_aa_sequence_length, True),
             setting_numerical_info(self.min_n_value, "min_allowed_n_values", 
                                    settings.min_allowed_n_values, True),
+            setting_numerical_info(self.ms_level, "ms_level",
+                                   settings.ms_level, True),
+            setting_string_info(self.use_chromatography_division, "use_chromatography_division",
+                                   settings.use_chromatography_division, False),
             setting_string_info(self.verbose_rate, "verbose_rate",
-                                 settings.verbose_rate, True)
+                                settings.verbose_rate, True)
             ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -195,8 +198,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             'study_type': settings.study_type,
             "peak_ratio_denominator" : settings.peak_ratio_denominator,
             "peptide_analyte_id_column" : settings.peptide_analyte_id_column,
+            "lipid_analyte_id_column" : settings.lipid_analyte_id_column,
             "peptide_analyte_name_column" : settings.peptide_analyte_name_column,
             "aa_labeling_sites_path": settings.aa_label_path,
+            "lipid_analyte_name_column" : settings.lipid_analyte_name_column,
             "unique_sequence_column" : settings.unique_sequence_column,
             "maximum_theoretical_pct" : settings.maximum_theoretical_pct,
             "labeling_step_size" : settings.labeling_step_size,
@@ -213,7 +218,18 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "error_of_non_replicated_point" : settings.error_of_non_replicated_point,
             "y_intercept_of_fit" : settings.y_intercept_of_fit,
             "enrichement_of_zero" : settings.enrichement_of_zero,
-            "minimum_abund_change": settings.minimum_abund_change
+            "minimum_abund_change": settings.minimum_abund_change,
+            "intensity_filter": settings.intensity_filter,
+            "rel_height": settings.rel_height,
+            "sampling_rate": settings.sampling_rate,
+            "smoothing_width": settings.smoothing_width,
+            "smoothing_order": settings.smoothing_order,
+            "allowed_peak_variance_min": settings.allowed_peak_variance_min,
+            "adduct_weight": settings.adduct_weight,
+            "variance_weight": settings.variance_weight,
+            "ID_weight": settings.ID_weight,
+            "intensity_weight": settings.intensity_weight,
+            "how_divided": settings.how_divided,
+            "allowed_neutromer_peak_variance": settings.allowed_neutromer_peak_variance,
             }
         return unalterable_settings
-        

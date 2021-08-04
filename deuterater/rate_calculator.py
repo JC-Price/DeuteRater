@@ -53,7 +53,7 @@ from utils.graphing_tools import graph_rate
 group_column = "sample_group"
 
 class RateCalculator():
-    def __init__(self, model_path, out_path, graph_folder, settings_path):
+    def __init__(self, model_path, out_path, graph_folder, settings_path, biomolecule_type):
         settings.load(settings_path)
         if model_path[-4:] == ".tsv":
             self.model = pd.read_csv(model_path, sep='\t')
@@ -63,19 +63,27 @@ class RateCalculator():
             raise ValueError("invalid file extension")
         self.out_path = out_path
         self.rate_model = None
+        self.datapoint_model = None  # CQ
         self.graph_folder = graph_folder
         self.settings_path = settings_path
         #$get the number of cores we're using for multiprocessing
         if settings.recognize_available_cores is True:
-            self._n_partitions = mp.cpu_count()
+            self._n_processors = mp.cpu_count()
         else:
-            self._n_partitions = settings.n_partitions
+            self._n_processors = settings.n_processors
         
-        self._mp_pool = mp.Pool(self._n_partitions)
+        self._mp_pool = mp.Pool(self._n_processors)
+
+        self.biomolecule_type = biomolecule_type  # CQ
 
     def write(self):
         self.rate_model.to_csv(
             path_or_buf=self.out_path,
+            index=False
+        )
+        self.datapoint_model.to_csv(  # CQ
+            path_or_buf=self.out_path[:-4] + "_datapoints.tsv",
+            sep='\t',
             index=False
         )
     
@@ -85,8 +93,15 @@ class RateCalculator():
         #$ catch the optimize warnings and so on
         w.filterwarnings("error")
         rate_results = []
+        datapoint_results = []  # CQ
         max_time = max(self.model["time"])
-        id_col = settings.peptide_analyte_id_column
+        if self.biomolecule_type == "Peptide":
+            id_col = settings.peptide_analyte_id_column
+        elif self.biomolecule_type == "Lipid":
+            id_col = settings.lipid_analyte_id_column
+        else:
+            print("Unknown Analyte Type")
+            return
         #$could put manual bias correction here, would be slightly more 
         #$efficient, but make the logic less clear
         groups = self.model.groupby(by=[id_col, group_column])
@@ -117,65 +132,86 @@ class RateCalculator():
             
         #$call the rate for each relevant measurement type
         #$add measurement specific arguments to partial function
-        if settings.use_abundance:
+        if settings.use_abundance != "No":
             temp_rate_function = partial(rate_function,
                                          calc_type = "Abundance",
-                                         fn_col = "afn",
+                                         fn_col = "abund_fn",
                                          fn_std_dev = "frac_new_abunds_std_dev",
                                          manual_bias = settings.abundance_manual_bias,
-                                         std_dev_filter = settings.abundance_agreement_filter)
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(temp_rate_function, groups),
-                    total=len(groups)
+                                         std_dev_filter = settings.abundance_agreement_filter,
+                                         biomolecule_type=self.biomolecule_type)
+            results = list()
+            if settings.debug_level == 0:
+                results = list(
+                    tqdm(
+                        self._mp_pool.imap_unordered(temp_rate_function, groups),
+                        total=len(groups), desc="Abundance Rate Calculation: "
+                    )
                 )
-            )
-            rate_results.append(pd.DataFrame(results))
+            elif settings.debug_level >= 1:
+                for group in tqdm(groups, desc="Abundance Rate Calculation: "):
+                    results.append(temp_rate_function(group))
+            rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
+            datapoint_results.append([i[1] for i in results])  # CQ
             
-
         if settings.use_neutromer_spacing:
             temp_rate_function = partial(rate_function,
                                          calc_type = "Spacing",
                                          fn_col = "nsfn",
                                          fn_std_dev = "frac_new_mzs_std_dev",
                                          manual_bias = settings.spacing_manual_bias,
-                                         std_dev_filter = settings.spacing_agreement_filter)
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(temp_rate_function, groups),
-                    total=len(groups)
+                                         std_dev_filter = settings.spacing_agreement_filter,
+                                         biomolecule_type=self.biomolecule_type)
+            results = list()
+            if settings.debug_level == 0:
+                results = list(
+                    tqdm(
+                        self._mp_pool.imap_unordered(temp_rate_function, groups),
+                        total=len(groups), desc="Spacing Rate Calculation: "
+                    )
                 )
-            )
-            rate_results.append(pd.DataFrame(results))
+            elif settings.debug_level >= 1:
+                for group in tqdm(groups, desc="Spacing Rate Calculation: "):
+                    results.append(temp_rate_function(group))
+            rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
+            datapoint_results.append([i[1] for i in results])  # CQ
 
-        if settings.use_abundance and settings.use_neutromer_spacing:
+        if settings.use_abundance != "No" and settings.use_neutromer_spacing:
             temp_rate_function = partial(rate_function,
                                          calc_type = "Combined",
                                          fn_col = "cfn",
                                          fn_std_dev = "frac_new_combined_std_dev",
                                          manual_bias = settings.combined_manual_bias,
-                                         std_dev_filter = settings.combined_agreement_filter)
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(temp_rate_function, groups),
-                    total=len(groups)
+                                         std_dev_filter = settings.combined_agreement_filter,
+                                         biomolecule_type=self.biomolecule_type)
+            results = list()
+            if settings.debug_level == 0:
+                results = list(
+                    tqdm(
+                        self._mp_pool.imap_unordered(temp_rate_function, groups),
+                        total=len(groups), desc="Combined Rate Calculation: "
+                    )
                 )
-            )
-            rate_results.append(pd.DataFrame(results))
+            elif settings.debug_level >= 1:
+                for group in tqdm(groups, desc="Combined Rate Calculation: "):
+                    results.append(temp_rate_function(group))
+            rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
+            datapoint_results.append([i[1] for i in results])  # CQ
             
  
         #$ from https://stackoverflow.com/questions/44327999/python
         #$-pandas-merge-multiple-dataframes answer 1 accessed 9/16/2020
         #$merges any number of dfs into one df
         self.rate_model = reduce(lambda  left,right: pd.merge(left,right,
-                                on=['analyte_id', 'analyte_name', "group_name"], 
+                                on=['analyte_id', 'analyte_name', "group_name"],
                                 how='outer'), rate_results)
+        self.datapoint_model = pd.concat(datapoint_results[0])
         #$swap back to normal warning behaviour
         w.filterwarnings("default")
         
         self._mp_pool.close()
         self._mp_pool.join()
-        
+            
         if not settings.verbose_rate:
             self.trim_verbose_data()
         
@@ -194,10 +230,10 @@ class RateCalculator():
             for p in potential_columns:
                 needed_columns.append(p.format("Combined"))
         self.rate_model = self.rate_model[needed_columns]
-            
+
     def _mp_function(data_tuple, settings_path, fn_col, 
-                     fn_std_dev, calc_type,manual_bias, std_dev_filter, graph_folder,
-                     rate_eq, max_time, p0):
+                     fn_std_dev, calc_type, manual_bias, std_dev_filter, graph_folder,
+                     rate_eq, max_time, p0, biomolecule_type):
         w.filterwarnings("error")
         settings.load(settings_path)
         pd.options.mode.chained_assignment = None
@@ -205,30 +241,36 @@ class RateCalculator():
         id_values, group = data_tuple[0], data_tuple[1]
         id_name = id_values[0]
         sample_group_name =id_values[1]
-        common_name = group[settings.peptide_analyte_name_column].iloc[0]
-        #$drop error string could do earlier for more speed, but this is 
+        if biomolecule_type == "Peptide":
+            common_name = group[settings.peptide_analyte_name_column].iloc[0]
+        elif biomolecule_type == "Lipid":
+            common_name = group[settings.lipid_analyte_name_column].iloc[0]
+        else:
+            raise Exception("Not a Valid Biomolecule Type")
+        #$drop error string could do earlier for more speed, but this is
         #$clearer and allows errors that affect only one calculation type
         group = RateCalculator._error_trimmer(
-            group, [fn_col, fn_std_dev])    
+            group, [fn_col, fn_std_dev])
         #$the copy is just to avoid a SettingWithCopy warning in a few
         #$operations.  if it causes problems remove and suppress warning
-        group = group[group[fn_std_dev] < std_dev_filter].copy()    
+        group = group[group[fn_std_dev] < std_dev_filter].copy()
+        
         if len(group) == 0:
             result = RateCalculator._make_error_message(
-                "No Isotope Envelopes Agree","", id_name, common_name,  
+                "No Isotope Envelopes Agree","", id_name, common_name,
                 sample_group_name, calc_type, 0, 0, 0, 0)
-            return result
+            return result, group
     
         #offset all values by a certain amount (instrument bias)
         if settings.bias_calculation == "calculated":
             bias = RateCalculator._calc_bias(group, fn_col)
             group[fn_col] = group[fn_col] - bias
-        elif settings.bias_calculation == "manual": #$ user designated bias  
-            group[fn_col] = group[fn_col] - manual_bias    
+        elif settings.bias_calculation == "manual": #$ user designated bias
+            group[fn_col] = group[fn_col] - manual_bias
         
         xs = np.concatenate(([0], group['time'].to_numpy()))
 
-        ys = np.concatenate(([settings.y_intercept_of_fit], 
+        ys = np.concatenate(([settings.y_intercept_of_fit],
                                  group[fn_col].to_numpy()))
         
             
@@ -237,30 +279,40 @@ class RateCalculator():
         else:
             devs = np.concatenate((
                 [settings.error_of_zero],
-                group[fn_std_dev].to_numpy()))        
+                group[fn_std_dev].to_numpy()))
             
         # Get the number of unique time points, and continue if not enough
         num_unique_times = len(set(group['time']))
-        
-        unique_length = len(set(group[settings.unique_sequence_column]))
+
+        if biomolecule_type == "Peptide":
+            unique_length = len(set(group[settings.unique_sequence_column]))
+        # $for lipids or metaboloites or similar, the unique length means
+        # $nothing.  if needed can add the elif
+        else:
+            unique_length = ""
         num_measurements = len(group.index)
-            
+        
         #TODO$ this is not ideal but this is a good first attempt
-        num_files = len(set(group["mzml_path"]))    
-            
+        num_files = len(set(group["mzml_path"]))
+        
+        #TODO: Handle Num Bio Reps in Stuff
+        
+        # I think this fixes the issues with technical replicates.
+        num_bio_reps = len(set(group["time"].astype(str) + group["sample_group"] + group["bio_rep"]))
+        
         if num_unique_times < settings.minimum_nonzero_points:
             result = RateCalculator._make_error_message(
                 "Insufficient Timepoints","", id_name, common_name, sample_group_name,
                 calc_type, num_measurements, num_unique_times, unique_length,
                 num_files)
-            return result    
+            return result, group
         # perform fit
-        try: 
+        try:
             #$DO NOT use std dev as the Sigma because it creates influential outliers
-            #$don't use sigma unless we have a different 
+            #$don't use sigma unless we have a different
             popt, pcov = curve_fit(
                 f=rate_eq, xdata=xs, ydata=ys,
-                p0=p0)    
+                p0=p0)
             
              # pull results of fit into variables
             rate = popt[0]
@@ -269,15 +321,15 @@ class RateCalculator():
             #TODO$ ci uses degrees of freedom = n-k where n is the number of points and k is the number of parameters estimated
             #$including intercept in linear regression.  if asymptote is fixed k =1 otherwise k =2 (intercept is fit by equation, not data)
             #$not counting charge states and different peptides as unique measurements.
-            #$despite the claim in the documentation, acorrding to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]  
+            #$despite the claim in the documentation, acorrding to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]
             #$is standard error, not std dev, so don't divide by sqrt of n
             
             confint = \
                 t.ppf(.975, num_files - len(popt)) * \
-                np.sqrt(np.diag(pcov))[0] 
+                np.sqrt(np.diag(pcov))[0]
                 
             y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
-            r_2 = dur.calculate_r2(ys, y_predicted)    
+            r_2 = dur.calculate_r2(ys, y_predicted)
             
             result = {
                 'analyte_id': id_name,
@@ -290,25 +342,39 @@ class RateCalculator():
                 '{} half life'.format(calc_type): RateCalculator._halflife(rate),
                 '{} R2'.format(calc_type): r_2,
                 "{} files observed in".format(calc_type): num_files,
-                '{} num_measurements'.format(calc_type): 
+                '{} num_measurements'.format(calc_type):
                     num_measurements,
-                '{} num_time_points'.format(calc_type): 
+                '{} num_time_points'.format(calc_type):
                     num_unique_times,
                 '{} uniques'.format(calc_type): unique_length,
                 '{} exceptions'.format(calc_type): "",
                 #$'calculation_type': calc_type
             }
             #$ if there is an asymptote need to provide it
-            graph_name = "{}_{}_{}".format(id_name, sample_group_name, 
+            if biomolecule_type == "Peptide":
+                graph_name = "{}_{}_{}".format(id_name, sample_group_name,
                                                fn_col)
-            if settings.roll_up_rate_calc:
-                graph_rate(graph_name, xs, ys, rate, asymptote, confint, 
-                           rate_eq, graph_folder, max_time, 
-                           settings.asymptote, devs)
+                graph_title = "{}_{}_{}\nk={}, a={}".format(common_name,
+                                                            sample_group_name, fn_col, result['Abundance rate'],
+                                                            1.0)
+            elif biomolecule_type == "Lipid":
+                graph_name = "{}_{}_{}".format(common_name,
+                                               sample_group_name, fn_col)
+                graph_title = "{}_{}_{}\nk={}, a={}".format(common_name,
+                                                            sample_group_name, fn_col, result['Abundance rate'],
+                                                            result['Abundance asymptote'])
             else:
-                graph_rate(graph_name,  xs, ys, rate, asymptote, confint, 
-                           rate_eq, graph_folder, max_time, 
-                           settings.asymptote)
+                graph_name = None
+                graph_title = None
+            
+            if settings.roll_up_rate_calc:
+                graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                           rate_eq, graph_folder, max_time,
+                           settings.asymptote, devs, biomolecule_type, full_data=group, title=graph_title)
+            else:
+                graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                           rate_eq, graph_folder, max_time,
+                           settings.asymptote, biomolecule_type, full_data=group, title=graph_title)
         except Exception as c:
             #$"we have a guess but are unsure" warning
             if type(c).__name__ == "OptimizeWarning":
@@ -321,11 +387,11 @@ class RateCalculator():
             else:
                 raise c #$will stop here so don't need to consider further
             result = RateCalculator._make_error_message(
-                "value could not be determined", current_exception, id_name, 
-                common_name, sample_group_name, calc_type,num_measurements,  
+                "value could not be determined", current_exception, id_name,
+                common_name, sample_group_name, calc_type,num_measurements,
                 num_unique_times, unique_length, num_files)
         
-        return result            
+        return result, group
             
     #$funciton that does a mad oulier check on a numpy array
     @staticmethod

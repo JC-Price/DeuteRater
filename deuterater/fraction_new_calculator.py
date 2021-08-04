@@ -75,28 +75,44 @@ protein_itertuple_renamer = {
     "literature_n": "n_value"
     }
 
+lipid_itertuple_renamer = {
+    "n_isos": "num_peaks",
+    "literature_n": "n_value",
+    "Lipid Unique Identifier": "Lipid_Unique_Identifier",
+    "Lipid Name": "Lipid_Name"
+    }
+
 class FractionNewCalculator():
-    def __init__(self, model_path, out_path, settings_path):
+    def __init__(self, model_path, out_path, settings_path, biomolecule_type):
         settings.load(settings_path)
         self.settings_path = settings_path
-        itertuple_renamer = copy(protein_itertuple_renamer)
+        if biomolecule_type == "Peptide":
+            itertuple_renamer = copy(protein_itertuple_renamer)
+        elif biomolecule_type == "Lipid":
+            itertuple_renamer = copy(lipid_itertuple_renamer)
+
+        self.biomolecule_type = biomolecule_type
         
         self.error = ""
         
         #$get the number of cores we're using for multiprocessing
         if settings.recognize_available_cores is True:
-            self._n_partitions = mp.cpu_count()
+            self._n_processors = mp.cpu_count()
         else:
-            self._n_partitions = settings.n_partitions
+            self._n_processors = settings.n_processors
         
-        self._mp_pool = mp.Pool(self._n_partitions)
+        self._mp_pool = mp.Pool(self._n_processors)
+        
+        if settings.use_empir_n_value:
+            itertuple_renamer['literature_n'] = 'literature_n'
+            itertuple_renamer['empir_n'] = 'n_value'
         if model_path[-4:] == ".tsv":
             self.model = pd.read_csv(model_path, sep='\t')
         elif model_path[-4:] == ".csv":
             self.model = pd.read_csv(model_path)
-        else: #$should never trigger unless we are fiddling with the gui
+        else:  # $should never trigger unless we are fiddling with the gui
             raise ValueError("invalid file extension")
-            
+
         self.model.rename(columns = itertuple_renamer, inplace = True)
         self.out_path = out_path
 
@@ -108,14 +124,13 @@ class FractionNewCalculator():
         )
 
     def generate(self):
-        #these need to be removed
-        #cf_col = 'cf'
-        #nval_col = 'n_value'
-        #enrichment_col = 'enrichment'
-        
         #$just drop the unneeded columns
         self.model = self.model.drop(columns_to_drop, axis =1, errors = "ignore")
-        self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1,
+        
+        if "no_fn" in self.model.columns:
+            self.model = self.model.loc[pd.isna(self.model["no_fn"])]
+        if self.biomolecule_type == "Peptide":
+            self.model = self.model.drop(peptide_extra_columns_to_drop, axis =1,
                                          errors = "ignore")
         
         if self.model["n_value"].isna().all():
@@ -127,7 +142,7 @@ class FractionNewCalculator():
                           "column")
             return
         
-        if settings.use_abundance:
+        if settings.use_abundance != "No":
             self.model = self.model.assign(
                 theory_unlabeled_abunds="",
                 theory_labeled_abunds="",
@@ -135,7 +150,7 @@ class FractionNewCalculator():
                 low_labeling_peaks = "",
                 frac_new_abunds="",
                 frac_new_abunds_std_dev  = "",
-                afn = ""
+                abund_fn = ""
                 )
         if settings.use_neutromer_spacing:
             self.model = self.model.assign(
@@ -147,28 +162,39 @@ class FractionNewCalculator():
                 frac_new_mzs_std_dev  = "",
                 nsfn = ""
                 )
-        if settings.use_abundance and settings.use_neutromer_spacing:
+        if settings.use_abundance != "No" and settings.use_neutromer_spacing:
             self.model = self.model.assign(
                 frac_new_combined = "",
                 frac_new_combined_outlier_checked = "",
                 frac_new_combined_std_dev = "",
                 cfn = ""  
                 )
-        #$now that we have dropped useless columns we can start the multiprocessing
-        #$don't use np.split or it will error if chunks are not equal sized
+
+        # $now that we have dropped useless columns we can start the multiprocessing
+        # $don't use np.split or it will error if chunks are not equal sized
         model_pieces = np.array_split(self.model, len(self.model))
-        func= partial(FractionNewCalculator._mp_prepare)
-        func = partial(func, settings_path = self.settings_path)
-        
-        results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(func, model_pieces),
-                    total=len(self.model)
-                )
+
+        if settings.debug_level == 0:
+            func= partial(FractionNewCalculator._mp_prepare)
+            func = partial(func, settings_path=self.settings_path)
+            func = partial(func, biomolecule_type=self.biomolecule_type)
             
-            )
-        
-        self.model = pd.concat(results)
+            results = list(
+                    tqdm(
+                        self._mp_pool.imap_unordered(func, model_pieces),
+                        total=len(self.model), desc="Fraction New Calculation: "
+                    )
+                
+                )
+
+        if settings.debug_level >= 1:
+            print('Beginning single-processor fraction new calculation.')
+            results = []
+            for row in tqdm(model_pieces,
+                            total=len(self.model), desc="Fraction New Calculation: "):
+                results.append(FractionNewCalculator._mp_prepare(row, self.settings_path, self.biomolecule_type))
+                
+        self.model = pd.concat(results, sort=False)
         
         self._mp_pool.close()
         self._mp_pool.join()
@@ -178,16 +204,16 @@ class FractionNewCalculator():
     #$ actual measurement
     @staticmethod
     def _error_method(df, row, error_message):
-        if settings.use_abundance:
-            df.at[row.Index, "afn"] = error_message
+        if settings.use_abundance != "No":
+            df.at[row.Index, "abund_fn"] = error_message
         if settings.use_neutromer_spacing:
             df.at[row.Index, "nsfn"] = error_message
-        if settings.use_abundance and settings.use_neutromer_spacing:
+        if settings.use_abundance != "No" and settings.use_neutromer_spacing:
             df.at[row.Index, "cfn"] = error_message
         return df
 
     @staticmethod
-    def _mp_prepare(df, settings_path):
+    def _mp_prepare(df, settings_path, biomolecule_type):
         settings.load(settings_path)
         #$can start with itertuples.  if need be can swap to apply
         for row in df.itertuples(index=True):
@@ -197,7 +223,8 @@ class FractionNewCalculator():
                     "N value is less than {}".format(
                     settings.min_allowed_n_values))
                 continue
-            if len(row.Sequence) < settings.min_aa_sequence_length:
+            if biomolecule_type == "Peptide" and \
+                    len(row.Sequence) < settings.min_aa_sequence_length:
                     
                 df = FractionNewCalculator._error_method(df, row, 
                     "Fewer than {} amino acids".format(
@@ -211,8 +238,12 @@ class FractionNewCalculator():
                 use_enrich = row.enrichment
             else:       
                 use_enrich = settings.enrichement_of_zero
-                
-            num_h, parsed_cf = parse_cf(row.cf)
+
+            try:
+                num_h, parsed_cf = parse_cf(row.cf_w_adduct)
+            except:
+                num_h, parsed_cf = parse_cf(row.cf)
+            
             _, enriched_results = emass(
                 parsed_cf=parsed_cf,
                 n_list=[0, row.n_value],
@@ -225,7 +256,7 @@ class FractionNewCalculator():
             e_mzs, e_abunds = enriched_results
             
             
-            if settings.use_abundance:
+            if settings.use_abundance != "No":
                 FractionNewCalculator._prepare_row(df, row, "abunds", e_abunds)
                 normalized_empirical_abunds = \
                     FractionNewCalculator._normalize_abundances(
@@ -244,12 +275,15 @@ class FractionNewCalculator():
                     FractionNewCalculator._trim_abunds(theory_abund_deltas, empirical_abund_deltas)
                 
                 df.at[row.Index, "low_labeling_peaks"] = removed_peaks
+
+                # TODO: Should this be included?
+                # df.at[row.Index, 'delta_I'] = np.std(empirical_abund_deltas)
                 
                 #$don't need to break if we only have one or zero. combined and
                 #$spacing are still fine, we just shouldn't do the other calculations
                 #$here
-                if len(theory_abund_deltas) <2:
-                    df.at[row.Index, "afn"] = \
+                if len(theory_abund_deltas) < 2:
+                    df.at[row.Index, "abund_fn"] = \
                         f"Insufficient peaks with theory above {settings.minimum_abund_change}"
                     all_frac_new_abunds = []
                 else:
@@ -257,7 +291,7 @@ class FractionNewCalculator():
                         empirical_abund_deltas, theory_abund_deltas
                     )
                     df = FractionNewCalculator.final_calculations(df, row, "abunds", all_frac_new_abunds,
-                                             "afn", theory_abund_deltas[0])
+                                             "abund_fn", theory_abund_deltas[0])
             
             if settings.use_neutromer_spacing:     
                 FractionNewCalculator._prepare_row(df, row, "mzs", e_mzs)
@@ -282,17 +316,17 @@ class FractionNewCalculator():
                 df = FractionNewCalculator.final_calculations(df, row, "mzs", all_frac_new_mzs,
                                          "nsfn")
             
-            if settings.use_neutromer_spacing and settings.use_abundance:
+            if settings.use_neutromer_spacing and settings.use_abundance != "No":
                all_frac_new_combined = all_frac_new_abunds + all_frac_new_mzs
                df = FractionNewCalculator.final_calculations(df, row, "combined", all_frac_new_combined,
                                          "cfn")
         return df
-            
+
     @staticmethod
     def _series_to_string(pd_series):
         string_values = [str(a) for a in pd_series.values]
         return " ".join(string_values)
-    
+
     @staticmethod
     def _mz_deltas(A):
         return [mz_value - A[0] for mz_value in A[1:]]
@@ -361,12 +395,40 @@ class FractionNewCalculator():
         return full_df
     
     #$compresses the code to made the last few output columns
+    @staticmethod
     def final_calculations(df, row, keyword, data, final_column,
                            m0_max_delta = 1):
         df.at[row.Index, 'frac_new_{}'.format(keyword)] = \
                 ", ".join([str(r) for r in data])
         
-        if keyword != "abunds":
+        if keyword == "abunds":
+            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = \
+                str(FractionNewCalculator._std_dev_calculator(data))
+            if abs(m0_max_delta) < settings.min_allowed_abund_max_delta:
+                df.at[row.Index, final_column] = \
+                    "Low Theoretical M0 delta possible. Point rejected"
+            else:
+                if settings.use_abundance == "M0":
+                    df.at[row.Index, final_column] = str(data[0])
+                elif settings.use_abundance == "Average":
+                    df.at[row.Index, final_column] = str(np.median(data))
+                elif settings.use_abundance == "Highest":
+                    try:
+                        abundances = [float(a) for a in row.abundances[1:-1].split(", ")]
+                        abunds_to_drop = df.low_labeling_peaks.iloc[0]
+                        # handle a single drop
+                        if len(abunds_to_drop) == 2:
+                            abunds_to_drop = int(abunds_to_drop[1])
+                            abundances.pop(abunds_to_drop)
+                        elif len(abunds_to_drop) == 0:
+                            pass
+                        else:
+                            print("Need to implement multiple drops... help!")
+                        
+                        df.at[row.Index, final_column] = str(data[np.argmax(abundances)])
+                    except:
+                        print("Need to implement multiple drops... help!")
+        else:
             #$ need to do further analysis on outlier check for these
             data = FractionNewCalculator._mad_outlier_check(data, settings.zscore_cutoff)
             df.at[row.Index, 'frac_new_{}_outlier_checked'.format(
@@ -374,13 +436,4 @@ class FractionNewCalculator():
             df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = \
                 str(FractionNewCalculator._std_dev_calculator(data))
             df.at[row.Index, final_column] = str(np.median(data))
-        
-        else:
-            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = \
-                str(FractionNewCalculator._std_dev_calculator(data))
-            if abs(m0_max_delta) < settings.min_allowed_abund_max_delta:
-                 df.at[row.Index, final_column] = \
-                     "Low Theoretical M0 delta possible. Point rejected"
-            else:
-                df.at[row.Index, final_column] = str(data[0])
         return df

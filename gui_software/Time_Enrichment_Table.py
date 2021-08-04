@@ -35,9 +35,6 @@ import os
 import csv
 import pandas as pd
 
-from pathlib import Path
-
-
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 
 
@@ -46,14 +43,11 @@ location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ui_file = os.path.join(location, "ui_files", "Time_Enrichment_Table.ui")
 
-
 loaded_ui = uic.loadUiType(ui_file)[0]
 
 #$ it is tricky to actually get the header out of the qtablewidget and they
 #$ need different checks anyway so we'll just declare it here
-current_columns = ["Filename", "Time", "Enrichment", "Sample_Group"]
-
-enrich_col_loc = current_columns.index("Enrichment")
+current_columns = ["Filename", "Time", "Enrichment", "Sample_Group", "Biological_Replicate"]
 
 class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
     def __init__(self, parent = None, filenames = [], outfile = None):
@@ -64,9 +58,8 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         self.setupUi(self)
         
         self.outfile = outfile
-        self.filepaths = [Path(f) for f in filenames]
         
-        self.set_up_table()
+        self.set_up_table(filenames)
         self.CancelButton.clicked.connect(self.close)
         self.ProceedButton.clicked.connect(self.check_and_save)
         
@@ -82,13 +75,15 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
                             self).activated.connect(self.Paste)
         
     #$ initial table set up
-    def set_up_table(self):
+    def set_up_table(self, row_names):
         #$block signals so if we use undo and redo the basic table is unaffected
         #self.TimeEnrichmentTable.blockSignals(True)
-        self.TimeEnrichmentTable.setRowCount(len(self.filepaths))
-        for n in range(len(self.filepaths)):
+        self.TimeEnrichmentTable.setColumnCount(len(current_columns))
+        # self.TimeEnrichmentTable.setHorizontalHeaderLabels(current_columns)
+        self.TimeEnrichmentTable.setRowCount(len(row_names))
+        for n in range(len(row_names)):
             #$make an item
-            name_item = QtWidgets.QTableWidgetItem(self.filepaths[n].stem)
+            name_item = QtWidgets.QTableWidgetItem(row_names[n])
             #$ this makes the item uneditable so the user can't mess it up
             #$ from https://stackoverflow.com/questions/17104413/pyqt4-how-to-
             #$ select-table-rows-and-disable-editing-cells anser 2 accessed 9/25/20
@@ -106,29 +101,27 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         results =[current_columns]
         for r in range(self.TimeEnrichmentTable.rowCount()):
             #$filename is not editable so can be ignored
-            #current_row = [str(self.TimeEnrichmentTable.item(r,0).text())]
-            current_row = [self.filepaths[r].resolve()]
-            for i in range(1, len(current_columns)-1):
-                if i != enrich_col_loc: 
-                    provide_as_percent = False
-                else:
-                    provide_as_percent = True
-                #$r + 1 because it is for an error message.  it will help the user
+            current_row = [str(self.TimeEnrichmentTable.item(r,0).text())]
+            for i in range(1, current_columns.index("Sample_Group")):
                 test_value = TimeEnrichmentWindow._basic_number_error_check(
                     self.TimeEnrichmentTable.item(r,i).text(),
-                    current_columns[i], r+1, provide_as_percent)
+                    current_columns[i], r)
                 if type(test_value) == str:
                     QtWidgets.QMessageBox.information(self, "Error", test_value)
-                    return 
+                    return
+                if test_value == "inf":
+                    from numpy import inf
+                    test_value = inf
                 current_row.append(test_value)
-            #get the sample group name (no need for it to be )
-            test_value, error_code = TimeEnrichmentWindow._basic_string_check(
-                    self.TimeEnrichmentTable.item(r,len(current_columns)-1).text(),
-                    current_columns[-1], r+1)
-            if error_code:
-                QtWidgets.QMessageBox.information(self, "Error", test_value)
-                return
-            current_row.append(test_value)
+            #get the sample group name and bio rep name (no need for it to be )
+            for i in range(current_columns.index("Sample_Group"), len(current_columns)):
+                test_value, error_code = TimeEnrichmentWindow._basic_string_check(
+                        self.TimeEnrichmentTable.item(r,i).text(),
+                        current_columns[i], r)
+                if error_code:
+                    QtWidgets.QMessageBox.information(self, "Error", test_value)
+                    return
+                current_row.append(test_value)
             results.append(current_row)
         #$ if we've gotten here, we're good to write out
         with open(self.outfile, "w", newline ='') as temp_out:
@@ -210,7 +203,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         
     #$does some basic error checking for numerical data 
     @staticmethod
-    def _basic_number_error_check(text_value, column_name, row_number, percent_as_decimal):
+    def _basic_number_error_check(text_value, column_name, row_number):
         append_to_error = " at \"{}\" column, row {}. Correct to proceed.".format(
             column_name, row_number)
         if text_value == "":
@@ -221,9 +214,6 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
             return "Non-numerical value" + append_to_error
         if num_value < 0:
             return "Negative value" + append_to_error
-        if percent_as_decimal and num_value >1: #$allow up to 100%
-            return "Enrichment is a decimal not a percent. Value is too large" + append_to_error
-        
         #$we could also check if it is under some maximum, but for now
         #$trust the user
         return num_value
@@ -241,7 +231,7 @@ if __name__ == '__main__':
     #$needed for windows multiprocessing which will happen at some point
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    output_file = "C:\\Software\\Testing\\DeuteRater_Initial\\test_table_out.tsv"
-    gui_object = TimeEnrichmentWindow(None, ["C:\\test_folder_name\\A.tsv", "C:\\test_folder_name\\B.tsv", "C:\\test_folder_name\\C.tsv"], output_file)
+    output_file = "C:\\Software\\Testing\\DeuteRater_Initial\\test_table_out.csv"
+    gui_object = TimeEnrichmentWindow(None, ["A", "B", "C"], output_file)
     gui_object.show()
     app.exec_()

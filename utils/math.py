@@ -75,7 +75,10 @@ def unit_vector(vector):
     vector : :obj:`list` of :obj:`float`
 
     '''
-    return vector/np.linalg.norm(vector)
+    previous_err = np.seterr(divide="ignore", invalid="ignore")
+    value = vector/np.linalg.norm(vector)
+    np.seterr(**previous_err)
+    return value
 
 
 def angle_between(v1, v2):

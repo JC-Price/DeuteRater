@@ -38,7 +38,6 @@ import os
 
 from pathlib import Path
 
-
 mass_cutoffs: object
 rt_proximity_tolerance: int
 mz_proximity_tolerance: int
@@ -51,6 +50,22 @@ elems_path: str
 ptms_path: str
 min_charge_state: int
 max_charge_state: int
+remove_duplicates: bool
+
+# Positive Mode Adducts:
+H_adduct: bool
+Na_adduct: bool
+H_H2O_adduct: bool
+Na_H2O_adduct: bool
+NH4_adduct: bool
+NH4_H2O_adduct: bool
+
+# Negative Mode Adducts:
+formate_adduct: bool
+acetate_adduct: bool
+e_adduct: bool
+H_loss: bool
+H2O_loss: bool
 
 #location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -101,23 +116,67 @@ def load(settings_path):
         global max_charge_state
         max_charge_state = s['max_charge_state']
 
+        global remove_duplicates
+        remove_duplicates = s['remove_duplicates']
+
+        # Positive Mode Adducts:
+        global H_adduct
+        H_adduct = s["H_adduct"]
+        global Na_adduct
+        Na_adduct = s["Na_adduct"]
+        global H_H2O_adduct
+        H_H2O_adduct = s["H_H2O_adduct"]
+        global Na_H2O_adduct
+        Na_H2O_adduct = s["Na_H2O_adduct"]
+        global NH4_adduct
+        NH4_adduct = s["NH4_adduct"]
+        global NH4_H2O_adduct
+        NH4_H2O_adduct = s["NH4_H2O_adduct"]
+
+        # Negative Mode Adducts:
+        global formate_adduct
+        formate_adduct = s["formate_adduct"]
+        global acetate_adduct
+        acetate_adduct = s["acetate_adduct"]
+        global e_adduct
+        e_adduct = s["e_adduct"]
+        global H_loss
+        H_loss = s["H_loss"]
+        global H2O_loss
+        H2O_loss = s["H2O_loss"]
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
 
 
-def freeze(path=None):
-    settings_dict = {
-        'mass_cutoffs': mass_cutoffs,
-        'rt_proximity_tolerance': rt_proximity_tolerance,
-        'mz_proximity_tolerance': mz_proximity_tolerance,
-        'start_time': start_time,
-        'study_type': study_type,
-        'aa_elemental_composition_path': aa_elem_comp_path,
-        'aa_labeling_sites_path': aa_label_path,
-        'elements_path': elems_path,
-        'post_translational_modifications_path': ptms_path
-    }
+def freeze(path=None, settings_dict=None):
+    if not settings_dict:
+        settings_dict = {
+            'mass_cutoffs': mass_cutoffs,
+            'rt_proximity_tolerance': rt_proximity_tolerance,
+            'mz_proximity_tolerance': mz_proximity_tolerance,
+            'start_time': start_time,
+            'study_type': study_type,
+            'aa_elemental_composition_path': aa_elem_comp_path,
+            'aa_labeling_sites_path': aa_label_path,
+            'elements_path': elems_path,
+            'post_translational_modifications_path': ptms_path,
+            'min_charge_state': min_charge_state,
+            'max_charge_state': max_charge_state,
+            'remove_duplicates': remove_duplicates,
+            "H_adduct": H_adduct,
+            "Na_adduct": Na_adduct,
+            "H_H2O_adduct": H_H2O_adduct,
+            "Na_H2O_adduct": Na_H2O_adduct,
+            "NH4_adduct": NH4_adduct,
+            "NH4_H2O_adduct": NH4_H2O_adduct,
+            "formate_adduct": formate_adduct,
+            'acetate_adduct': acetate_adduct,
+            'e_adduct': e_adduct,
+            'H_loss': H_loss,
+            'H2O_loss': H2O_loss,
+        }
     if path:
         with open(path, 'w') as frozen_settings_file:
             yaml.dump(

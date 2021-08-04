@@ -78,7 +78,7 @@ def new_parser(input_string):
     for e in elements_separated:
         element = e.rstrip('0123456789')
         number = e[len(element):]
-        if number == "": number =1 #$ need the one to be there if element is alone
+        if number == "": number = 1  # need the one to be there if element is alone
         formmap[element] = int(number)
     return formmap
 """
@@ -273,7 +273,8 @@ master_isotope = {
     'I': [isotope(mass=126.9044719, abundance=1.0)],
     'Si':[isotope(mass=27.9769265, abundance=0.92223),
           isotope(mass=28.9764946, abundance=0.04685),
-          isotope(mass=29.9737701, abundance=0.03092)]
+          isotope(mass=29.9737701, abundance=0.03092)],
+    'Na':[isotope(mass=22.98976928, abundance=1.0)]
 }
 
 # TODO: What are these values and why are they here?
@@ -314,7 +315,7 @@ def emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
         These pandas dataframes contain data from the lower and higher water
         enrichment values, respectively
     """
-    trunc_len = num_peaks  # This variable is for truncating lists.
+    trunc_len = int(num_peaks)  # This variable is for truncating lists.
     # TODO: discuss what this means
     def populate_dataframes(pct, testing=False):
         mz_lists = []
@@ -339,7 +340,11 @@ def emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
             #rounding is needed or the int in emass will do it 
             #which will likely be wrong
             #at least here we control it
-            rounded_n = round(n)            
+            rounded_n = round(n)
+
+            # Used to handle n-values that are impossible to actually calculate
+            if rounded_n > n_H:
+                rounded_n = n_H
         
             chem_format = new_parser(parsed_cf.format(
                 (n_H - rounded_n), rounded_n))

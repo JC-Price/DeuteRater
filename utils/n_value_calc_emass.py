@@ -227,7 +227,7 @@ master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                         isotope(mass=-1000000, abundance=0),
                         isotope(mass=35.967080, abundance=0.0002)],
                   'F': [isotope(mass=18.99840322, abundance=1.0)],
-                  'D': [isotope(mass = 2.0141021, abundance=0.000156)],
+                  'D': [isotope(mass = 2.0141021, abundance=1.0)],
                   'Cl':[isotope(mass= 34.9688527, abundance=0.7576),
                         isotope(mass=-1000000, abundance=0),
                         isotope(mass= 36.9659026, abundance=0.2424)],
@@ -238,6 +238,7 @@ master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                   'Si':[isotope(mass=27.9769265, abundance=0.92223),
                         isotope(mass=28.9764946, abundance=0.04685),
                         isotope(mass=29.9737701, abundance=0.03092)],
+                  'Na':[isotope(mass=22.98976928, abundance=1.0)],
                   
                   } # CQ Added to account for Flourine occurring in Lipids
 
@@ -287,8 +288,19 @@ def emass(chemical_formula, n_begin, n_end, low_pct, high_pct, num_peaks, step=1
         full_intensity_lists = []
         full_M0_intensity_lists = []
 
+        shrunk_mz_lists = []
+        shrunk_intensity_lists = []
+
         master_isotope['X'] = [isotope(master_isotope['H'][0].mass, master_isotope['H'][0].abundance - pct),
                                isotope(master_isotope['H'][1].mass, master_isotope['H'][1].abundance + pct)]
+
+        # Fix master_isotope['X'] so the abundances are never negative or over 1.
+        if master_isotope['X'][0].abundance < 0.0:
+            master_isotope['X'][0] = isotope(master_isotope['H'][0].mass, 0.0)
+        if master_isotope['X'][1].abundance > 1.0:
+            master_isotope['X'][0] = isotope(master_isotope['H'][1].mass, 1.0)
+
+        shrunk_num = 0
         for n in range(n_begin, n_end, step):
             n_h = n_end
             chem_format = new_parser(chemical_formula.format(n_h - n, n))
@@ -300,18 +312,33 @@ def emass(chemical_formula, n_begin, n_end, low_pct, high_pct, num_peaks, step=1
 
             # Added for testing purposes ~ Chad Quilling
             # M0_intensity_lists.append([n] + normalizeM0(intensity_list[:trunc_len]))
-            # full_mz_lists.append([n] + mz_list[:])
-            # full_intensity_lists.append([n] + normalize(intensity_list[:]))
+            full_mz_lists.append([n] + mz_list[:])
+            full_intensity_lists.append([n] + normalize(intensity_list[:]))
+
+            if shrunk_num == 0:
+                shrunk_num = len(mz_list)
+
+            shrunk_mz_lists.append([n] + mz_list[:shrunk_num])
+            shrunk_intensity_lists.append([n] + normalize(intensity_list[:shrunk_num]))
+
             # full_M0_intensity_lists.append([n] + normalizeM0(intensity_list[:]))
+
         if not testing:
+            # Use normilzation by number of peaks in n_D = 0
+            # return (pd.DataFrame(data=shrunk_mz_lists, columns=['n_D'] + ['mz' + str(i) for i in range(shrunk_num)]),
+            #         #         # CHOOSE IF YOU WANT TO OUTPUT NORMALIZATION BY SUM OR M0:
+            #         #
+            #         #         # SUM
+            #                 pd.DataFrame(data=shrunk_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(shrunk_num)])
+
             return (pd.DataFrame(data=mz_lists, columns=['n_D'] + ['mz' + str(i) for i in range(trunc_len)]),
-                    # CHOOSE IF YOU WANT TO OUTPUT NORMALIZATION BY SUM OR M0:
+            # CHOOSE IF YOU WANT TO OUTPUT NORMALIZATION BY SUM OR M0:
 
-                    # SUM
-                    pd.DataFrame(data=intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
+            # SUM
+                            pd.DataFrame(data=intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
 
-                    # M0 Uncomment from above as well
-                    # pd.DataFrame(data=M0_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
+            # M0 Uncomment from above as well
+            # pd.DataFrame(data=M0_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
 
         else:
             return (pd.DataFrame(data=mz_lists, columns=['n_D'] + ['mz' + str(i) for i in range(trunc_len)]),

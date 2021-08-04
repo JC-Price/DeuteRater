@@ -84,7 +84,12 @@ class ID(object):
         'mass',
         'z',
         'n_isos',
-        'mads'
+        'mads',
+        '_unfiltered_envelopes',
+        "rt_windows",
+        "rt_peak_index",
+        "neutromer_peak_maximums",
+        "is_valid"
     )
 
     def __init__(self, rt, mz, mass, z, n_isos):#, cf):
@@ -93,6 +98,7 @@ class ID(object):
         #       of quirks of how python handles objects and default
         #       constructors
         self._envelopes = []
+        self._unfiltered_envelopes = None
         self.condensed_envelope = None
 
         self.rt = rt
@@ -101,7 +107,10 @@ class ID(object):
         self.z = z
         self.n_isos = n_isos
         self.mads = []
-        #self.cf = cf
+        self.is_valid = False
+        self.rt_windows = []
+        self.neutromer_peak_maximums = []
+        self.rt_peak_index = []
 
     # Defining the __repr__ function allows python to call repr()
     # on this object. This is usually much less formatted than the related
@@ -131,16 +140,23 @@ class ID(object):
     def aggregate_envelopes(self):
         # TODO: add docstring
 
+        from copy import deepcopy
+        if settings.use_chromatography_division != "No":
+            self._unfiltered_envelopes = deepcopy(self._envelopes)
+
+        self._envelopes = [self._envelopes[i] for i in range(len(self._envelopes)) if self._envelopes[i].is_valid]
+
         # First, we see if there are even enough envelopes to warrant analyzing
         #   this identification
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             # TODO: not enough data. What should be logged?
+            self._unfiltered_envelopes = None
             return
-
-        def get_max_M0_vector(self):
+        
+        def get_max_M0_vector(current_id):
             vector_list = [[peak.ab for peak in envelope.get_peaks()]
                            for envelope
-                           in self._envelopes]
+                           in current_id._envelopes]
 
             m0_list = [v[0] for v in vector_list]
             max_m0_ab, i_max = max([(v, i) for i, v in enumerate(m0_list)])
@@ -175,17 +191,17 @@ class ID(object):
             return self._envelopes
 
         # relative angle filter (What is a better way to state this?)
-        def DR_3_5_angle_filter(self, max_valid_angle=1.2):
+        def DR_3_5_angle_filter(current_id, max_valid_angle=1.2):
             # minLen is removed because the length of each envelope should all be the exact same
             filtered_envelopes = []
             angle_list = []
             minAngle = 1000000.0  # we want to subtract the smallest angle from all the rest in a sort of normalization
 
             # Access the abundances in each of the envelopes in this identification
-            #   and orginize as a list of lists. (Uses nested list comprehensions)
+            #   and organize as a list of lists. (Uses nested list comprehensions)
             vector_list = [[peak.ab for peak in envelope.get_peaks()]
                            for envelope
-                           in self._envelopes]
+                           in current_id._envelopes]
 
             # this loop finds the smallest angle and puts all the angles in an array
             for i in range(1, len(vector_list)):
@@ -215,9 +231,9 @@ class ID(object):
                 else:
                     invalid_indices.append(i)
 
-            self._envelopes = [self._envelopes[i] for i in valid_indices]
+            current_id._envelopes = [current_id._envelopes[i] for i in valid_indices]
 
-            return self._envelopes
+            return current_id._envelopes
 
             # return angle_list, invalid_indices, valid_indices
 
@@ -262,14 +278,35 @@ class ID(object):
         # NOTE: we would perform any normaliztions here. We decided not to.
 
         # TODO: make this happen in only one pass
-        self.rt_min = min(e.rt for e in self._envelopes)
-        self.rt_max = max(e.rt for e in self._envelopes)
-        # self.max_m0_abundance = max_m0_ab
+        rt_list = self._get_rt_list()
+        self.rt_min = min(rt_list)
+        self.rt_max = max(rt_list)
 
         # After performing all of this filtration, aggregate all of the data
         #   in the remaining envelopes in to a 'condensed envelope'
         self.condense_envelopes()
 
+    def _get_rt_list(self, rounded=False):
+        if rounded:
+            return [round(float(envelope.rt), 4) for envelope in self._envelopes]
+        return [float(envelope.rt) for envelope in self._envelopes]
+
+    def _get_peak_list(self, intensity_filter=0):
+        peaks_list = list()
+    
+        # Get a 2D list of the intensities
+        for i in range(self.n_isos):
+            peaks_list.append(list())
+    
+        for envelope in self._envelopes:
+            for i in range(self.n_isos):
+                if envelope.get_m(i).ab < intensity_filter:
+                    peaks_list[i].append(0)
+                else:
+                    peaks_list[i].append(envelope.get_m(i).ab)
+        
+        return peaks_list
+    
     def condense_envelopes(self):
         # TODO: add docstring
         def condense_peak(peak_num):
@@ -313,7 +350,7 @@ class ID(object):
             # TODO should we keep all the mads instead?
             peak, _ = condense_peak(peak_num)
             peak_list.append(peak)
-        rt_median = median([envelope.rt for envelope in self._envelopes])
+        rt_median = median([float(envelope.rt) for envelope in self._envelopes])
         self.condensed_envelope = Envelope(
             peaks=peak_list,
             rt=rt_median,
@@ -324,4 +361,186 @@ class ID(object):
         # TODO: mean or median?
         # NOTE: if we sum the signal then we need to sum the baseline
         self.condensed_envelope.baseline = \
-            median([envelope.baseline for envelope in self._envelopes])
+            median([float(envelope.baseline) for envelope in self._envelopes])
+
+    def divide_chromatography(self, should_plot=False):
+        import scipy.ndimage as ndi
+        import scipy.signal as sig
+        import numpy as np
+
+        sampling_rate = settings.sampling_rate
+        smoothing_width = settings.smoothing_width
+        smoothing_order = settings.smoothing_order
+        intensity_filter = settings.intensity_filter
+
+        peaks_list = self._get_peak_list(intensity_filter)
+        combined_peaks = np.sum(np.array(peaks_list), axis=0)
+
+        # REMOVE THESE LINES LATER, ONCE WE ACTUALLY NEED TO USE THIS!
+        # print("REMOVE LINE 379-383 (or around there)")
+        if max(combined_peaks) < intensity_filter:
+            return
+        combined_data = [combined_peaks[i] if combined_peaks[i] > intensity_filter else 0 for i in range(combined_peaks.size)]
+
+        check_valid_list = [self._envelopes[i].is_valid and combined_data[i] > intensity_filter for i in
+                            range(len(combined_data))]
+        if True not in check_valid_list:
+            return
+
+        self.is_valid = True
+
+        if settings.how_divided == "combined":
+            division_data = combined_data
+        elif settings.how_divided == "m0":
+            division_data = peaks_list[0]
+        elif settings.how_divided == "m1":
+            division_data = peaks_list[1]
+        elif settings.how_divided == "m2":
+            division_data = peaks_list[2]
+        else:
+            division_data = combined_data
+
+        # Gaussian filter:
+        from scipy.signal import savgol_filter
+        smoothed_curves = savgol_filter(division_data, smoothing_width, smoothing_order)
+        smoothed_curves[smoothed_curves < 0] = 0
+        gaussian_curves = ndi.gaussian_filter1d(smoothed_curves, sampling_rate)
+        gaussian_min_cuts = sig.find_peaks([-x for x in gaussian_curves])[0]
+        peak_finding = np.concatenate(
+            (np.array([gaussian_curves[1]]), gaussian_curves, np.array([gaussian_curves[-2]])))
+
+        max_cuts = sig.argrelmax(peak_finding)[0]
+        max_cuts = [item - 1 for item in max_cuts]
+        gaussian_max_cuts = max_cuts
+
+        left_points = list()
+        right_points = list()
+        widths = list()
+        heights = list()
+        peaks = gaussian_max_cuts
+        min_points = gaussian_min_cuts
+        min_points = np.append(min_points, len(gaussian_curves))
+        for i in range(len(peaks)):
+            if i == 0:
+                peak_position = peaks[i]
+                # Left Sided Peak:
+                left_peak = np.concatenate((gaussian_curves[:peaks[i] + 1],
+                                            np.flip(gaussian_curves[:peaks[i]])))
+                right_peak = np.concatenate((np.flip(gaussian_curves[peaks[i] + 1:min_points[0]]),
+                                             gaussian_curves[peaks[i]:min_points[0]]))
+
+                if int(len(left_peak)/2) != 0:
+                    left_sides = sig.peak_widths(left_peak, [int(len(left_peak) / 2)], rel_height=settings.rel_height)
+                else:
+                    left_sides = (np.array([0]), left_peak, np.array([0]), np.array([0]))
+                if int(len(right_peak) / 2) != 0:
+                    right_sides = sig.peak_widths(right_peak, [int(len(right_peak) / 2)], rel_height=settings.rel_height)
+                else:
+                    right_sides = (np.array([0]), right_peak, np.array([0]), np.array([0]))
+                left_points.append(left_sides[2][0])
+                right_points.append(peak_position - int(len(right_peak) / 2) + right_sides[3][0])
+                widths.append(right_sides[0][0] / 2 + left_sides[0][0] / 2)
+                heights.append(max([right_sides[1][0], left_sides[1][0]]))
+            else:
+                point_correction = min_points[i - 1]
+                left_peak = np.concatenate((gaussian_curves[min_points[i - 1]:peaks[i] + 1],
+                                            np.flip(gaussian_curves[min_points[i - 1]:peaks[i]])))
+                right_peak = np.concatenate((np.flip(gaussian_curves[peaks[i] + 1:min_points[i]]),
+                                             gaussian_curves[peaks[i]:min_points[i]]))
+
+                if int(len(left_peak) / 2) != 0:
+                    left_sides = sig.peak_widths(left_peak, [int(len(left_peak) / 2)], rel_height=settings.rel_height)
+                else:
+                    left_sides = (np.array([0]), left_peak, np.array([0]), np.array([0]))
+                if int(len(right_peak) / 2) != 0:
+                    right_sides = sig.peak_widths(right_peak, [int(len(right_peak) / 2)], rel_height=settings.rel_height)
+                else:
+                    right_sides = (np.array([0]), right_peak, np.array([0]), np.array([0]))
+                left_points.append(point_correction + left_sides[2][0])
+                right_points.append(peaks[i] - int(len(right_peak) / 2) + right_sides[3][0])
+                widths.append(right_sides[0][0] / 2 + left_sides[0][0] / 2)
+                heights.append(max([right_sides[1][0], left_sides[1][0]]))
+        full_peak_width_list = (np.array(widths), np.array(heights), np.array(left_points).astype("int32"),
+                                         np.array(right_points).astype("int32"))
+
+        if should_plot:
+            import matplotlib.pyplot as plt
+    
+            plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
+            gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
+    
+            plt.plot(combined_data, label="Combined", color=plot_colors[0])
+            plt.plot(gaussian_curves, label='Combined Gaussian', zorder=2, color=gaussian_colors[0])
+            plt.vlines(x=full_peak_width_list[2], ymin=0, ymax=max(peak_finding), label="Start of Window", color="r")
+            plt.vlines(x=full_peak_width_list[3], ymin=0, ymax=max(peak_finding), label="End of Window", color="g")
+            plt.vlines(x=peaks, ymin=0, ymax=max(peak_finding), label="Max Intensity in Window", color="lightgrey")
+    
+            plt.title(str(self.mz))
+            plt.legend()
+            # plt.xticks(range(0, len(self._get_rt_list()), 25), [str(i) for i in self._get_rt_list(True)[0::25]])
+            plt.show()
+        
+        self._neutromer_peak_variance(should_plot)
+
+        # rt_values = [envelope.rt for envelope in self._envelopes]
+        # left_values = [rt_values[a] for a in full_peak_width_list[2]]
+        # right_values = [rt_values[b] for b in full_peak_width_list[3]]
+        # highest_value = [rt_values[c] for c in peaks]
+
+        left_values = [a for a in full_peak_width_list[2]]
+        right_values = [b for b in full_peak_width_list[3]]
+        highest_value = [c for c in peaks]
+
+        self.rt_windows = [(left_values[i], right_values[i]) for i in range(len(left_values))]
+        self.rt_peak_index = highest_value
+
+    def _neutromer_peak_variance(self, should_plot=False):
+        import scipy.ndimage as ndi
+        import scipy.signal as sig
+        import numpy as np
+
+        intensity_filter = settings.intensity_filter
+
+        sampling_rate = settings.sampling_rate
+        smoothing_width = settings.smoothing_width
+        smoothing_order = settings.smoothing_order
+
+        peaks_list = self._get_peak_list(intensity_filter)
+
+        # if max(peaks_list) < intensity_filter:
+        #     return
+
+        neutromer_maximums = list()
+        gaussian_curves = list()
+        
+        for neutromer_peak in range(len(peaks_list)):
+            neutromer_peak_list = peaks_list[neutromer_peak]
+
+            from scipy.signal import savgol_filter
+            smoothed_curves = savgol_filter(neutromer_peak_list, smoothing_width, smoothing_order)
+            smoothed_curves[smoothed_curves < 0] = 0
+            gaussian_curve = ndi.gaussian_filter1d(smoothed_curves, sampling_rate)
+            gaussian_min_cuts = sig.find_peaks([-x for x in gaussian_curve])[0]
+            peak_finding = np.concatenate(
+                (np.array([gaussian_curve[1]]), gaussian_curve, np.array([gaussian_curve[-2]])))
+    
+            max_cuts = sig.argrelmax(peak_finding)[0]
+            max_cuts = [item - 1 for item in max_cuts]
+            gaussian_curves.append(gaussian_curve)
+            neutromer_maximums.append(max_cuts)
+        
+        if should_plot:
+            import matplotlib.pyplot as plt
+    
+            plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
+            gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
+    
+            for i in range(self.n_isos):
+                plt.plot(peaks_list[i], label=f"M{i}", color=plot_colors[i])
+                plt.plot(gaussian_curves[i], label=f'Gaussian M{i}', zorder=2, color=gaussian_colors[i])
+    
+            plt.title(str(self.mz))
+            plt.legend()
+            plt.show()
+        
+        self.neutromer_peak_maximums = neutromer_maximums
