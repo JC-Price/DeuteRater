@@ -231,5 +231,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "intensity_weight": settings.intensity_weight,
             "how_divided": settings.how_divided,
             "allowed_neutromer_peak_variance": settings.allowed_neutromer_peak_variance,
+            "rate_output_format": settings.rate_output_format
             }
         return unalterable_settings

@@ -125,6 +125,7 @@ intensity_weight: float
 how_divided: str
 use_chromatography_division: str
 verbose_rate: bool
+rate_output_format: str
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -340,6 +341,9 @@ def load(settings_path):
         global use_chromatography_division
         use_chromatography_division = s["use_chromatography_division"]
         
+        global rate_output_format
+        rate_output_format = s["rate_output_format"]
+        
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -401,7 +405,8 @@ def freeze(path=None, settings_dict=None):
             "verbose_rate": verbose_rate,
             "intensity_filter": intensity_filter,
             "ms_level": ms_level,
-            "use_chromatography_division": use_chromatography_division
+            "use_chromatography_division": use_chromatography_division,
+            "rate_output_format": rate_output_format
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

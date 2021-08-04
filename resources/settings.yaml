@@ -244,3 +244,7 @@ verbose_rate: !!bool False
 intensity_filter: !!int 20000
 
 ms_level: !!int 1
+
+#The file output the rate groups should be
+# Default = png. Available: png, pdf, svg
+rate_output_format: !!str "png"

@@ -37,6 +37,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+import deuterater.settings as settings
+
 main_line_symbol = 'k-'
 #error_line_symbol = 'k--'
 data_points_symbol = 'ro'
@@ -151,7 +153,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     except OSError:
         for bad_char in bad_save_file_characters:
            name = name.replace(bad_char, "_")
-        filename = os.path.join(save_folder_name, name) + ".png"
+        filename = os.path.join(save_folder_name, name) + f".{settings.rate_output_format}"
         plt.savefig(filename)
 
     plt.clf()
