@@ -71,6 +71,9 @@ class RateCalculator():
             self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
+        #$breaks windows/python interactions if too many cores are used.  very niche application but still relevant
+        if self._n_processors > 60:
+            self.n_processors = 60
         
         self._mp_pool = mp.Pool(self._n_processors)
 
@@ -298,7 +301,8 @@ class RateCalculator():
         #TODO: Handle Num Bio Reps in Stuff
         
         # I think this fixes the issues with technical replicates.
-        num_bio_reps = len(set(group["time"].astype(str) + group["sample_group"] + group["bio_rep"]))
+        #$need to use astype(str) on all or if someone uses numbers for group names or replicate names issues result
+        num_bio_reps = len(set(group["time"].astype(str) + group["sample_group"].astype(str) + group["bio_rep"].astype(str)))
         
         if num_unique_times < settings.minimum_nonzero_points:
             result = RateCalculator._make_error_message(
@@ -355,7 +359,7 @@ class RateCalculator():
                 graph_name = "{}_{}_{}".format(id_name, sample_group_name,
                                                fn_col)
                 graph_title = "{}_{}_{}\nk={}, a={}".format(common_name,
-                                                            sample_group_name, fn_col, result['Abundance rate'],
+                                                            sample_group_name, fn_col, result[f'{calc_type} rate'],
                                                             1.0)
             elif biomolecule_type == "Lipid":
                 graph_name = "{}_{}_{}".format(common_name,
@@ -390,7 +394,6 @@ class RateCalculator():
                 "value could not be determined", current_exception, id_name,
                 common_name, sample_group_name, calc_type,num_measurements,
                 num_unique_times, unique_length, num_files)
-        
         return result, group
             
     #$funciton that does a mad oulier check on a numpy array

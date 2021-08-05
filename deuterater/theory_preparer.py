@@ -82,6 +82,9 @@ class TheoryPreparer():
             self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
+        #$breaks windows/python interactions if too many cores are used.  very niche application but still relevant
+        if self._n_processors > 60:
+            self.n_processors = 60
         self._mp_pool = mp.Pool(self._n_processors)
         self.out_path = out_path
         self.model = None
@@ -130,8 +133,8 @@ class TheoryPreparer():
                 results.append(df)
 
         self.model = pd.concat(results)
-        if self.biomolecule_type == "Peptide":
-            self.model = self.model.drop(columns=['drop'])
+        #if self.biomolecule_type == "Peptide":
+        #    self.model = self.model.drop(columns=['drop'])
 
         if settings.use_empir_n_value:
             self.model = self.model.reset_index(drop=True)
@@ -264,7 +267,6 @@ class TheoryPreparer():
         # data = data[~data['drop']]
 
         df.loc[data.loc[data["drop"] == True].index] = "mz_proximity_tolerance_exceeded"
-
         # TODO: Check to see if no data went through
         return df
 
