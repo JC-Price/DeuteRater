@@ -9,6 +9,7 @@ import multiprocessing as mp
 import traceback
 import os
 from tqdm import tqdm
+from functools import partial
 
 class ChromatographyDivider:
 	
@@ -26,7 +27,9 @@ class ChromatographyDivider:
 				self._n_processors = mp.cpu_count()
 			else:
 				self._n_processors = settings.n_processors
-			
+			#$breaks windows/python interactions if too many cores are used.  very niche application but still relevant
+			if self._n_processors > 60:
+				self.n_processors = 60
 			self._mp_pool = mp.Pool(self._n_processors)
 		
 		except Exception as e:
@@ -63,7 +66,8 @@ class ChromatographyDivider:
 		return molecule
 	
 	@staticmethod
-	def handle_molecule(group):
+	def handle_molecule(group, settings_path):
+		settings.load(settings_path)
 		molecule = Molecule(group[0])
 		for series in group[1].iterrows():
 			row = series[1]
@@ -142,8 +146,9 @@ class ChromatographyDivider:
 			molecule_groups = df.groupby(by=df.columns[0])
 			df["Extraction_Updated"] = ""
 			df["Extraction_Error"] = ""
-			
-			molecules = self._mp_pool.map(self.handle_molecule,
+			func = partial(self.handle_molecule, settings_path=self.settings_path)
+            
+			molecules = self._mp_pool.map(func,
 										  tqdm(molecule_groups, desc="dividing chromatography: "))
 			
 			df = pd.concat(molecules)
@@ -164,8 +169,8 @@ class ChromatographyDivider:
 				molecule_groups = df.groupby(by=df.columns[0])
 				df["Extraction_Updated"] = ""
 				df["Extraction_Error"] = ""
-				
-				molecules = self._mp_pool.map(self.handle_molecule,
+				func = partial(self.handle_molecule, settings_path=self.settings_path)
+				molecules = self._mp_pool.map(func,
 											  tqdm(molecule_groups,
 												   desc="dividing chromatography: ",
 												   total=len(molecule_groups),
