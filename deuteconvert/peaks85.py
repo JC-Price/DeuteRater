@@ -163,7 +163,8 @@ class Peaks85(BaseConverter):
             Peaks85._set_n_peaks,
             Peaks85._proximity_filter,
             Peaks85._finalize,
-            Peaks85._expand_to_charge_states
+            Peaks85._expand_to_charge_states,
+            Peaks85._proximity_filter
         ]
         for fn in funcs:
             self._id_df = fn(self._id_df)

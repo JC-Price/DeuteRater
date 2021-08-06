@@ -166,7 +166,8 @@ class PeaksXpro(BaseConverter):
             PeaksXpro._set_n_peaks,
             PeaksXpro._proximity_filter,
             PeaksXpro._finalize,
-            PeaksXpro._expand_to_charge_states
+            PeaksXpro._expand_to_charge_states,
+            PeaksXpro._proximity_filter
         ]
         for fn in funcs:
             self._id_df = fn(self._id_df)
