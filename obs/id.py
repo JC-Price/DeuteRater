@@ -253,7 +253,7 @@ class ID(object):
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             return
 
-        self._envelopes = DR_3_5_angle_filter(self)
+        self._envelopes = DR_3_5_angle_filter(self, settings.max_valid_angle)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             return
