@@ -103,8 +103,8 @@ class ChromatographyDivider:
 							return False
 					return True
 				
-				if len([peaks[i].ab for i in range(1, 4)]) != num_normal_peaks or not local_min(
-						[float(peak.ab) for peak in peaks[1:4]]):
+				if len([peaks[i].ab for i in range(1, num_normal_peaks + 1)]) != num_normal_peaks or not local_min(
+						[float(peak.ab) for peak in peaks[1:num_normal_peaks + 1]]):
 					envelope.is_valid = False
 				else:
 					should_plot = True
