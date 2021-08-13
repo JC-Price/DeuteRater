@@ -1,3 +1,36 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
+Redistribution and use in source and binary forms,
+with or without modification, are permitted provided
+that the following conditions are met:
+    * Redistributions of source code must retain the
+      above copyright notice, this list of conditions
+      and the following disclaimer.
+    * Redistributions in binary form must reproduce
+      the above copyright notice, this list of conditions
+      and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    * Neither the author nor the names of any contributors
+      may be used to endorse or promote products derived
+      from this software without specific prior written
+      permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 try:
     from obs.envelope import Envelope  # noqa: 401
     from obs.peak import Peak
@@ -56,9 +89,6 @@ class ID(object):
         'mass',
         'z',
         'n_isos',
-        #'cf',
-        # TODO: Do we need the max m0 abundance for anything else?
-        # 'max_m0_abundance',
         'mads',
         '_unfiltered_envelopes',
         "rt_windows",
@@ -88,7 +118,6 @@ class ID(object):
         self.neutromer_peak_maximums = []
         self.rt_peak_index = []
         self.signal_noise = []
-        #self.cf = cf
 
     # Defining the __repr__ function allows python to call repr()
     # on this object. This is usually much less formatted than the related
@@ -236,7 +265,7 @@ class ID(object):
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             return
 
-        self._envelopes = DR_3_5_angle_filter(self)
+        self._envelopes = DR_3_5_angle_filter(self, settings.max_valid_angle)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             return
@@ -275,11 +304,7 @@ class ID(object):
         def mad(values):
             m = median(values)
             return median([abs(a - m) for a in values])
-
-        def rmse(actual, estimated):
-            s = sum((actual - estimated) ** 2)
-            return sqrt(s / len(actual))
-
+        
         temp = smoothing_width
         for a in self._get_peak_list():
             if len(a) < smoothing_width:
@@ -291,11 +316,6 @@ class ID(object):
             # abs_diff = [abs(b) for b in diff]
             normal_distribution_scale_factor = 1.4826
             self.signal_noise.append(mad(diff) * normal_distribution_scale_factor * 3)
-            # self.signal_noise.append(rmse(array(a), smoothed_curves) * 3)
-            # self.signal_noise.append(mean(abs_diff) * 3)
-            # self.signal_noise.append(median(abs_diff) * 3)
-
-            pass
         
         # After performing all of this filtration, aggregate all of the data
         #   in the remaining envelopes in to a 'condensed envelope'
