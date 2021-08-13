@@ -32,9 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from collections.abc import MutableSequence
+from copy import deepcopy
 
-from obs.peak import Peak  # noqa: 401
-from utils.exc import PeakIndexError
+try:
+    from obs.peak import Peak  # noqa: 401
+    from utils.exc import PeakIndexError
+except:
+    from DeuteRater.obs.peak import Peak
+    from DeuteRater.utils.exc import PeakIndexError
 
 # TODO: docstrings KC
 # TODO: is this the best name? KC
@@ -72,10 +77,10 @@ class Envelope(MutableSequence):
         '_baseline',
         '_nlb',
         '_nla',
-        '_is_valid'
+        '_is_valid',
     )
 
-    def __init__(self, peaks, rt, n_lookback, n_lookahead):
+    def __init__(self, peaks=[], rt=None, n_lookback=None, n_lookahead=None):
         self._peaks = []
         [self.append_peak(peak) for peak in peaks]
         self._rt = rt
@@ -83,6 +88,14 @@ class Envelope(MutableSequence):
         self._nlb = n_lookback
         self._nla = n_lookahead
         self._is_valid = True
+        self.baseline_calculated = False
+
+    def __deepcopy__(self, memodict={}):
+        copy_object = Envelope()
+        copy_object._peaks = deepcopy(self._peaks)
+        copy_object._rt = self._rt
+        copy_object._baseline = self._baseline
+        return copy_object
 
     # Defining the __repr__ function allows python to call repr()
     # on this object. This is usually much less formatted than the related
@@ -293,6 +306,17 @@ class Envelope(MutableSequence):
 
     @property
     def baseline(self):
+        return self._baseline
+
+    @baseline.getter
+    def baseline(self):
+        if type(self._baseline) == list:    # if the baseline is still represeted as a list, then calc the actual baseline.
+            from numpy import median
+            def mad(values):
+                m = median(values)
+                return median([abs(a-m) for a in values])
+            normal_distribution_scale_factor = 1.4826
+            self._baseline = mad(self._baseline) * 3 * normal_distribution_scale_factor
         return self._baseline
 
     @baseline.setter

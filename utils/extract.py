@@ -80,7 +80,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
         path_or_file=mzml_path,
         build_index_from_scratch=True
     )
-    mzml_bounds = dml.get_bounds(mzml_fp, index_to_ID)
+    mzml_bounds = dml.get_bounds(mzml_fp, index_to_ID)  # Find what the RT range of the mzML is
 
     # Check for an empty id file chunk
     if len(chunk) <= 0:
@@ -254,22 +254,16 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             def mad(values):
                 m = median(values)
                 return median([abs(a-m) for a in values])
-            lookback_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookback, hi_baseline_lookback)]]
-            lookahead_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookahead, hi_baseline_lookahead)]]
-            
-            lookback_baseline_mz = [l for l in spec_mzs[dmt.inclusive_slice(lo_baseline_lookback, hi_baseline_lookback)]]
-            lookahead_baseline_mz = [l for l in spec_mzs[dmt.inclusive_slice(lo_baseline_lookahead, hi_baseline_lookahead)]]
-            
-            lookback_baseline_combined = [[lookback_baseline[i], lookback_baseline_mz[i]] for i in range(len(lookback_baseline)) if lookback_baseline[i] != 0][-100:]
-            lookahead_baseline_combined = [[lookahead_baseline[i], lookahead_baseline_mz[i]] for i in range(len(lookahead_baseline)) if lookahead_baseline[i] != 0][1:101]
-            
-            lookback_baseline = [l[0] for l in lookback_baseline_combined]
-            lookahead_baseline = [l[0] for l in lookahead_baseline_combined]
+            lookback_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookback, hi_baseline_lookback)] if l != 0][-100:]
+            lookahead_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookahead, hi_baseline_lookahead)] if l != 0][1:101]
             
             normal_distribution_scale_factor = 1.4826
-            envelope.baseline = normal_distribution_scale_factor * mad(lookback_baseline + lookahead_baseline)
+            envelope.baseline = normal_distribution_scale_factor * mad(lookback_baseline + lookahead_baseline)  # lookback_baseline + lookahead_baseline  #
 
-            id.append_envelope(envelope)
+            try:
+                id.append_envelope(envelope)
+            except Exception as e:
+                print("why")
     mzml_fp.close()
 
     for id in ids:
@@ -284,7 +278,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
         index=chunk.index.values,
         columns=['mzs', 'abundances', 'lookback_mzs', 'lookback_abundances',
                  'lookahead_mzs', 'lookahead_abundances', 'rt_min', 'rt_max',
-                 'baseline_signal', "mads",
+                 'baseline_signal', 'signal_noise', "mads",
                  'mzs_list', 'intensities_list', "rt_list", "baseline_list",
                  'num_scans_combined',
                  'mzml_path']
@@ -304,6 +298,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             peak_out.at[i, 'rt_min'] = id.rt_min
             peak_out.at[i, 'rt_max'] = id.rt_max
             peak_out.at[i, 'baseline_signal'] = id.condensed_envelope.baseline
+            peak_out.at[i, 'signal_noise'] = id.signal_noise
             peak_out.at[i, 'lookback_mzs'] = lb_mzs
             peak_out.at[i, 'lookback_abundances'] = lb_abundances
             peak_out.at[i, 'lookahead_mzs'] = la_mzs

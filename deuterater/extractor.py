@@ -130,9 +130,6 @@ class Extractor:  # TODO name change
                 self._n_processors = mp.cpu_count()
             else:
                 self._n_processors = settings.n_processors
-            #$breaks windows/python interactions if too many cores are used.  very niche application but still relevant
-            if self._n_processors > 60:
-                self.n_processors = 60
             self._chunk_size = settings.chunk_size
             self._chunking_threshold = mul(
                 settings.chunking_method_threshold,
@@ -339,7 +336,7 @@ class Extractor:  # TODO name change
         if settings.debug_level >= 1:
             print('Beginning single-processor extraction.')
             results = []
-            for chunk in self._id_chunks:
+            for chunk in tqdm(self._id_chunks, total=len(self._id_chunks), desc="Extracting: ", leave=False):
                 results.append(func(chunk))
 
         # By filtering out the non-dataframe elements of this list, we exclude

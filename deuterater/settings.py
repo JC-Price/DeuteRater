@@ -38,8 +38,12 @@ import os
 
 from pathlib import Path
 
-from utils.exc import InvalidSettingsWarning
-from utils.exc import InvalidSettingsError  # noqa: 401 
+try:
+    from utils.exc import InvalidSettingsWarning
+    from utils.exc import InvalidSettingsError  # noqa: 401
+except:
+    from DeuteRater.utils.exc import InvalidSettingsError, InvalidSettingsWarning
+    
 
 # TODO: How would I dynamically load a different settings file?
 # TODO: ^^^This really should be able to be passed in
@@ -405,8 +409,20 @@ def freeze(path=None, settings_dict=None):
             "verbose_rate": verbose_rate,
             "intensity_filter": intensity_filter,
             "ms_level": ms_level,
+            "rate_output_format": rate_output_format,
+            'rel_height': rel_height,
+            'sampling_rate': sampling_rate,
+            'smoothing_width': smoothing_width,
+            'smoothing_order': smoothing_order,
+            'allowed_peak_variance_min': allowed_peak_variance_min,
+            'allowed_neutromer_peak_variance': allowed_neutromer_peak_variance,
+            'adduct_weight': adduct_weight,
+            'variance_weight': variance_weight,
+            'ID_weight': ID_weight,
+            'intensity_weight': intensity_weight,
+            'how_divided': how_divided,
             "use_chromatography_division": use_chromatography_division,
-            "rate_output_format": rate_output_format
+            "rate_output_format": rate_output_format,
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

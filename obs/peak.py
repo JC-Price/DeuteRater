@@ -79,3 +79,8 @@ class Peak(object):
         return 'Peak(mz={:10.2f}, ab={:10.2f}, i={:3d})'.format(
             self.mz, self.ab, self.i
         )
+    
+    def __deepcopy__(self, memodict={}):
+        copy_object = Peak(self.mz, self.ab, self.i)
+        return copy_object
+        

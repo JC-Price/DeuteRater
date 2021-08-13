@@ -1,41 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
-All rights reserved.
-Redistribution and use in source and binary forms,
-with or without modification, are permitted provided
-that the following conditions are met:
-    * Redistributions of source code must retain the
-      above copyright notice, this list of conditions
-      and the following disclaimer.
-    * Redistributions in binary form must reproduce
-      the above copyright notice, this list of conditions
-      and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the author nor the names of any contributors
-      may be used to endorse or promote products derived
-      from this software without specific prior written
-      permission.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
-
-
-from obs.envelope import Envelope  # noqa: 401
-from obs.peak import Peak
-from utils.math import angle_between  # noqa: 401
-import deuterater.settings as settings
+try:
+    from obs.envelope import Envelope  # noqa: 401
+    from obs.peak import Peak
+    from utils.math import angle_between  # noqa: 401
+    import deuterater.settings as settings
+except:
+    from DeuteRater.obs.envelope import Envelope  # noqa: 401
+    from DeuteRater.obs.peak import Peak
+    from DeuteRater.utils.math import angle_between  # noqa: 401
+    import DeuteRater.deuterater.settings as settings
 
 from numpy import mean, median, std, argsort
 
@@ -84,12 +56,16 @@ class ID(object):
         'mass',
         'z',
         'n_isos',
+        #'cf',
+        # TODO: Do we need the max m0 abundance for anything else?
+        # 'max_m0_abundance',
         'mads',
         '_unfiltered_envelopes',
         "rt_windows",
         "rt_peak_index",
         "neutromer_peak_maximums",
-        "is_valid"
+        "is_valid",
+        "signal_noise"
     )
 
     def __init__(self, rt, mz, mass, z, n_isos):#, cf):
@@ -111,6 +87,8 @@ class ID(object):
         self.rt_windows = []
         self.neutromer_peak_maximums = []
         self.rt_peak_index = []
+        self.signal_noise = []
+        #self.cf = cf
 
     # Defining the __repr__ function allows python to call repr()
     # on this object. This is usually much less formatted than the related
@@ -141,17 +119,22 @@ class ID(object):
         # TODO: add docstring
 
         from copy import deepcopy
-        if settings.use_chromatography_division != "No":
-            self._unfiltered_envelopes = deepcopy(self._envelopes)
-
-        self._envelopes = [self._envelopes[i] for i in range(len(self._envelopes)) if self._envelopes[i].is_valid]
+        
+        valid_envelopes = [envelope for envelope in self._envelopes if envelope.is_valid]
 
         # First, we see if there are even enough envelopes to warrant analyzing
         #   this identification
-        if len(self._envelopes) < settings.min_envelopes_to_combine:
+        if len(valid_envelopes) < settings.min_envelopes_to_combine:
             # TODO: not enough data. What should be logged?
             self._unfiltered_envelopes = None
             return
+        
+        # [e.baseline for e in self._envelopes]  # Calculate the baseline for any used scans.
+        
+        if settings.use_chromatography_division != "No":
+            self._unfiltered_envelopes = deepcopy(self._envelopes)
+        
+        self._envelopes = valid_envelopes
         
         def get_max_M0_vector(current_id):
             vector_list = [[peak.ab for peak in envelope.get_peaks()]
@@ -253,7 +236,7 @@ class ID(object):
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             return
 
-        self._envelopes = DR_3_5_angle_filter(self, settings.max_valid_angle)
+        self._envelopes = DR_3_5_angle_filter(self)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
             return
@@ -277,11 +260,43 @@ class ID(object):
 
         # NOTE: we would perform any normaliztions here. We decided not to.
 
-        # TODO: make this happen in only one pass
         rt_list = self._get_rt_list()
         self.rt_min = min(rt_list)
         self.rt_max = max(rt_list)
+        
+        # Calculate Signal Noise:
+        from scipy.signal import savgol_filter
 
+        smoothing_width = settings.smoothing_width
+        smoothing_order = settings.smoothing_order
+
+        from numpy import array, sqrt, std
+
+        def mad(values):
+            m = median(values)
+            return median([abs(a - m) for a in values])
+
+        def rmse(actual, estimated):
+            s = sum((actual - estimated) ** 2)
+            return sqrt(s / len(actual))
+
+        temp = smoothing_width
+        for a in self._get_peak_list():
+            if len(a) < smoothing_width:
+                smoothing_width = (int((len(a) - 1)/2) * 2) + 1
+            smoothed_curves = savgol_filter(a, smoothing_width, smoothing_order)
+            smoothing_width = temp
+            smoothed_curves[smoothed_curves < 0] = 0
+            diff = [b for b in array(a) - smoothed_curves]
+            # abs_diff = [abs(b) for b in diff]
+            normal_distribution_scale_factor = 1.4826
+            self.signal_noise.append(mad(diff) * normal_distribution_scale_factor * 3)
+            # self.signal_noise.append(rmse(array(a), smoothed_curves) * 3)
+            # self.signal_noise.append(mean(abs_diff) * 3)
+            # self.signal_noise.append(median(abs_diff) * 3)
+
+            pass
+        
         # After performing all of this filtration, aggregate all of the data
         #   in the remaining envelopes in to a 'condensed envelope'
         self.condense_envelopes()
@@ -400,7 +415,7 @@ class ID(object):
         else:
             division_data = combined_data
 
-        # Gaussian filter:
+        # Gaussian smoothing:
         from scipy.signal import savgol_filter
         smoothed_curves = savgol_filter(division_data, smoothing_width, smoothing_order)
         smoothed_curves[smoothed_curves < 0] = 0

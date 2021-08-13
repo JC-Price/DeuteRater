@@ -13,6 +13,7 @@ readability and consistency, as well as easy to use in the command line
 
 # $we will of course need to expand things later, but we'll sort that out later
 import os
+import sys
 import multiprocessing as mp
 import csv
 import pandas as pd
@@ -144,7 +145,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.id_file_options.setCurrentIndex(index)
         
         self.IDFileButton.clicked.connect(self.create_id_file)
-        self.RateCalculationButton.clicked.connect(self.run_rate_workflow)
+        self.RateCalculationButton.clicked.connect(self._calc_rates)
         self.actionSettings.triggered.connect(self.change_settings)
         self.actionID_File_Settings.triggered.connect(self.change_converter_settings)
         
@@ -259,6 +260,14 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.file_loc = os.path.dirname(save_file)
         QtWidgets.QMessageBox.information(self, "Success",
                 "ID file successfully saved")
+    def _calc_rates(self):
+        try:
+            
+            self.RateCalculationButton.setText("Currently Processing... Please Wait.")
+            self.run_rate_workflow()
+        finally:
+            self.RateCalculationButton.setText("Rate Calculation")
+
     
     def run_rate_workflow(self):
         # $will need some settings
@@ -293,6 +302,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.file_loc = output_folder
         # MainGuiObject._make_folder(output_folder)
         
+        # TODO: Add the ability to use the rate_settings files that are in the output folder
         if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")]):
             settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
         else:
@@ -370,6 +380,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
+                    del extractor
                 if settings.use_chromatography_division != "No":
                     divider = ChromatographyDivider(settings_path=rate_settings_file,
                                                     input_paths=extracted_intermediate_files,
@@ -377,6 +388,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                                     biomolecule_type=biomolecule_type
                                                     )
                     divider.divide()
+                    del divider
             
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 # $if coming right after a list
@@ -435,6 +447,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 )
                 theorist.prepare()
                 theorist.write()
+                del theorist
                 previous_output_file = step_object_dict["Theory Generation"].full_filename
             elif analysis_step == "Fraction New Calculation":
                 if previous_output_file == "":
@@ -477,6 +490,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     QtWidgets.QMessageBox.information(self, "Error", fnewcalc.error)
                     return
                 fnewcalc.write()
+                del fnewcalc
                 previous_output_file = step_object_dict[
                     "Fraction New Calculation"].full_filename
             elif analysis_step == "Rate Calculation":
@@ -524,6 +538,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 )
                 ratecalc.calculate()
                 ratecalc.write()
+                del ratecalc
         QtWidgets.QMessageBox.information(self, "Success",
                                           "Analysis completed successfully")
     
