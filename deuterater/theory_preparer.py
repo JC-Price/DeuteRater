@@ -133,8 +133,8 @@ class TheoryPreparer():
                 results.append(df)
 
         self.model = pd.concat(results)
-        if self.biomolecule_type == "Peptide":
-            self.model = self.model.drop(columns=['drop'])
+        #if self.biomolecule_type == "Peptide":
+        #    self.model = self.model.drop(columns=['drop'])
 
         if settings.use_empir_n_value:
             self.model = self.model.reset_index(drop=True)
