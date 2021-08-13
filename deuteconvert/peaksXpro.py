@@ -490,9 +490,14 @@ class PeaksXpro(BaseConverter):
     #$masses so we can break out of the internal for quickly
     @staticmethod
     def _proximity_filter(df):
-        df.sort_values(by='mz', inplace=True)
-        mz_index = list(df.columns).index("mz") 
-        rt_index = list(df.columns).index("rt_mean")
+        try:
+            df.sort_values(by='mz', inplace=True)
+            mz_index = list(df.columns).index("mz") 
+            rt_index = list(df.columns).index("rt_mean")
+        except KeyError:
+            df.sort_values(by='Precursor m/z', inplace=True)
+            mz_index = list(df.columns).index('Precursor m/z') 
+            rt_index = list(df.columns).index("Precursor Retention Time (sec)")
         list_of_lists = df.values.tolist()
         too_close = []
         for i in range(len(list_of_lists)):
