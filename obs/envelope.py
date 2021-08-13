@@ -88,7 +88,6 @@ class Envelope(MutableSequence):
         self._nlb = n_lookback
         self._nla = n_lookahead
         self._is_valid = True
-        self.baseline_calculated = False
 
     def __deepcopy__(self, memodict={}):
         copy_object = Envelope()
