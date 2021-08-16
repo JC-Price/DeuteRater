@@ -85,6 +85,8 @@ class Converter_Setting_Menu(QtWidgets.QDialog, loaded_ui):
 			setting_object.set_object_value()
 		self.SaveButton.clicked.connect(self.save_settings)
 		self.ExitButton.clicked.connect(self.close)
+		
+		self.setWindowTitle("ID Converter Settings")
 	
 	def save_settings(self):
 		# Check if the minimum and maximum charge numbers makes since:

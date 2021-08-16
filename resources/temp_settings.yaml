@@ -1,67 +1,250 @@
-ID_weight: 0.7
-aa_labeling_sites_path: /home/JCPriceLab/Documents/GitHub/DeuteRater-dev/resources/aa_labeling_sites.tsv
-abundance_agreement_filter: 0.1
-abundance_manual_bias: 0.0
-adduct_weight: 1.0
-allowed_neutromer_peak_variance: 10
-allowed_peak_variance_min: 0.2
-asymptote: Fixed
-baseline_lookback: 100
-bias_calculation: None
-chunk_size: 600
+%YAML 1.2
+---
+# TODO: group these according to their logical steps
+# TODO: consider the best names for each setting and review settings
+#   that we haven't used in the program yet
+# TODO: should this be broken into seperate files?
+# TODO: Specify Deuterater working directory and program directory
+# TODO: Organize settings into 
+
+
+# Debugging level, using the level keys listed below
+# Level 0: Runs normally (multiprocessing and all)
+# Level 1: Runs non-distributed on a single processor
+# Level 2: Extensive logging - Much slower because of writing to file
+debug_level: !!int 1
+
+# Whether or not to automate the partitioning logic
+recognize_available_cores: !!bool true
+
+# This will be used if automation fails or is set to false
+n_processors: !!int 8
+
+# ID file retention time unit
+#   Set to "sec" for seconds or "min" for minutes
+id_file_rt_unit: !!str "sec"
+
+# Whether ID's that are at the beginning and end of an mzML's RT should be excluded.
+#   An ID is removed if its time_window results in looking outside of the mzML's bounds.
+#   i.e. An ID with a rt of 1 would be trimmed when the time_window is 1.5
+trim_ids_to_mzml_bounds: !!bool false
+
+# Floating point error tolerance,try to keep to powers of 2.
+# i.e: 2^-7 == 0.0078125
+fpe_tolerance: !!float 0.0078125
+
+# chunk size, given in observations
+chunk_size: !!int 600
+
+# If a file is less than "chunking_method_threshold" times
+#   "max_chunk_size" lines long, then split the identification
+#   file evenly among the processors
 chunking_method_threshold: 2
-combined_agreement_filter: 0.1
-combined_manual_bias: 0.0
-debug_level: 0
-enrichement_of_zero: 0.05
-error_of_non_replicated_point: 0.05
-error_of_zero: 0.01
-fixed_asymptote_value: 1.0
-fpe_tolerance: 0.0078125
-heavy_isotope: H
-how_divided: combined
-id_file_rt_unit: sec
-intensity_filter: 20000
-intensity_weight: 0.6
-labeling_step_size: 0.001
-lipid_analyte_id_column: Lipid_Unique_Identifier
-lipid_analyte_name_column: Lipid_Name
-max_valid_angle: 1.2
-maximum_theoretical_pct: 0.071
-min_aa_sequence_length: 6
-min_allowed_abund_max_delta: 0.04
-min_allowed_n_values: 10
-min_envelopes_to_combine: 10
-minimum_abund_change: 0.04
-minimum_nonzero_points: 3
-ms_level: 1
-mz_proximity_tolerance: 0.0
-n_processors: 8
-peak_lookahead: 1
-peak_lookback: 1
-peak_ratio_denominator: 10
-peptide_analyte_id_column: Protein_ID
-peptide_analyte_name_column: Protein_Name
-ppm_window: 30
-proliferation_adjustment: 0.0
-rate_output_format: pdf
-recognize_available_cores: true
-rel_height: 0.9
-roll_up_rate_calc: false
-sampling_rate: 3
-smoothing_order: 3
-smoothing_width: 9
-spacing_agreement_filter: 0.1
-spacing_manual_bias: 0.0
-study_type: tissue
-time_window: 1.5
-trim_ids_to_mzml_bounds: false
-unique_sequence_column: Sequence
-use_abundance: M0
-use_chromatography_division: 'No'
-use_empir_n_value: true
-use_neutromer_spacing: false
-variance_weight: 1.0
-verbose_rate: false
-y_intercept_of_fit: 0.0
-zscore_cutoff: 1.0
+
+# # Minimum charge
+# low_z: !!int 1
+
+# # Maximum charge
+# high_z: !!int 5
+
+# NOTE: antilog(angle) was used previously. Possibly for control 
+# Maximum valid angle for condensing scans together
+max_valid_angle: !!float 1.2
+
+# this is the denominator for the ratio for accepting envelopes
+peak_ratio_denominator: !!int 10
+
+# Time to look in each direction when extracting mzml data
+time_window: !!float 1.5
+
+# Tolerance for differences in parts per million measurements
+# DEBUG: set back to 30 when done
+ppm_window: !!int 30
+
+# How many scans should be looked at when performing a gaussian filter
+# on the scan intensities. Must be an odd number. Default = 3, 9 for proteins
+sampling_rate: !!int 3
+
+# How many scans should be looked at when using a simple smoothing width. Default = 9, 49 for peptides
+smoothing_width: !!int 9
+
+# What order the simple smoothing algorithm should be used. Default = 3.
+smoothing_order: !!int 3
+
+# The amount of time in minutes that peaks can vary by between charges/adducts to be
+# considered the same. Default = 0.1
+allowed_peak_variance_min: !!float 0.2
+
+# THe amount of scans allowed between neutromer peaks to be considered a valid peak.
+# Default = 10 (.167 min) for lipids, 64 for Orbi (proteins)
+allowed_neutromer_peak_variance: !!int 10
+
+# A value used to determine how close to baseline the gaussian fitting algorithm
+# peak widths will be chosen from. Default is .9 (90%)
+rel_height: !!float .9
+
+# THe weight that should be used for adduct reproducibility when calculating the score for
+# chromatography peak picking. Default = 1.0
+adduct_weight: !!float 1.0
+
+# The weight that should be used for neutromer peak variance when calculating the score for
+# chromatography peak picking. Default = 1.0
+variance_weight: !!float 1.0
+
+# The weight that should be used for distance from the ID File's RT when calculating the score for
+# chromatography peak picking. Default = 0.7
+ID_weight: !!float 0.7
+
+# The weight that should be used for the intensity when calculating the score for
+# chromatography peak picking. Default = 0.6
+intensity_weight: !!float 0.6
+
+# What created EIC should chromatography be divided on. default = "combined"
+# Other options, "m0", "m1", "m2"
+how_divided: !!str "combined"
+
+# If Chromatography Division should be used in the extractor. If so, if interfile or
+# intrafile comparison should be completed.
+use_chromatography_division: !!str "No"
+
+# Isotope used for labeling
+heavy_isotope:  !!str "H"
+
+
+#$Decides how the abundance fraction new "abund_fn" is calculated.
+#$ No = Not Calculated
+#$ M0 = Use the M0's FN as the abund_fn
+#$ avg = Use the median FN as the abund_fn
+#$ highest = Use the most intense neutromer's FN as the abund_fn
+use_abundance: !!str "M0"
+
+# Whether or not to use neutromer spacing
+use_neutromer_spacing: !!bool true
+
+# The value that will be considered as 100% labeled.
+#   This is necessary because truly 100% labeling an organism
+#   usually kills it.
+maximum_theoretical_pct: !!float 0.071
+
+# The amount to step when considering labeling amounts
+labeling_step_size: !!float .001
+
+# Minimum amount of nonzero points 
+minimum_nonzero_points: !!int 3
+
+# Peak lookback
+peak_lookback: !!int 1
+
+peak_lookahead: !!int 1
+
+baseline_lookback: !!int 100
+
+min_envelopes_to_combine: !!int 10
+
+zscore_cutoff: !!float 1
+
+# What points to graph
+# graph: !!str "Good Only"
+
+# Whether or not to consider rates seperately
+# separate_rates: !!bool true
+
+mz_proximity_tolerance: !!float 0.00
+
+#$what column to sort on before rate calculations
+peptide_analyte_id_column: !!str "Protein_ID"
+
+#$common name for ease of identification
+peptide_analyte_name_column: !!str "Protein_Name"
+
+lipid_analyte_id_column: !!str "Lipid_Unique_Identifier"
+
+lipid_analyte_name_column: !!str "Lipid_Name"
+
+study_type: "tissue"
+
+aa_labeling_sites_path: "aa_labeling_sites.tsv"
+
+#$column to get the number of unique sequences used for a fit
+#$this is made for peptide sequences in proteins, but could be used for 
+#$ other metrics (or just used for the id or name to make it useless but
+#$not error out)
+unique_sequence_column: !!str "Sequence"
+
+#$whether or not to use the roll up option
+roll_up_rate_calc: !!bool false
+
+#$whether to use fixed or variable asymptotes
+asymptote: !!str "Fixed"
+
+#$need to adjust for cell proliferation
+proliferation_adjustment: !!float 0.00
+
+#$if asymptote is fixed we need the actual asymptote value to use
+fixed_asymptote_value: !!float 1.00
+
+#$error of the pre-set zero point
+error_of_zero: !!float 0.01
+
+#$the next 3 are the std dev filter for the agreement of the frac new peaks
+#$ for the 3 calculation types
+abundance_agreement_filter: !!float 0.10
+
+spacing_agreement_filter: !!float 0.10
+
+combined_agreement_filter: !!float 0.10
+
+#$ do we need to calculate bias
+bias_calculation: !!str "None"
+
+#$need the manual biases
+abundance_manual_bias: !!float 0.0000
+
+spacing_manual_bias: !!float 0.000
+
+combined_manual_bias: !!float 0.0000
+
+#$ allows adjustment of y intercept (avoids hard coding)
+y_intercept_of_fit: !!float 0.0000
+
+#$if a point in roll up has 0 error it will skew the graph, when it should
+#$ be looked at skeptically for a lack of replicates
+error_of_non_replicated_point: !!float .05
+
+#$if a user provides a 0 labeling value we need to have a value to avoid 
+#$divide by 0 for the theoretical distance.  making this very small would also
+#$result in high error values due to noise so usually put in a reasonable %
+enrichement_of_zero: !!float .05
+
+#$there needs to be a way to avoid a trying to fix abundance if max delta is 
+#$small due to the likely error
+min_allowed_abund_max_delta: !!float .04
+
+#$min sequence allowed for peptides
+min_aa_sequence_length: !!int 6
+
+#$minimum allowed n value. if smaller, the maximum theoretical delta will be
+#$too small
+min_allowed_n_values: !!int 10
+
+#$If the empiracily derived n-value should be used instead of the literature.
+use_empir_n_value: !!bool true
+
+#$peaks that have a low minimum abundance change possible tend to be either 
+#$noisy, or increase and then decrease which our calculations does not account
+#$for.  either way it tends to result in high std dev and improperly dropping
+#$a good peak
+minimum_abund_change: !!float .04
+
+verbose_rate: !!bool False
+
+#$A filter used in many areas for scan combining. If a neutromer peak is below the
+#$a intensity filter, it is not considered to gaussian fitting and is not considered
+#$a valid scan. Default = 20k
+intensity_filter: !!int 20000
+
+ms_level: !!int 1
+
+#The file output the rate groups should be
+# Default = png. Available: png, pdf, svg
+rate_output_format: !!str "png"

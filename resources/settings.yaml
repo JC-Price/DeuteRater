@@ -12,7 +12,7 @@
 # Level 0: Runs normally (multiprocessing and all)
 # Level 1: Runs non-distributed on a single processor
 # Level 2: Extensive logging - Much slower because of writing to file
-debug_level: !!int 0
+debug_level: !!int 1
 
 # Whether or not to automate the partitioning logic
 recognize_available_cores: !!bool true

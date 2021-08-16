@@ -152,9 +152,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # $make the logo show up
         # $use of command from http://stackoverflow.com/questions/8687723/pyqthow-do-i-display-a-image-properly
         # $first answer accesed 5/27/2016
-        myPixmap = QtGui.QPixmap(os.path.join(location, "resources", "Logo.JPG"))
+        myPixmap = QtGui.QPixmap(os.path.join(location, "resources", "Logo.PNG"))
         self.Logo.setPixmap(myPixmap)
         self.Logo.setScaledContents(True)
+        self.setWindowTitle("DeuteRater")
     
     def Peaks_File_Collection(self, header_checker_object):
         # $ get the files we need
@@ -260,6 +261,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.file_loc = os.path.dirname(save_file)
         QtWidgets.QMessageBox.information(self, "Success",
                 "ID file successfully saved")
+    
     def _calc_rates(self):
         try:
             
@@ -268,7 +270,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         finally:
             self.RateCalculationButton.setText("Rate Calculation")
 
-    
     def run_rate_workflow(self):
         # $will need some settings
         settings.load(rate_settings_file)
@@ -303,11 +304,40 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # MainGuiObject._make_folder(output_folder)
         
         # TODO: Add the ability to use the rate_settings files that are in the output folder
-        if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")]):
-            settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
+        if os.path.exists(os.path.join(output_folder, "rate_settings.yaml")):
+            comp_result = settings.compare(rate_settings_file, os.path.join(output_folder, "rate_settings.yaml"))
+            if comp_result != "MATCH":
+                if comp_result == "Mismatched Keys":
+                    qBox = QtWidgets.QMessageBox(self)
+                    qBox.setWindowTitle("Question")
+                    question = "A settings file already exists in this output folder. Would you like to use those settings,or overwrite them?"
+                    qBox.setText(question)
+                    qBox.setIcon(QtWidgets.QMessageBox.Question)
+                    qBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+                    
+                    yButton = qBox.button(QtWidgets.QMessageBox.Yes)
+                    yButton.setText("Use Settings")
+                    nButton = qBox.button(QtWidgets.QMessageBox.No)
+                    nButton.setText("Overwrite")
+                    response = qBox.exec_()
+                    if response == QtWidgets.QMessageBox.Yes:
+                        settings.load(os.path.join(output_folder, "rate_settings.yaml"))
+                        settings.freeze(rate_settings_file)
+                    elif response == QtWidgets.QMessageBox.No:
+                        if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")]):
+                            settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
+                        else:
+                            return
+                    else:
+                        return
+                else:
+                    if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")]):
+                        settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
+                    else:
+                        return
         else:
-            return
-        
+            settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
+
         # $then need to check if the files exist. if so warn the user. function
         no_extract_list = [w for w in worklist if w != "Extract"]
         outputs_to_check = []
@@ -739,6 +769,9 @@ def main():
     
     mp.freeze_support()
     app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationDisplayName("DeuteRater")
+    app.setApplicationName("DeuteRater")
+    app.setWindowIcon(QtGui.QIcon(os.path.join(location, "resources", "Logo_64_clean.PNG")))
     gui_object = MainGuiObject(None)
     gui_object.show()
     app.exec_()

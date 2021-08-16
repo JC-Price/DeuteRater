@@ -50,6 +50,9 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         QtWidgets.QShortcut(QtGui.QKeySequence('Ctrl+v'),
                             self).activated.connect(self.Paste)
         
+        self.setWindowTitle("Time Enrichment Table")
+
+        
     #$ initial table set up
     def set_up_table(self, row_names):
         #$block signals so if we use undo and redo the basic table is unaffected

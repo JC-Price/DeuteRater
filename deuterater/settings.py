@@ -353,6 +353,24 @@ def load(settings_path):
         traceback.print_tb(e.__traceback__)
 
 
+def compare(settings_path, compare_path):
+    try:
+        settings_path = Path(settings_path)
+        with settings_path.open('r') as f:
+            setting = yaml.load(f, Loader=yaml.FullLoader)
+        compare_path = Path(compare_path)
+        with compare_path.open('r') as f:
+            compare = yaml.load(f, Loader=yaml.FullLoader)
+        if setting.keys() != compare.keys():
+            return "Different Keys"
+        for key in setting.keys():
+            if setting[key] != compare[key]:
+                return "Mismatched Keys"
+        return "MATCH"
+    except:
+        return "Error"
+
+
 def freeze(path=None, settings_dict=None):
     if not settings_dict:
         settings_dict = {
@@ -422,7 +440,7 @@ def freeze(path=None, settings_dict=None):
             'intensity_weight': intensity_weight,
             'how_divided': how_divided,
             "use_chromatography_division": use_chromatography_division,
-            "rate_output_format": rate_output_format,
+            "use_empir_n_value": use_empir_n_value
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
