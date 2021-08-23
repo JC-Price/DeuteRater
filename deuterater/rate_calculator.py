@@ -360,11 +360,11 @@ class RateCalculator():
                 graph_title = "{}_{}_{}\nk={}, a={}".format(common_name,
                                                             sample_group_name, fn_col, result[f'{calc_type} rate'],
                                                             1.0)
-               if settings.roll_up_rate_calc:
+                if settings.roll_up_rate_calc:
                   graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                            rate_eq, graph_folder, max_time,
                            settings.asymptote, devs, biomolecule_type,title=graph_title)
-               else:
+                else:
                   graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                            rate_eq, graph_folder, max_time,
                            settings.asymptote, biomolecule_type, title=graph_title)
@@ -374,11 +374,11 @@ class RateCalculator():
                 graph_title = "{}_{}_{}\nk={}, a={}".format(common_name,
                                                             sample_group_name, fn_col, result['Abundance rate'],
                                                             result['Abundance asymptote'])
-               if settings.roll_up_rate_calc:
+                if settings.roll_up_rate_calc:
                   graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                            rate_eq, graph_folder, max_time,
                            settings.asymptote, devs, biomolecule_type, full_data=group, title=graph_title)
-               else:
+                else:
                   graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                            rate_eq, graph_folder, max_time,
                            settings.asymptote, biomolecule_type, full_data=group, title=graph_title)
