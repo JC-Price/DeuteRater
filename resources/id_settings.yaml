@@ -35,7 +35,7 @@ post_translational_modifications_path: "ptms.json"
 
 #Determine the min and max charge state to search for
 min_charge_state: !!int 1
-max_charge_state: !!int 1
+max_charge_state: !!int 5
 
 # Decide if duplicate molecules in the ID file precursor should be removed.
 remove_duplicates: !!bool True
