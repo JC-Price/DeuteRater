@@ -1,0 +1,42 @@
+# how to determine the number of peaks to look for
+mass_cutoffs:
+  # initial cutoff is at zero
+  - [0, 3]
+  - [1500, 4]
+  - [2400, 5]
+  # addition cutoffs follow
+  # - [2400, 5]
+
+# given in minutes
+rt_proximity_tolerance: !!int 1
+
+# given in parts per million
+mz_proximity_tolerance: !!int 100
+
+# required_unique: !!int 0
+
+start_time: !!float 0.0
+
+study_type: "tissue"
+
+aa_elemental_composition_path: "aa_elem_compositions.tsv"
+
+aa_labeling_sites_path: "aa_labeling_sites.tsv"
+  
+elements_path: "elements.tsv"
+  
+post_translational_modifications_path: "ptms.json"
+
+# ppm_cutoff: 2
+
+# score_cutoff: 0
+
+# rt_min_distance: 3
+
+#Determine the min and max charge state to search for
+min_charge_state: !!int 1
+max_charge_state: !!int 5
+
+# Decide if duplicate molecules in the ID file precursor should be removed.
+remove_duplicates: !!bool True
+
