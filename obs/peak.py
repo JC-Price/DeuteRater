@@ -83,3 +83,4 @@ class Peak(object):
     def __deepcopy__(self, memodict={}):
         copy_object = Peak(self.mz, self.ab, self.i)
         return copy_object
+        

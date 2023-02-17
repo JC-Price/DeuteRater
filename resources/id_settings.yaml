@@ -1,3 +1,5 @@
+development: !!bool True
+
 # how to determine the number of peaks to look for
 mass_cutoffs:
   # initial cutoff is at zero
@@ -35,8 +37,26 @@ post_translational_modifications_path: "ptms.json"
 
 #Determine the min and max charge state to search for
 min_charge_state: !!int 1
-max_charge_state: !!int 5
+max_charge_state: !!int 1
 
 # Decide if duplicate molecules in the ID file precursor should be removed.
 remove_duplicates: !!bool True
 
+# Select which adducts should be used in the PCDL Converter:
+# Positive Mode Adducts:
+H_adduct: !!bool True
+Na_adduct: !!bool True
+H_H2O_adduct: !!bool True
+Na_H2O_adduct: !!bool True
+NH4_adduct: !!bool True
+NH4_H2O_adduct: !!bool True
+
+# Negative Mode Adducts:
+formate_adduct: !!bool False
+acetate_adduct: !!bool False
+e_adduct: !!bool False
+H_loss: !!bool False
+H2O_loss: !!bool False
+
+# Decides if the PCDL Converter should expand to all adducts or not.
+expand_to_adducts: !!bool True

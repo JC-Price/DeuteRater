@@ -43,6 +43,7 @@ try:
     from utils.exc import InvalidSettingsError  # noqa: 401
 except:
     from DeuteRater.utils.exc import InvalidSettingsError, InvalidSettingsWarning
+    
 
 # TODO: How would I dynamically load a different settings file?
 # TODO: ^^^This really should be able to be passed in
@@ -69,25 +70,30 @@ recognize_available_cores: bool
 n_processors: int
 id_file_rt_unit: str
 trim_ids_to_mzml_bounds: bool
+fpe_tolerance: bool
 chunk_size: int
 chunking_method_threshold: int
 max_valid_angle: float
 time_window: float
 ppm_window: int
+heavy_isotope: str
 study_type: str
 aa_label_path: str
 use_abundance: str
 use_neutromer_spacing: bool
+maximum_theoretical_pct: float
+labeling_step_size: float
 minimum_nonzero_points: int
 peak_lookback: int
 peak_lookahead: int
 baseline_lookback: int
 peak_ratio_denominator: int
 zscore_cutoff: int
-rt_proximity_tolerance: float
 mz_proximity_tolerance: float
 peptide_analyte_id_column: str
 peptide_analyte_name_column: str
+lipid_analyte_id_column: str
+lipid_analyte_name_column: str
 unique_sequence_column: str
 roll_up_rate_calc: bool
 asymptote: str
@@ -107,11 +113,27 @@ enrichement_of_zero: float
 min_allowed_abund_max_delta: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
+use_empir_n_value: bool
 minimum_abund_change: float
 intensity_filter: int
+rel_height: float
+sampling_rate: int
+smoothing_width: int
+smoothing_order: int
+allowed_peak_variance_min: float
+allowed_neutromer_peak_variance: float
+adduct_weight: float
+variance_weight: float
+ID_weight: float
+intensity_weight: float
+how_divided: str
+use_chromatography_division: str
 verbose_rate: bool
 rate_output_format: str
-
+s_n_filter: float
+remove_filters: bool
+separate_adducts: bool
+vertical_gridlines: bool
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
@@ -142,6 +164,9 @@ def load(settings_path):
         global trim_ids_to_mzml_bounds
         trim_ids_to_mzml_bounds = s['trim_ids_to_mzml_bounds']
         
+        global fpe_tolerance
+        fpe_tolerance = s['fpe_tolerance']
+        
         global chunk_size
         chunk_size = s['chunk_size']
         
@@ -157,6 +182,9 @@ def load(settings_path):
         global ppm_window
         ppm_window = s['ppm_window']
         
+        global heavy_isotope
+        heavy_isotope = s['heavy_isotope']
+        
         global study_type
         study_type = s['study_type']
         
@@ -169,6 +197,12 @@ def load(settings_path):
         
         global use_neutromer_spacing
         use_neutromer_spacing = s['use_neutromer_spacing']
+        
+        global maximum_theoretical_pct
+        maximum_theoretical_pct = s['maximum_theoretical_pct']
+        
+        global labeling_step_size
+        labeling_step_size = s['labeling_step_size']
         
         global minimum_nonzero_points
         minimum_nonzero_points = s['minimum_nonzero_points']
@@ -191,10 +225,6 @@ def load(settings_path):
         global zscore_cutoff
         zscore_cutoff = s['zscore_cutoff']
         
-        
-        global rt_proximity_tolerance
-        rt_proximity_tolerance = s['rt_proximity_tolerance']
-        
         global mz_proximity_tolerance
         mz_proximity_tolerance = s['mz_proximity_tolerance']
         
@@ -203,6 +233,12 @@ def load(settings_path):
         
         global peptide_analyte_name_column
         peptide_analyte_name_column = s['peptide_analyte_name_column']
+        
+        global lipid_analyte_id_column
+        lipid_analyte_id_column = s['lipid_analyte_id_column']
+        
+        global lipid_analyte_name_column
+        lipid_analyte_name_column = s['lipid_analyte_name_column']
         
         global unique_sequence_column
         unique_sequence_column = s["unique_sequence_column"]
@@ -261,25 +297,77 @@ def load(settings_path):
         global min_allowed_n_values
         min_allowed_n_values = s["min_allowed_n_values"]
         
+        global use_empir_n_value
+        use_empir_n_value = s["use_empir_n_value"]
+        
         global minimum_abund_change
         minimum_abund_change = s["minimum_abund_change"]
         
         global intensity_filter
         intensity_filter = s["intensity_filter"]
+        
+        global rel_height
+        rel_height = s["rel_height"]
+        
+        global sampling_rate
+        sampling_rate = s["sampling_rate"]
+        
+        global smoothing_width
+        smoothing_width = s["smoothing_width"]
 
         global verbose_rate
         verbose_rate = s["verbose_rate"]
         
+        global smoothing_order
+        smoothing_order = s["smoothing_order"]
+        
+        global allowed_peak_variance_min
+        allowed_peak_variance_min = s["allowed_peak_variance_min"]
+        
+        global adduct_weight
+        adduct_weight = s["adduct_weight"]
+        
+        global variance_weight
+        variance_weight = s["variance_weight"]
+        
+        global ID_weight
+        ID_weight = s["ID_weight"]
+        
+        global intensity_weight
+        intensity_weight = s["intensity_weight"]
+        
+        global how_divided
+        how_divided = s["how_divided"]
+        
+        global allowed_neutromer_peak_variance
+        allowed_neutromer_peak_variance = s["allowed_neutromer_peak_variance"]
+        
         global ms_level
         ms_level = s["ms_level"]
+        
+        global use_chromatography_division
+        use_chromatography_division = s["use_chromatography_division"]
         
         global rate_output_format
         rate_output_format = s["rate_output_format"]
         
+        global s_n_filter
+        s_n_filter = s["s_n_filter"]
+        
+        global remove_filters
+        remove_filters = s["remove_filters"]
+        
+        global separate_adducts
+        separate_adducts = s["separate_adducts"]
+        
+        global vertical_gridlines
+        vertical_gridlines = s["vertical_gridlines"]
+        
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
-        
+
+
 def compare(settings_path, compare_path):
     try:
         settings_path = Path(settings_path)
@@ -306,15 +394,19 @@ def freeze(path=None, settings_dict=None):
             'n_processors': n_processors,
             'id_file_rt_unit': id_file_rt_unit,
             'trim_ids_to_mzml_bounds': trim_ids_to_mzml_bounds,
+            'fpe_tolerance': fpe_tolerance,
             'chunk_size': chunk_size,
             'chunking_method_threshold': chunking_method_threshold,
             'max_valid_angle': max_valid_angle,
             'time_window': time_window,
             'ppm_window': ppm_window,
+            'heavy_isotope': heavy_isotope,
             'study_type': study_type,
             'aa_labeling_sites_path': aa_label_path,
             'use_abundance': use_abundance,
             'use_neutromer_spacing': use_neutromer_spacing,
+            'maximum_theoretical_pct': maximum_theoretical_pct,
+            'labeling_step_size': labeling_step_size,
             'minimum_nonzero_points': minimum_nonzero_points,
             'peak_lookback': peak_lookback,
             'peak_lookahead': peak_lookahead,
@@ -322,10 +414,11 @@ def freeze(path=None, settings_dict=None):
             'min_envelopes_to_combine': min_envelopes_to_combine,
             'peak_ratio_denominator': peak_ratio_denominator,
             'zscore_cutoff': zscore_cutoff,
-            "rt_proximity_tolerance": rt_proximity_tolerance,
             'mz_proximity_tolerance': mz_proximity_tolerance,
             "peptide_analyte_id_column": peptide_analyte_id_column,
             "peptide_analyte_name_column": peptide_analyte_name_column,
+            "lipid_analyte_id_column": lipid_analyte_id_column,
+            "lipid_analyte_name_column": lipid_analyte_name_column,
             "unique_sequence_column": unique_sequence_column,
             "roll_up_rate_calc": roll_up_rate_calc,
             "asymptote": asymptote,
@@ -349,7 +442,24 @@ def freeze(path=None, settings_dict=None):
             "verbose_rate": verbose_rate,
             "intensity_filter": intensity_filter,
             "ms_level": ms_level,
-            "rate_output_format": rate_output_format
+            "rate_output_format": rate_output_format,
+            'rel_height': rel_height,
+            'sampling_rate': sampling_rate,
+            'smoothing_width': smoothing_width,
+            'smoothing_order': smoothing_order,
+            'allowed_peak_variance_min': allowed_peak_variance_min,
+            'allowed_neutromer_peak_variance': allowed_neutromer_peak_variance,
+            'adduct_weight': adduct_weight,
+            'variance_weight': variance_weight,
+            'ID_weight': ID_weight,
+            'intensity_weight': intensity_weight,
+            'how_divided': how_divided,
+            "use_chromatography_division": use_chromatography_division,
+            "use_empir_n_value": use_empir_n_value,
+            "s_n_filter": s_n_filter,
+            "remove_filters": remove_filters,
+            "separate_adducts": separate_adducts,
+            "vertical_gridlines": vertical_gridlines,
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

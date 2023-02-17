@@ -42,7 +42,7 @@ import multiprocessing as mp
 from pathlib import Path  # noqa: 401
 import os
 import traceback
-import warnings   # noqa: 401
+import warnings  # noqa: 401
 
 from math import ceil
 from operator import mul
@@ -50,7 +50,7 @@ from operator import mul
 import deuterater.settings as settings
 import utils.mzml as dml
 import utils.extract as due
-from utils.exc import InvalidHeaderError   # noqa: 401
+from utils.exc import InvalidHeaderError  # noqa: 401
 
 
 # TODO: Code for Validating headers
@@ -95,21 +95,14 @@ class Extractor:  # TODO name change
         The aggregation of the data extracted from `ids` and `mzml`
 
     '''
+
     def __init__(self, settings_path, id_path, mzml_path, out_path):
         '''
         Parameters
         ----------
         ids : str
             The name of the file containing the identifications. This data
-            will likely have been taken from an unlabeled run.
-        mzml : str
-            The name of the file containing mass spectrometry data in the
-            mzml format, labeled or not.
-        settings : str
-            The name of the file containing the settings for this instance
-            of the exctractor, which may contain the settings for the rest
-            of Deuterater as well. This file *should* be in ``.yaml`` format.
-
+            will likely have been taken from an unlabele-
             For addition information, see the settings file's documentation
 
         '''
@@ -127,15 +120,17 @@ class Extractor:  # TODO name change
 
         try:
             if settings.recognize_available_cores is True:
-                self._n_processors = mp.cpu_count()
+                # BD: Issue with mp.cpu_count() finding too many cores available
+                self._n_processors = round(mp.cpu_count() * 0.75)
+                # self._n_processors = mp.cpu_count()
             else:
                 self._n_processors = settings.n_processors
-            #$breaks windows/python interactions if too many cores are used.  very niche application but still relevant
-            if self._n_processors > 60:
+            # $breaks windows/python interactions if too many cores are used. very niche application but still relevant
+            if self._n_processors > 60:  # changed from 60 back to 60, -Coleman
                 self.n_processors = 60
             self._chunk_size = settings.chunk_size
             self._chunking_threshold = mul(
-                settings.chunking_method_threshold,
+                self._n_processors,
                 settings.chunk_size
             )
             self._id_rt_unit = settings.id_file_rt_unit
@@ -155,12 +150,12 @@ class Extractor:  # TODO name change
             raise
 
     def load(self):
-        '''Loads the associated files into memory
+        """Loads the associated files into memory
 
-        This is called seperately from the initializtion of the Extractor
+        This is called separately from the initialization of the Extractor
         class so that if many files are given, we only have one Extractor
         fully loaded into memory at a time
-        '''
+        """
         try:
             self._load_ids(self.id_path)
             self._get_mzml_bounds(self.mzml_path)
@@ -231,7 +226,7 @@ class Extractor:  # TODO name change
         # until the ID files are gigabytes in size
         if trim:
             mask = (self._mzml_rt_min - self._rt_window < self.ids['rt']) \
-                & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
+                   & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
             self.ids = self.ids[mask]
             self.ids.reset_index(inplace=True, drop=True)
 
@@ -240,7 +235,7 @@ class Extractor:  # TODO name change
 
         try:
             self._id_chunks = [
-                self.ids.loc[i:i+self._chunk_size-1, :].copy() for i in range(
+                self.ids.loc[i:i + self._chunk_size - 1, :].copy() for i in range(
                     0, len(self.ids.index), self._chunk_size
                 )
             ]
@@ -248,14 +243,14 @@ class Extractor:  # TODO name change
             print("Supplied ID File has no ID's that can be extracted with the current settings.")
             print("Please loosen the settings and/or include more ID's in the supplied file.")
             exit(2)
-        
+
         for chunk in self._id_chunks:
             keep_cols = [
                 'Precursor m/z',
                 'Identification Charge',
                 'rt',
                 'n_isos',
-                #'cf'
+                # 'cf'
             ]
             chunk.drop(
                 chunk.columns.difference(keep_cols),
@@ -317,6 +312,7 @@ class Extractor:  # TODO name change
         #   chunks.
         func = partial(due.extract, self.settings_path)  # pass the settings
         func = partial(func, str(self.mzml_path))  # pass the mzml
+        func = partial(func, str(self.id_path))  # pass the id path
         func = partial(func, self._index_ID_map)  # pass the index mapping
 
         if settings.debug_level == 0:
@@ -334,10 +330,9 @@ class Extractor:  # TODO name change
                     )
                 )
             except Exception as e:
-                print ("DeuteRater encountered an error in the extractor: {}".format(e))
-                print("Some errors are caused by the extractor output being too large to successfully output. This can be fixed by using a smaller ID File to fix this issue.")
-                raise (e) #$ just ignoring th exception will just error out later.  a return will just make empty files. this is rare enougu we shouldn't need to fiddle with it right now
-                
+                print(
+                    "The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
+
         if settings.debug_level >= 1:
             print('Beginning single-processor extraction.')
             results = []
@@ -365,10 +360,10 @@ class Extractor:  # TODO name change
                 left_index=True,
                 right_on='id_index'
             )
-            
+
         self._mp_pool.close()
         self._mp_pool.join()
-    
+
 
 def main():
     print('please use the main program interface')

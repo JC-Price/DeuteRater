@@ -1,40 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-original DeuteRater: Copyright (c) 2016 Bradley Naylor, Michael Porter, J.C. Price, and Brigham Young University
+Created on Mon Sep 21 08:57:55 2020
 
-current version created 2021 updates by Bradley Naylor, Kyle Cutler, Chad Quilling, J.C. Price and Brigham Young University
-All rights reserved.
-Redistribution and use in source and binary forms,
-with or without modification, are permitted provided
-that the following conditions are met:
-    * Redistributions of source code must retain the
-      above copyright notice, this list of conditions
-      and the following disclaimer.
-    * Redistributions in binary form must reproduce
-      the above copyright notice, this list of conditions
-      and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    * Neither the author nor the names of any contributors
-      may be used to endorse or promote products derived
-      from this software without specific prior written
-      permission.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+Need to recode and activate the GUI
+will attempt to not apply any code unrelated to the gui or saving data
+all calculations (aside from assuring that values are within allowed ranges or
+ensuring that an output file is writable)will be done in the imports for 
+readability and consistency, as well as easy to use in the command line
+
+@author: JCPrice
 """
 
 # $we will of course need to expand things later, but we'll sort that out later
 import os
+import sys
 import multiprocessing as mp
 import csv
 import pandas as pd
@@ -46,17 +25,17 @@ from shutil import copyfile, rmtree
 from deuteconvert.peaks85 import Peaks85
 from deuteconvert.peaksXplus import PeaksXplus
 from deuteconvert.peaksXpro import PeaksXpro
+from deuteconvert.PCDL_converter import PCDL_Converter
 from deuterater.extractor import Extractor
-import deuteconvert.peptide_utils as peputils
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from deuterater.theory_preparer import TheoryPreparer
 from deuterater.fraction_new_calculator import FractionNewCalculator
 from deuterater.rate_calculator import RateCalculator
+from utils.chromatography_division import ChromatographyDivider
 from utils.useful_classes import deuterater_step, deuteconvert_peaks_required_headers
 import deuterater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 import gui_software.Converter_Settings as guide_settings
-import deuteconvert.settings as converter_settings
 
 # location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.abspath(__file__))
@@ -68,32 +47,39 @@ id_settings_file = os.path.join(location, "resources",
 default_id_settings = os.path.join(location, "resources",
                                    "id_settings.yaml")
 
-# $make some basic classes to hold some data.  If need to adjust
+# $make some basic classes to hold some data.  If we need to adjust
 # $output names or columns required from input, do it here
 # $if we add other id types just yank id columns out and make a variable list
-# $if you change any of these from csv to tsv or vice versa remember to adjust the write function for the relevant class
 Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                                       'Precursor m/z', 'Identification Charge', 'Sequence',
-                                      'Protein ID', "cf"])
+                                      'Protein ID', "cf"],
+                                 ['Precursor Retention Time (sec)', 'Precursor m/z',
+                                  'Identification Charge', "Lipid Unique Identifier",
+                                  "LMP", "Lipid Name", "HMP", "cf"])
 Time_Enrich_object = deuterater_step("time_enrichment_data.tsv",
                                      [
                                          "Precursor Retention Time (sec)", "Protein ID", "Protein Name",
                                          "Precursor m/z",
                                          "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
                                          "Sequence", "cf", "abundances", "mzs"
-                                     ])
+                                     ],
+                                     ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+                                      "Lipid Name", "cf", "abundances", "mzs"])
 Theory_object = deuterater_step("theory_output.tsv",
+                                ["Filename", "Time", "Enrichment", "Sample_Group"],
                                 ["Filename", "Time", "Enrichment", "Sample_Group"])
 Fracnew_object = deuterater_step("frac_new_output.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
-    "Sequence", "cf", "abundances", "mzs", "time", "enrichment", "sample_group"])
-# $rate needs reassignment based on settings so we'll read in and make later
-Rate_object = deuterater_step("calculated_rates.csv", [])
-
-# $we have an extra file from the rate output. just carve out an exception. if another step gets another output,
-# $then adjust the deuterater step object
-extra_rate_file = "calculated_rates_datapoints.tsv"
+    "Sequence", "cf", "abundances", "mzs", "timepoint", "enrichment", "sample_group"],
+                                 [
+                                     "Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+                                     "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+                                     "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
+                                     "sample_group"])
+# $rate needs reassignment based on settings. We'll read in and make later
+Rate_object = deuterater_step("calculated_rates.tsv", [], [])
 
 step_object_dict = {
     "Extract": Extract_object,
@@ -107,6 +93,7 @@ convert_options = {
     "Peaks 8.5 - Peptides": Peaks85,
     "Peaks X+ - Peptides": PeaksXplus,
     "Peaks XPro - Peptides": PeaksXpro,
+    "MassHunter PCDL": PCDL_Converter,
     "Template": ""
 }
 convert_needed_headers = {
@@ -129,15 +116,6 @@ convert_needed_headers = {
     )
 }
 
-# $columns for the extractor that absolutely need data (others can autofill or are just for user information)
-# $most of the columns actually aren't necessary to get a result but will either prevent any extraction from happening (no data output file)
-# $or will likely cause an error later in the process.
-required_data_extractor_data = ["Sequence", "Protein ID", "Precursor Retention Time (sec)", "Precursor m/z",
-                                "Identification Charge"]
-autofill_columns = ["Peptide Theoretical Mass", "cf", "literature_n"]
-# $need to autofill: Peptide Theoretical Mass, cf? 	neutromers_to_extract, literature_n
-
-
 default_converter = "Peaks XPro - Peptides"
 # TODO$ may need to adjust the header or shove in the n-value calculator
 converter_header = PeaksXplus.correct_header_order
@@ -156,7 +134,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         self.setupUi(self)
 
-        make_temp_file(default_rate_settings, rate_settings_file)
+        settings.load(default_rate_settings)
+        settings.freeze(rate_settings_file)
+        # make_temp_file(default_rate_settings, rate_settings_file)
         make_temp_file(default_id_settings, id_settings_file)
         self.file_loc = location
 
@@ -166,17 +146,18 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         index = self.id_file_options.findText(default_converter)
         self.id_file_options.setCurrentIndex(index)
 
-        self.IDFileButton.clicked.connect(self.create_id_file)
+        self.IDFileButton.clicked.connect(self._create_id)
         self.RateCalculationButton.clicked.connect(self._calc_rates)
         self.actionSettings.triggered.connect(self.change_settings)
         self.actionID_File_Settings.triggered.connect(self.change_converter_settings)
 
         # $make the logo show up
         # $use of command from http://stackoverflow.com/questions/8687723/pyqthow-do-i-display-a-image-properly
-        # $first answer accesed 5/27/2016
-        myPixmap = QtGui.QPixmap(os.path.join(location, "resources", "Logo.JPG"))
+        # $first answer accessed 5/27/2016
+        myPixmap = QtGui.QPixmap(os.path.join(location, "resources", "Logo.PNG"))
         self.Logo.setPixmap(myPixmap)
         self.Logo.setScaledContents(True)
+        self.setWindowTitle("DeuteRater")
 
     def Peaks_File_Collection(self, header_checker_object):
         # $ get the files we need
@@ -208,7 +189,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             has_needed_columns = header_checker_object.protein_peptide_check(protein_peptide_file)
             if not has_needed_columns:
                 QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(protein_peptide_file)))
+                                                                  "missing needed columns. Please correct and try again".format(
+                    protein_peptide_file)))
                 return ""
             self.file_loc = os.path.dirname(protein_peptide_file)
         feature_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
@@ -221,19 +203,40 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             has_needed_columns = header_checker_object.features_check(feature_file)
             if not has_needed_columns:
                 QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(feature_file)))
+                                                                  "missing needed columns. Please correct and try again".format(
+                    feature_file)))
                 return ""
             self.file_loc = os.path.dirname(feature_file)
         return [protein_file, protein_peptide_file, feature_file]
 
+    def Masshunter_File_Collection(self):
+        QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
+                                                         "MassHunter file you would like to turn into a id file."))
+        masshunter_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Choose MassHunter file to Load", self.file_loc,
+            "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
+        if masshunter_file == "":
+            return ""
+        else:
+            self.file_loc = os.path.dirname(masshunter_file)
+            return [masshunter_file]
+
     # $this is to govern the different id file functions
-    # TODO$ when we have added lipid data adjust template and the function calls
+    def _create_id(self):
+        try:
+            self.RateCalculationButton.setText("Creating ID File... Please Wait.")
+            self.create_id_file()
+        finally:
+            self.RateCalculationButton.setText("Rate Calculation")
+
     def create_id_file(self):
         id_file_type = str(self.id_file_options.currentText())
         # $collect any id files needed
         # $template doesn't need one since it just needs one output
         if id_file_type in ["Peaks 8.5 - Peptides", "Peaks X+ - Peptides", "Peaks XPro - Peptides"]:
             input_files = self.Peaks_File_Collection(convert_needed_headers[id_file_type])
+        elif id_file_type == "MassHunter PCDL":
+            input_files = self.Masshunter_File_Collection()
 
         # $id_file_type has to be first or input_files may not be defined
         if id_file_type != "Template" and input_files == "":
@@ -247,11 +250,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # $get output file
         QtWidgets.QMessageBox.information(self, "Info", ("Your id file was "
                                                          "created. Please select the output file location"))
-        while (True):
+        while True:
             save_file, filetype = QtWidgets.QFileDialog.getSaveFileName(self,
                                                                         "Provide Save File", self.file_loc,
                                                                         "CSV (*.csv)")
-            if save_file == "": return
+            if save_file == "":
+                return
             try:
                 if id_file_type != "Template":
                     converter.write(save_file)
@@ -267,10 +271,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         QtWidgets.QMessageBox.information(self, "Success",
                                           "ID file successfully saved")
 
-    # $adjusts the text fo the "Rate Calculation" button
     def _calc_rates(self):
         try:
-
             self.RateCalculationButton.setText("Currently Processing... Please Wait.")
             self.run_rate_workflow()
         finally:
@@ -280,10 +282,15 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # $will need some settings
         settings.load(rate_settings_file)
 
+        if self.PeptideButton.isChecked():
+            biomolecule_type = "Peptide"
+        elif self.LipidButton.isChecked():
+            biomolecule_type = "Lipid"
+
         # $first we need to check which steps are checked
         worklist = self.check_table_checklist()
         # $ only proceed if we have a
-        if worklist == []:
+        if not worklist:
             QtWidgets.QMessageBox.information(self, "Error", ("No options were "
                                                               "checked. Please check steps to performed and try again"))
             return
@@ -298,13 +305,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             "Select an Output Folder",
             self.file_loc,
             QtWidgets.QFileDialog.ShowDirsOnly)
-        if output_folder == "": return
+        if output_folder == "":
+            return
         # $change location we start asking for things at
         # $don't change since all output is going in here
         self.file_loc = output_folder
         # MainGuiObject._make_folder(output_folder)
 
-        # don't care if overwrite rate_settings.yaml but should check if want to use the settings already in the folder
         if os.path.exists(os.path.join(output_folder, "rate_settings.yaml")):
             comp_result = settings.compare(rate_settings_file, os.path.join(output_folder, "rate_settings.yaml"))
             if comp_result != "MATCH":
@@ -326,18 +333,14 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         settings.load(os.path.join(output_folder, "rate_settings.yaml"))
                         settings.freeze(rate_settings_file)
                     elif response == QtWidgets.QMessageBox.No:
-                        if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")],
-                                                   ask_permission=False):
+                        if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")]):
                             settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
                         else:
                             return
                     else:
                         return
                 else:
-                    # $no point asking if we can delete the file if it is the same anyway.  still want to overwrite as part of checking permissions.
-                    # $may not overwrite later
-                    if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")],
-                                               ask_permission=False):
+                    if self.check_file_removal([os.path.join(output_folder, "rate_settings.yaml")]):
                         settings.freeze(os.path.join(output_folder, "rate_settings.yaml"))
                     else:
                         return
@@ -347,10 +350,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # $then need to check if the files exist. if so warn the user. function
         no_extract_list = [w for w in worklist if w != "Extract"]
         outputs_to_check = []
-        # $deal with the extra detail file added for rate calculation
-        if "Rate Calculation" in no_extract_list:
-            outputs_to_check.append(os.path.join(output_folder, extra_rate_file))
-
         for worklist_step in no_extract_list:
             step_object_dict[worklist_step].complete_filename(self.file_loc)
             outputs_to_check.append(step_object_dict[worklist_step].full_filename)
@@ -372,14 +371,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 id_file = self.collect_single_file("ID", "Extract", "CSV (*.csv)")
                 if id_file == "": return
                 # $always check if is good since it is first
-                infile_is_good = self.check_input(step_object_dict[analysis_step],
-                                                  id_file)
+                infile_is_good = self.check_input(step_object_dict["Extract"],
+                                                  id_file, biomolecule_type)
                 if not infile_is_good:  return
-                # $infile_is_good is just a check for blanks in the input file
-                data_is_good = self.check_extractor_input(id_file, required_data_extractor_data, autofill_columns)
-                if not data_is_good:  return
+
                 mzml_files = self.collect_multiple_files("Centroided Data",
-                                                         analysis_step, "mzML (*.mzML)")
+                                                         "Extract", "mzML (*.mzML)")
                 if mzml_files == []: return
 
                 mzml_filenames = [os.path.basename(filename) for filename in
@@ -388,11 +385,20 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                    filename in mzml_filenames]
                 extracted_files = [os.path.join(output_folder, filename) for
                                    filename in extracted_files]
-                extracted_intermediate_files = extracted_files
+                if settings.use_chromatography_division != "No":
+                    # Create a folder to store the _no_division.tsv files.
+                    extracted_intermediate_files = [os.path.join(os.path.dirname(filename),
+                                                                 "No_Division",
+                                                                 os.path.basename(filename).replace(".tsv",
+                                                                                                    "_no_divison.tsv"))
+                                                    for filename in extracted_files]
+                else:
+                    extracted_intermediate_files = extracted_files
 
                 needed_files = list(set(extracted_files + extracted_intermediate_files))
                 proceed = self.check_file_removal(needed_files)
                 if not proceed:  return
+                self._make_folder(os.path.join(output_folder, "No_Division"))
                 # $need to run the table if necessary. taken from the
                 # $"Provide Time and Enrichment" elif
                 if "Provide Time and Enrichment" in worklist:
@@ -418,8 +424,16 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
-                    # $need to delete classes when they're done or they may linger in RAM
                     del extractor
+                if settings.use_chromatography_division != "No":
+                    divider = ChromatographyDivider(settings_path=rate_settings_file,
+                                                    input_paths=extracted_intermediate_files,
+                                                    out_paths=extracted_files,
+                                                    biomolecule_type=biomolecule_type
+                                                    )
+                    divider.divide()
+                    del divider
+
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 # $if coming right after a list
                 if extracted_files == []:
@@ -433,14 +447,14 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     # $if the user just selected
                     for e_file in extracted_files:
                         infile_is_good = self.check_input(
-                            step_object_dict[analysis_step],
-                            e_file)
+                            step_object_dict["Provide Time and Enrichment"],
+                            e_file, biomolecule_type)
                         if not infile_is_good: return
 
                 # $ now that we have the extracted files we can make a table
                 # $the talbe will handle the output
                 previous_output_file = step_object_dict[
-                    analysis_step].full_filename
+                    "Provide Time and Enrichment"].full_filename
                 self.get_data_table = TimeEnrichmentWindow(self,
                                                            extracted_files, previous_output_file)
                 self.get_data_table.exec_()
@@ -449,13 +463,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(
                         "time and enrichment",
-                        analysis_step,
+                        "Theory Generation",
                         "spreadsheet (*.csv *.tsv)"
                     )
                     if previous_output_file == "": return
                     infile_is_good = self.check_input(
-                        step_object_dict[analysis_step],
-                        previous_output_file)
+                        step_object_dict["Theory Generation"],
+                        previous_output_file, biomolecule_type)
                     if not infile_is_good: return
                 # $else is to deal with a failed write from the previous table
                 # $ don't need an error message just return
@@ -471,25 +485,39 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 theorist = TheoryPreparer(
                     enrichment_path=previous_output_file,
-                    out_path=step_object_dict[analysis_step].full_filename,
-                    settings_path=rate_settings_file
+                    out_path=step_object_dict["Theory Generation"].full_filename,
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
                 )
                 theorist.prepare()
                 theorist.write()
                 del theorist
-                previous_output_file = step_object_dict[analysis_step].full_filename
+                previous_output_file = step_object_dict["Theory Generation"].full_filename
             elif analysis_step == "Fraction New Calculation":
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(
                         "theoretical output",
-                        analysis_step,
+                        "Fraction New Calculation",
                         "spreadsheet (*.csv *.tsv)"
                     )
                     if previous_output_file == "": return
-
+                    if settings.use_empir_n_value:
+                        if biomolecule_type == "Peptide":
+                            step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
+                        elif biomolecule_type == "Lipid":
+                            step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
+                    else:
+                        # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
+                        try:
+                            if biomolecule_type == "Peptide":
+                                step_object_dict['Fraction New Calculator'].peptide_required_columns.remove('empir_n')
+                            elif biomolecule_type == "Lipid":
+                                step_object_dict['Fraction New Calculator'].lipid_required_columns.remove('empir_n')
+                        except:
+                            print("oops...")
                     infile_is_good = self.check_input(
-                        step_object_dict[analysis_step],
-                        previous_output_file)
+                        step_object_dict["Fraction New Calculation"],
+                        previous_output_file, biomolecule_type)
                     if not infile_is_good: return
                 # $not sure why this would happen but we'll put it here
                 # $to avoid future error
@@ -497,8 +525,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     return
                 fnewcalc = FractionNewCalculator(
                     model_path=previous_output_file,
-                    out_path=step_object_dict[analysis_step].full_filename,
-                    settings_path=rate_settings_file
+                    out_path=step_object_dict["Fraction New Calculation"].full_filename,
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
                 )
                 fnewcalc.generate()
                 if fnewcalc.error != "":
@@ -507,33 +536,40 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 fnewcalc.write()
                 del fnewcalc
                 previous_output_file = step_object_dict[
-                    analysis_step].full_filename
+                    "Fraction New Calculation"].full_filename
             elif analysis_step == "Rate Calculation":
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(
                         "fraction new",
-                        analysis_step,
+                        "Rate Calculation",
                         "spreadsheet (*.csv *.tsv)"
                     )
-                    if previous_output_file == "": return
-                    # $need to ensure that we have proper colmns which varies
+                    if previous_output_file == "":
+                        return
+                    # $need to ensure that we have proper columns which varies
                     # $by setting
-                    needed_columns = [
-                        settings.peptide_analyte_id_column,
-                        settings.peptide_analyte_name_column,
-                        "sample_group"]
-
+                    if biomolecule_type == "Peptide":
+                        needed_columns = [
+                            settings.peptide_analyte_id_column,
+                            settings.peptide_analyte_name_column,
+                            "sample_group"]
+                    elif biomolecule_type == "Lipid":
+                        needed_columns = [
+                            settings.lipid_analyte_id_column,
+                            settings.lipid_analyte_name_column,
+                            "sample_group"]
                     if settings.use_abundance != "No":
                         needed_columns.extend(["abund_fn", "frac_new_abunds_std_dev"])
                     if settings.use_neutromer_spacing:
                         needed_columns.extend(["nsfn", "frac_new_mzs_std_dev"])
                     if settings.use_abundance != "No" and settings.use_neutromer_spacing:
                         needed_columns.extend(["cfn", "frac_new_combined_std_dev"])
-                    step_object_dict[analysis_step].required_columns = needed_columns
+                    step_object_dict["Rate Calculation"].required_columns = needed_columns
                     infile_is_good = self.check_input(
-                        step_object_dict[analysis_step],
-                        previous_output_file)
-                    if not infile_is_good: return
+                        step_object_dict["Rate Calculation"],
+                        previous_output_file, biomolecule_type)
+                    if not infile_is_good:
+                        return
 
                 # $need to get a graph folder and ensure it exists
                 # $don't worry about overwriting files
@@ -541,9 +577,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 MainGuiObject._make_folder(GraphFolder)
                 ratecalc = RateCalculator(
                     model_path=previous_output_file,
-                    out_path=step_object_dict[analysis_step].full_filename,
+                    out_path=step_object_dict["Rate Calculation"].full_filename,
                     graph_folder=GraphFolder,
-                    settings_path=rate_settings_file
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
                 )
                 ratecalc.calculate()
                 ratecalc.write()
@@ -564,7 +601,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # $step
         proper_length = max(error_check) - min(error_check) + 1
         if len(current_worklist) < proper_length:
-            return ("There are gaps in your worklist.  Please check all boxes "
+            return ("There are gaps in your worklist. Please check all boxes "
                     "between the first and last checked box")
         return current_worklist
 
@@ -611,24 +648,24 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         info.setStyleSheet("QMessageBox{min-width:650 px;}")
         info.exec_()
 
-    # $ask user for one file
     def collect_single_file(self, to_load, step_name, load_type):
         QtWidgets.QMessageBox.information(self, "Info", ("Please choose the {} "
                                                          "file to load for {} step".format(to_load, step_name)))
         filename, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
                                                                     "Choose {} file to load".format(to_load),
                                                                     self.file_loc,
-                                                                    load_type)
+                                                                    load_type,
+                                                                    options=QtWidgets.QFileDialog.DontUseNativeDialog)
         return filename
 
-    # $ask user for potentially more than one file
     def collect_multiple_files(self, to_load, step_name, load_type):
         QtWidgets.QMessageBox.information(self, "Info", ("Please choose the {} "
                                                          "files to load for {} step".format(to_load, step_name)))
         filenames, file_type = QtWidgets.QFileDialog.getOpenFileNames(self,
                                                                       "Choose {} file to load".format(to_load),
                                                                       self.file_loc,
-                                                                      load_type)
+                                                                      load_type,
+                                                                      options=QtWidgets.QFileDialog.DontUseNativeDialog)
         return filenames
 
     def change_settings(self):
@@ -639,11 +676,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.set_menu = guide_settings.Converter_Setting_Menu(self, id_settings_file)
         self.set_menu.show()
 
-    # $checks if a file exists, and if we can actually do so.  if we can't
-    # $an error will be triggered later so we'll sort that out here.
-    # $has the advantage of deleting the files so the user can't open a file between now and when we write it
-    # $ask the user about this for everything but settings (that is dealt with better in the run_rate_worklist function)
-    def check_file_removal(self, list_of_filenames, ask_permission=True):
+    # $ we have some cases where we need to remove files that we will create
+    # $later (and so would be overwritten anyway). we'll just do error messages
+    # $ and so on here.
+    def check_file_removal(self, list_of_filenames):
         files_to_remove = []
         open_files = []
         # $find files that exist
@@ -652,12 +688,11 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 files_to_remove.append(filename)
         # $let the user decide if we should continue.
         if files_to_remove != []:
-            if ask_permission:
-                proceed = self.large_text_question_for_use("Some files already exist and will be overwritten.",
-                                                           "Do you still wish to proceed?",
-                                                           "Files to be overwritten:\n" + ",\n".join(files_to_remove))
-                if not proceed:
-                    return False
+            proceed = self.large_text_question_for_use("Some files already exist and will be overwritten.",
+                                                       "Do you still wish to proceed?",
+                                                       "Files to be overwritten:\n" + ",\n".join(files_to_remove))
+            if not proceed:
+                return False
             for filename in files_to_remove:
                 try:
                     os.remove(filename)
@@ -668,14 +703,19 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                                      "They are likely open in another program. Please close "
                                                      "and try again.",
                                             "Files unable to be opened:\n" + ",\n".join(open_files))
-
+                # QtWidgets.QMessageBox.information(self, "Error",
+                # 								  ("The following files cannot be overwritten:\n{}\n"
+                # 								   "They are likely open in another program. please close "
+                # 								   "and try again.".format(",\n".join(open_files)))
+                # 								  )
                 return False
         # $will return true if no files already exist or the user wants to
         # $overwrite and they can be removed so we have permission
         return True
 
-    def check_input(self, relevant_object, filename):
-        has_needed_columns = relevant_object.check_input_file(filename)
+    def check_input(self, relevant_object, filename, biomolecule_type):
+        has_needed_columns = relevant_object.check_input_file(filename,
+                                                              biomolecule_type)
         if not has_needed_columns:
             QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
                                                               "missing needed columns. Please correct and try again".format(
@@ -733,94 +773,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 needed_files.append(full_filename)
         return needed_files
 
-    # $since the users will mainly be filling in a template we need to check the input.  we need to check that the appropriate columns have data in them
-    # $if there is something that we can autofill, we'll do that in the extractor itself since that is already reading in the file
-    def check_extractor_input(self, filename, needed_columns, autofill_columns):
-        df = pd.read_csv(filename)
-        error_message = "Column \"{}\" has blank cells within it.  Please correct and try again."
-        for n in needed_columns:
-            # $ blanks will be true, so this is number of blanks
-            # $works for text columns
-            if sum(df[n] == "") > 0:
-                QtWidgets.QMessageBox.information(self, "Error", error_message.format(n))
-                return False
-            # $numerical columns have nan's not blanks
-            elif sum(df[n].isnull()) > 0:
-                QtWidgets.QMessageBox.information(self, "Error", error_message.format(n))
-                return False
-
-        for a in autofill_columns:
-            if sum(df[a].isnull()) > 0 or sum(df[a] == "") > 0:
-                perform_autofill = True
-                bad_column = a
-                break
-        else:
-            perform_autofill = False
-        if perform_autofill:
-            result = self.autofill(df, filename, bad_column)
-            if not result:
-                return result
-
-        return True
-
-    # $this is based on _interpret_aa_sequences from peaksXPro
-    # $if the user has not provided a chemical formula, literature n value and theoretical neutral mass
-    # $for now we'll just assume that if any are blank we should just autofill everything
-    def autofill(self, df, guide_file_location, bad_column):
-        converter_settings.load(id_settings_file)
-        aa_comp_df = pd.read_csv(converter_settings.aa_elem_comp_path, sep='\t')
-        aa_comp_df.set_index('amino_acid', inplace=True)
-
-        aa_label_df = pd.read_csv(converter_settings.aa_label_path, sep='\t')
-        aa_label_df.set_index('study_type', inplace=True)
-        # TODO: Find out where to store settings, then decide which 'studytype'
-        #       to use as default.
-        aa_labeling_dict = aa_label_df.loc[converter_settings.study_type,].to_dict()
-
-        elem_df = pd.read_csv(converter_settings.elems_path, sep='\t')
-        # This is necessary if we have all of the different isotopes in the tsv
-        element_index_mask = [
-            0,  # Hydrogen
-            10,  # Carbon-12
-            13,  # Nitrogen-14
-            15,  # Oxygen-16,
-            30,  # Phosphorous
-            31  # Sulfer-32
-        ]
-        elem_df = elem_df.iloc[element_index_mask]
-        elem_df.set_index('isotope_letter', inplace=True)
-        # $if dtypes are wrong we can either error out or have improper values, so we'll force it
-        df['cf'] = df['cf'].astype(str)
-        df['Peptide Theoretical Mass'] = df['Peptide Theoretical Mass'].astype(float)
-        df['literature_n'] = df['literature_n'].astype(float)
-        for row in df.itertuples():
-            i = row.Index
-            aa_counts = {}
-            for aa in row.Sequence:
-                if aa not in aa_counts.keys():
-                    aa_counts[aa] = 0
-                aa_counts[aa] += 1
-            elem_dict = peputils.calc_cf(aa_counts, aa_comp_df)
-            theoretical_mass = peputils.calc_theory_mass(elem_dict, elem_df)
-            literature_n = peputils.calc_add_n(aa_counts, aa_labeling_dict)
-            df.at[i, 'cf'] = ''.join(
-                k + str(v) for k, v in elem_dict.items() if v > 0
-            )
-            df.at[i, 'Peptide Theoretical Mass'] = theoretical_mass
-            df.at[i, 'literature_n'] = literature_n
-        # $now we need to srite out.  since we only needed read permissions elsewhere we may have a problem.
-        # $but it does ensure we need to pass a df around.
-        try:
-            df.to_csv(guide_file_location, index=False)
-            return True
-        except IOError:
-            QtWidgets.QMessageBox.information(self, "Error",
-                                              ("Column \"{}\" in file \"{}\" needed to be filled in by DeuteRater-H."
-                                               " This file is open in another program or DeuteRater-H does not have "
-                                               "write permission to this location. Please either fill in the column or close "
-                                               "the file and try again.".format(bad_column, guide_file_location)))
-            return False
-
 
 # $since we have to load settings in each file, and need a way to adjust
 # $settings, we'll
@@ -831,9 +783,16 @@ def make_temp_file(filename, new_filename):
 def main():
     # $needed for windows multiprocessing which will happen at some point
     import sys
+    if os.name == "nt":
+        import ctypes
+        myappid = u'JCPriceLab.DeuteRater.DeuteRater_LP.4_1'  # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
     mp.freeze_support()
     app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationDisplayName("DeuteRater")
+    app.setApplicationName("DeuteRater")
+    app.setWindowIcon(QtGui.QIcon(os.path.join(location, "resources", "Clean_Logo.PNG")))
     gui_object = MainGuiObject(None)
     gui_object.show()
     app.exec_()

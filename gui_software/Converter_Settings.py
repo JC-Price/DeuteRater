@@ -69,11 +69,24 @@ class Converter_Setting_Menu(QtWidgets.QDialog, loaded_ui):
 		self.all_settings = [
 			setting_numerical_info(self.min_charge, "min_charge_state", settings.min_charge_state, True),
 			setting_numerical_info(self.max_charge, "max_charge_state", settings.max_charge_state, True),
+			setting_checkbox_info(self.h_checkbox, "H_adduct", settings.H_adduct),
+			setting_checkbox_info(self.h_h2o_checkbox, "H_H2O_adduct", settings.H_H2O_adduct),
+			setting_checkbox_info(self.na_checkbox, "Na_adduct", settings.Na_adduct),
+			setting_checkbox_info(self.na_h2o_checkbox, "Na_H2O_adduct", settings.Na_H2O_adduct),
+			setting_checkbox_info(self.nh4_checkbox, "NH4_adduct", settings.NH4_adduct),
+			setting_checkbox_info(self.nh4_h2o_checkbox, "NH4_H2O_adduct", settings.NH4_H2O_adduct),
+			setting_checkbox_info(self.formate_checkbox, "formate_adduct", settings.formate_adduct),
+			setting_checkbox_info(self.acetate_checkbox, "acetate_adduct", settings.acetate_adduct),
+			setting_checkbox_info(self.e_gain_checkbox, "e_adduct", settings.e_adduct),
+			setting_checkbox_info(self.h_loss_checkbox, "H_loss", settings.H_loss),
+			setting_checkbox_info(self.h2o_loss_checkbox, "H2O_loss", settings.H2O_loss),
 		]
 		for setting_object in self.all_settings:
 			setting_object.set_object_value()
 		self.SaveButton.clicked.connect(self.save_settings)
 		self.ExitButton.clicked.connect(self.close)
+		
+		self.setWindowTitle("ID Converter Settings")
 	
 	def save_settings(self):
 		# Check if the minimum and maximum charge numbers makes since:
@@ -122,6 +135,7 @@ class Converter_Setting_Menu(QtWidgets.QDialog, loaded_ui):
 	@staticmethod
 	def _get_filters():
 		unalterable_settings = {
+			'development': settings.development,
 			'mass_cutoffs': settings.mass_cutoffs,
 			'rt_proximity_tolerance': settings.rt_proximity_tolerance,
 			'mz_proximity_tolerance': settings.mz_proximity_tolerance,

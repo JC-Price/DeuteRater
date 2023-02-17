@@ -2,9 +2,58 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Template.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chromatography_division_sep.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/deuterater/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/obs/molecule.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/Clean_Logo.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/Harry Potter D2O.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/Ken Potter D2O.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/Ken_Logo.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/Logo.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/Logo_64_clean.PNG" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/peptide_settings.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/temp_settings_testing.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/NValueCalculator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/chromatography_division.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/chromatography_division_unoptimized.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/n_value_calc_emass.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/visualizer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Deutrater_readme_OLD.docx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/environment.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Deutrater_readme.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Deutrater_readme.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__main__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/extractor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/rate_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/rate_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/theory_preparer.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/theory_preparer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Converter_Settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Converter_Settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Rate_Settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Rate_Settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Time_Enrichment_Table.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Time_Enrichment_Table.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_gui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/envelope.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/envelope.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/id.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/id.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/peak.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/peak.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/aa_elem_compositions.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/resources/aa_elem_compositions.tsv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/aa_labeling_sites.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/resources/aa_labeling_sites.tsv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/id_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/id_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/temp_id_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/temp_id_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/temp_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/temp_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_files/Converter_Settings_Menu.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui_files/Converter_Settings_Menu.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_files/Main_Menu.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui_files/Main_Menu.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_files/Settings_Menu.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui_files/Settings_Menu.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_files/Time_Enrichment_Table.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui_files/Time_Enrichment_Table.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/extract.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/extract.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/graphing_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/graphing_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/math.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/math.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/useful_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/useful_classes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,15 +79,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/Users/Brigham Young Univ/DeuteRater Development/DeuteRater/DeuteRater",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Brigham Young Univ/DeuteRater Development/DeuteRater/DeuteRater&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Brigham Young Univ\DeuteRater Development\DeuteRater\DeuteRater" />
@@ -92,6 +141,7 @@
       <workItem from="1676502425370" duration="455000" />
       <workItem from="1676578185211" duration="165000" />
       <workItem from="1676578489086" duration="445000" />
+      <workItem from="1676670425074" duration="834000" />
     </task>
     <task id="LOCAL-00001" summary="Working on new read me">
       <created>1676578651437</created>
@@ -122,6 +172,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Working on new read me" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/DeuteRater$DeuteRater.coverage" NAME="DeuteRater Coverage Results" MODIFIED="1676578787283" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DeuteRater$DeuteRater.coverage" NAME="DeuteRater Coverage Results" MODIFIED="1676670556030" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
