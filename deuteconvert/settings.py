@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2016-2023 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
+    Coleman Nielson, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided

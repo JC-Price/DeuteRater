@@ -39,6 +39,9 @@
       <change beforePath="$PROJECT_DIR$/obs/envelope.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/envelope.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obs/molecule.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/molecule.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/obs/peak.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/peak.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/Harry Potter D2O.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/Ken Potter D2O.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/Ken_Logo.PNG" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/aa_labeling_sites.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/resources/aa_labeling_sites.tsv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/elements.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/resources/elements.tsv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/id_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/id_settings.yaml" afterDir="false" />
