@@ -36,6 +36,7 @@ the following are settings that are in use in DeuteRater but are not alerable
 in this menu.  if we need them just grab them
 debug_level - adjusting debug setting should not be set in a gui
 trim_ids_to_mzml_bounds - should not be needed often enough to put here
+fpe_tolerance - should not be needed often enough to put here
 chunk_size - should not be needed often enough to put here
 chunking_method_threshold - should not be needed often enough to put here
 max_valid_angle - should not be needed often enough to put here
@@ -43,6 +44,8 @@ peak_ratio_denominator - should not be needed often enough to put here
 analyte_id_column - don't need to adjust until we have different id files
 analyte_name_column - don't need to adjust until we have different id files
 unique_sequence_column - don't need to adjust until we have different id files
+maximum_theoretical_pct - not using currently
+labeling_step_size - not using currently
 peak_lookback - shouldn't need to alter often
 peak_lookahead - shouldn't need to alter often
 baseline_lookback - shouldn't need to alter often
@@ -97,6 +100,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                     settings.time_window, False),
             setting_numerical_info(self.ppm_error, "ppm_window",
                                     settings.ppm_window, True),
+            setting_string_info(self.heavy_label, "heavy_isotope",
+                                settings.heavy_isotope, False),
+            setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                settings.use_empir_n_value, True),
             setting_string_info(self.use_abundance, "use_abundance",
                                 settings.use_abundance, False),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
@@ -127,17 +134,18 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.min_allowed_n_values, True),
             setting_numerical_info(self.ms_level, "ms_level",
                                    settings.ms_level, True),
+            setting_string_info(self.use_chromatography_division, "use_chromatography_division",
+                                   settings.use_chromatography_division, False),
             setting_string_info(self.verbose_rate, "verbose_rate",
-                                settings.verbose_rate, True),
-            setting_string_info(self.graph_save_file_type, "rate_output_format",
-                                settings.rate_output_format, False)
+                                settings.verbose_rate, True)
             ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
         self.SaveButton.clicked.connect(self.save_settings)
         self.ExitButton.clicked.connect(self.close)
+        self.LoadButton.clicked.connect(self.load_settings)
+        self.setWindowTitle("Rate Calculator Settings")
         
-    
     def fill_study_type_combobox(self):
         temp_df = pd.read_csv(settings.aa_label_path, sep = "\t")
         self.study_types =  list(temp_df["study_type"].unique())
@@ -157,8 +165,91 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             if not setting.compare_value():
                 return False
         return True
-            
-    
+        
+    def load_settings(self):
+        response = QtWidgets.QMessageBox.question(self, "Question", "Would you like to load a already existing settings file? This will overwrite all current settings.",
+                                                  QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if response == QtWidgets.QMessageBox.No:
+            return
+
+        QtWidgets.QMessageBox.information(self, "Info", ("Please choose the settings "
+                                                         "file to load"))
+        filename, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
+                                                                    "Choose settings file to load",
+                                                                    os.path.curdir,
+                                                                    "*.yaml",
+                                                                    options=QtWidgets.QFileDialog.DontUseNativeDialog)
+        
+        comp_results = settings.compare(self.current_setting_file, filename)
+        if comp_results == "Error":
+            QtWidgets.QMessageBox.warning(self, "Error", ("Issue reading .yaml file. Please make sure the .yaml still exists and is not currently opened."))
+            return
+        elif comp_results == "Different Keys":
+            QtWidgets.QMessageBox.warning(self, "Error", ("Loaded settings file either is missing settings or has too many. Please try a different file with the correct settings"))
+            return
+        elif comp_results == "MATCH":
+            QtWidgets.QMessageBox.information(self, "Info", ("Settings file have the same data."))
+            return
+        elif comp_results == "Mismatched Keys":
+            settings.load(filename)
+            settings.freeze(self.current_setting_file)
+            self.all_settings = [
+                setting_string_info(self.recognize_available_cores, "recognize_available_cores",
+                                    settings.recognize_available_cores, True),
+                setting_numerical_info(self.default_cores, "n_processors",
+                                       settings.n_processors, True),
+                setting_string_info(self.study_type_combobox, "study_type",
+                                    settings.study_type, False),
+                setting_string_info(self.rt_unit, "id_file_rt_unit",
+                                    settings.id_file_rt_unit, False),
+                setting_numerical_info(self.time_window, "time_window",
+                                       settings.time_window, False),
+                setting_numerical_info(self.ppm_error, "ppm_window",
+                                       settings.ppm_window, True),
+                setting_string_info(self.heavy_label, "heavy_isotope",
+                                    settings.heavy_isotope, False),
+                setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                    settings.use_empir_n_value, True),
+                setting_string_info(self.use_abundance, "use_abundance",
+                                    settings.use_abundance, False),
+                setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
+                                    settings.use_neutromer_spacing, True),
+                setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
+                                       settings.minimum_nonzero_points, True),
+                setting_string_info(self.roll_up_option, "roll_up_rate_calc",
+                                    settings.roll_up_rate_calc, True),
+                setting_string_info(self.asymptope_type, "asymptote",
+                                    settings.asymptote, False),
+                setting_numerical_info(self.fixed_asymptote_value, "fixed_asymptote_value",
+                                       settings.fixed_asymptote_value, False),
+                setting_numerical_info(self.proliferation_adjustment, "proliferation_adjustment",
+                                       settings.proliferation_adjustment, False),
+                setting_string_info(self.bias_selection_option, "bias_calculation",
+                                    settings.bias_calculation, False),
+                setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
+                                       settings.abundance_manual_bias, False),
+                setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
+                                       settings.spacing_manual_bias, False),
+                setting_numerical_info(self.combined_manual_bias, "combined_manual_bias",
+                                       settings.combined_manual_bias, False),
+                setting_numerical_info(self.min_allowed_m0_change, "min_allowed_abund_max_delta",
+                                       settings.min_allowed_abund_max_delta, False),
+                setting_numerical_info(self.min_sequence_length, "min_aa_sequence_length",
+                                       settings.min_aa_sequence_length, True),
+                setting_numerical_info(self.min_n_value, "min_allowed_n_values",
+                                       settings.min_allowed_n_values, True),
+                setting_numerical_info(self.ms_level, "ms_level",
+                                       settings.ms_level, True),
+                setting_string_info(self.use_chromatography_division, "use_chromatography_division",
+                                    settings.use_chromatography_division, False),
+                setting_string_info(self.verbose_rate, "verbose_rate",
+                                    settings.verbose_rate, True)
+            ]
+            for setting_object in self.all_settings:
+                setting_object.set_object_value()
+            QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
+            return
+
     #$should overwrite the close of the exit button and the red x in the corner  
     def closeEvent(self, event):
         if self.check_for_changes():
@@ -185,21 +276,25 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         unalterable_settings = {
             "debug_level" : settings.debug_level,
             "trim_ids_to_mzml_bounds" : settings.trim_ids_to_mzml_bounds,
+            "fpe_tolerance" : settings.fpe_tolerance,
             "chunk_size" : settings.chunk_size,
             "chunking_method_threshold" : settings.chunking_method_threshold,
             "max_valid_angle" : settings.max_valid_angle,
             'study_type': settings.study_type,
             "peak_ratio_denominator" : settings.peak_ratio_denominator,
             "peptide_analyte_id_column" : settings.peptide_analyte_id_column,
+            "lipid_analyte_id_column" : settings.lipid_analyte_id_column,
             "peptide_analyte_name_column" : settings.peptide_analyte_name_column,
             "aa_labeling_sites_path": settings.aa_label_path,
+            "lipid_analyte_name_column" : settings.lipid_analyte_name_column,
             "unique_sequence_column" : settings.unique_sequence_column,
+            "maximum_theoretical_pct" : settings.maximum_theoretical_pct,
+            "labeling_step_size" : settings.labeling_step_size,
             "peak_lookback" : settings.peak_lookback,
             "peak_lookahead" : settings.peak_lookahead,
             "baseline_lookback" : settings.baseline_lookback,
             "min_envelopes_to_combine" : settings.min_envelopes_to_combine,
             "zscore_cutoff": settings.zscore_cutoff,
-            "rt_proximity_tolerance" : settings.rt_proximity_tolerance,
             "mz_proximity_tolerance" : settings.mz_proximity_tolerance,
             "error_of_zero" : settings.error_of_zero,
             "abundance_agreement_filter" : settings.abundance_agreement_filter,
@@ -210,6 +305,21 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "enrichement_of_zero" : settings.enrichement_of_zero,
             "minimum_abund_change": settings.minimum_abund_change,
             "intensity_filter": settings.intensity_filter,
-            "rate_output_format": settings.rate_output_format
+            "rel_height": settings.rel_height,
+            "sampling_rate": settings.sampling_rate,
+            "smoothing_width": settings.smoothing_width,
+            "smoothing_order": settings.smoothing_order,
+            "allowed_peak_variance_min": settings.allowed_peak_variance_min,
+            "adduct_weight": settings.adduct_weight,
+            "variance_weight": settings.variance_weight,
+            "ID_weight": settings.ID_weight,
+            "intensity_weight": settings.intensity_weight,
+            "how_divided": settings.how_divided,
+            "allowed_neutromer_peak_variance": settings.allowed_neutromer_peak_variance,
+            "rate_output_format": settings.rate_output_format,
+            "s_n_filter": settings.s_n_filter,
+            'remove_filters': settings.remove_filters,
+            "separate_adducts": settings.separate_adducts,
+            "vertical_gridlines": settings.vertical_gridlines,
             }
         return unalterable_settings

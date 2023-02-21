@@ -31,7 +31,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-
 '''Mathematical Utilities
 
 This module contains mathematical functions applied in different parts of
@@ -46,25 +45,25 @@ import numpy as np
 
 
 def inclusive_range(start, stop, step=1):
-    return range(start, stop+1, step)
+	return range(start, stop + 1, step)
 
 
 def inclusive_slice(start, stop, step=1):
-    return slice(start, stop+1, step)
+	return slice(start, stop + 1, step)
 
 
 def find_nearest_index(arr, val):
-    idx = np.searchsorted(arr, val)
-    if idx == 0:
-        return idx
-    elif idx == len(arr):
-        return idx - 1
-    else:
-        return min([idx - 1, idx], key=lambda x: abs(arr[x] - val))
+	idx = np.searchsorted(arr, val)
+	if idx == 0:
+		return idx
+	elif idx == len(arr):
+		return idx - 1
+	else:
+		return min([idx - 1, idx], key=lambda x: abs(arr[x] - val))
 
 
 def unit_vector(vector):
-    '''Calculates the unit vector of a given vector
+	'''Calculates the unit vector of a given vector
 
     Parameters
     ----------
@@ -75,14 +74,14 @@ def unit_vector(vector):
     vector : :obj:`list` of :obj:`float`
 
     '''
-    previous_err = np.seterr(divide="ignore", invalid="ignore")
-    value = vector/np.linalg.norm(vector)
-    np.seterr(**previous_err)
-    return value
+	previous_err = np.seterr(divide="ignore", invalid="ignore")
+	value = vector / np.linalg.norm(vector)
+	np.seterr(**previous_err)
+	return value
 
 
 def angle_between(v1, v2):
-    '''Calculates the unit vector of a given vector
+	'''Calculates the unit vector of a given vector
 
     Parameters
     ----------
@@ -97,12 +96,12 @@ def angle_between(v1, v2):
         Angle between the two vectors, given in radians
 
     '''
-    uv1 = unit_vector(v1)
-    uv2 = unit_vector(v2)
-    angle = np.arccos(np.dot(uv1, uv2))
-    if np.isnan(angle):
-        if(uv1 == uv2).all():
-            return 0.0
-        else:
-            return np.pi
-    return angle
+	uv1 = unit_vector(v1)
+	uv2 = unit_vector(v2)
+	angle = np.arccos(np.dot(uv1, uv2))
+	if np.isnan(angle):
+		if (uv1 == uv2).all():
+			return 0.0
+		else:
+			return np.pi
+	return angle

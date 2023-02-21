@@ -77,10 +77,10 @@ class Envelope(MutableSequence):
         '_baseline',
         '_nlb',
         '_nla',
-        '_is_valid'
+        '_is_valid',
     )
 
-    def __init__(self, peaks, rt, n_lookback, n_lookahead):
+    def __init__(self, peaks=[], rt=None, n_lookback=None, n_lookahead=None):
         self._peaks = []
         [self.append_peak(peak) for peak in peaks]
         self._rt = rt
@@ -88,7 +88,7 @@ class Envelope(MutableSequence):
         self._nlb = n_lookback
         self._nla = n_lookahead
         self._is_valid = True
-        
+
     def __deepcopy__(self, memodict={}):
         copy_object = Envelope()
         copy_object._peaks = deepcopy(self._peaks)
@@ -306,7 +306,7 @@ class Envelope(MutableSequence):
     @property
     def baseline(self):
         return self._baseline
-    
+
     @baseline.getter
     def baseline(self):
         if type(self._baseline) == list:    # if the baseline is still represeted as a list, then calc the actual baseline.

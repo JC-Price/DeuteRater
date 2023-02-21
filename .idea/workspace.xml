@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/DeuteRater.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/DeuteRater.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/other.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Template.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Template.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/chromatography_division_sep.py" beforeDir="false" afterPath="$PROJECT_DIR$/chromatography_division_sep.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/base_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/base_converter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/peaks85.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaks85.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/peaksXplus.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaksXplus.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/peaksXpro.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaksXpro.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/peptide_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peptide_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/extractor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/rate_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/rate_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/theory_preparer.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/theory_preparer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Converter_Settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Converter_Settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Rate_Settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Rate_Settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/envelope.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/envelope.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/molecule.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/molecule.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/peak.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/peak.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/Harry Potter D2O.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/Ken Potter D2O.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/Ken_Logo.PNG" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/aa_labeling_sites.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/resources/aa_labeling_sites.tsv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/elements.tsv" beforeDir="false" afterPath="$PROJECT_DIR$/resources/elements.tsv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/id_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/id_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/peptide_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/peptide_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/ptms.json" beforeDir="false" afterPath="$PROJECT_DIR$/resources/ptms.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/temp_id_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/temp_id_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/temp_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/temp_settings.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/temp_settings_testing.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/temp_settings_testing.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui_files/Converter_Settings_Menu.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui_files/Converter_Settings_Menu.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/NValueCalculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/NValueCalculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/chromatography_division.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/chromatography_division.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/chromatography_division_unoptimized.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/chromatography_division_unoptimized.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/emass.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/emass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/exc.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/exc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/extract.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/extract.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/graphing_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/graphing_tools.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/math.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/math.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/mzml.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/mzml.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/n_value_calc_emass.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/n_value_calc_emass.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/rate_equations.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/rate_equations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/visualizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2LhGpcfJIlwziPEFA5dHecUK8rc" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Brigham Young Univ/DeuteRater Development/DeuteRater/DeuteRater&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Brigham Young Univ\DeuteRater Development\DeuteRater\DeuteRater" />
+      <recent name="C:\Users\Brigham Young Univ\DeuteRater Development\February 2023\DeuteRater (Old)\DeuteRater" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Brigham Young Univ\DeuteRater Development\DeuteRater (Old)\DeuteRater" />
+      <recent name="C:\Users\Brigham Young Univ\DeuteRater Development\February 2023\DeuteRater (Old)\DeuteRater" />
+      <recent name="C:\Users\Brigham Young Univ\DeuteRater Development\February 2023\DeuteRater (Old)\DeuteRater\OLD" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="DeuteRater" type="PythonConfigurationType" factoryName="Python">
+      <module name="DeuteRater" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="J:\anaconda3\envs\DeuteRater_conda_env\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main_gui.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="" />
+      <created>1676316086463</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1676316086463</updated>
+      <workItem from="1676316089061" duration="2039000" />
+      <workItem from="1676487697406" duration="590000" />
+      <workItem from="1676488578791" duration="312000" />
+      <workItem from="1676488972696" duration="143000" />
+      <workItem from="1676489197838" duration="106000" />
+      <workItem from="1676489319568" duration="1267000" />
+      <workItem from="1676490673523" duration="107000" />
+      <workItem from="1676502425370" duration="455000" />
+      <workItem from="1676578185211" duration="165000" />
+      <workItem from="1676578489086" duration="445000" />
+      <workItem from="1676670425074" duration="834000" />
+    </task>
+    <task id="LOCAL-00001" summary="Working on new read me">
+      <created>1676578651437</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1676578651437</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Working on new read me" />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on new read me" />
+  </component>
+</project>
