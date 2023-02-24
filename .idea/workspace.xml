@@ -5,8 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
-      <change beforePath="$PROJECT_DIR$/.idea/DeuteRater.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/DeuteRater.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -97,6 +95,7 @@
       <workItem from="1676578489086" duration="445000" />
       <workItem from="1676670425074" duration="834000" />
       <workItem from="1677006351982" duration="1276000" />
+      <workItem from="1677007717806" duration="597000" />
     </task>
     <task id="LOCAL-00001" summary="Working on new read me">
       <created>1676578651437</created>
