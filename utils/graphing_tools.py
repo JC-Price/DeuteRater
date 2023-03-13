@@ -148,6 +148,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                         plt.scatter(x, y, marker=shape,
                                     facecolor='none', edgecolor=color,
                                     label=label)
+
     if make_error_lines:
         plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color='black', alpha=.15)
     if errors != []:  # $ only if roll up so need error bars
