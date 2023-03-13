@@ -76,9 +76,9 @@ class RateCalculator:
         else:
             self._n_processors = settings.n_processors
         # $breaks windows/python interactions if too many cores are used. very niche application but still relevant
-        if self._n_processors > 1:  # I changed this from 60 to 1 -Coleman,
-            self.n_processors = 1
-        self._mp_pool = mp.Pool(self._n_processors)  # I killed this, let's see what happens -Coleman
+        if self._n_processors > 60:
+            self.n_processors = 60
+        self._mp_pool = mp.Pool(self._n_processors)
 
         self.biomolecule_type = biomolecule_type  # CQ
 
@@ -442,7 +442,7 @@ class RateCalculator:
         good_indicies = np.where(z_values < settings.zscore_cutoff)[0]
         return y_values[good_indicies]
 
-    # $roll up time points
+    # $rollup time points
     @staticmethod
     def _roll(old_x, old_y):
         new_x = np.unique(old_x)
