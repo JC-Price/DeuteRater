@@ -8,6 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/DeuteRater.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/DeuteRater.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/temp_settings.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/resources/temp_settings.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +39,8 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/Public/anaconda3/_conda.exe",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
