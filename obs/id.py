@@ -35,14 +35,14 @@ try:
     from obs.envelope import Envelope  # noqa: 401
     from obs.peak import Peak
     from utils.math import angle_between  # noqa: 401
-    import deuterater.settings as settings
+    import rater.settings as settings
 except:
     from DeuteRater.obs.envelope import Envelope  # noqa: 401
     from DeuteRater.obs.peak import Peak
     from DeuteRater.utils.math import angle_between  # noqa: 401
     import DeuteRater.deuterater.settings as settings
 
-from numpy import mean, median, std, argsort
+from numpy import mean, median, argsort
 
 class ID(object):
     '''Contains isotoptic envelope data

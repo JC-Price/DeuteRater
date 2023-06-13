@@ -7,9 +7,8 @@ import re
 import time
 import multiprocessing as mp
 import numpy as np
-from functools import partial
 from tqdm import tqdm
-import deuterater.settings as settings
+import rater.settings as settings
 
 start = time.perf_counter()
 

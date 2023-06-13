@@ -33,10 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import numpy as np
 import warnings
 try:
-    import deuterater.settings as settings
+    import rater.settings as settings
 except:
     import DeuteRater.deuterater.settings as settings
-from .id import ID
+
 
 class Molecule(object):
     __slots__ = (
@@ -358,7 +358,7 @@ class Molecule(object):
             # def stat_range(a):
             #     return max(a) - min(a)
             def stat_range_percent(a):
-                return 1 - (max(a) - min(a))/settings.allowed_neutromer_peak_variance
+                return 1 - (max(a) - min(a))/ settings.allowed_neutromer_peak_variance
             # variance_totals = np.array([np.nanmean([stat_range(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
             variance_percentages = np.array([np.nanmean([stat_range_percent(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
         dist_from_center = np.array([abs(((peak[0] + peak[1])/2) - self.center_scan) for peak in self.unique_chrom_peaks])
@@ -370,12 +370,11 @@ class Molecule(object):
 
         try:
             combined_percentages = settings.adduct_weight * num_reps_percentage + \
-                                   settings.variance_weight * variance_percentages +\
+                                   settings.variance_weight * variance_percentages + \
                                    settings.ID_weight * dist_from_center_percentage + \
                                    settings.intensity_weight * intensity_percentage
         except:
             print("percentage error")
-        import scipy.stats as ss
         # rep_rank = ss.rankdata(num_reps_with_peak, method="dense")
         # variance_rank = ss.rankdata(variance_totals, method="dense")
         # rt_rank = ss.rankdata(dist_from_center, method="dense")

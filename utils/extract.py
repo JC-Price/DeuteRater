@@ -38,7 +38,7 @@ from numpy import median
 
 from tqdm import tqdm  # noqa: 401
 
-import deuterater.settings as settings
+import rater.settings as settings
 import utils.mzml as dml
 import utils.math as dmt
 from utils.exc import EmptyIdChunkWarning

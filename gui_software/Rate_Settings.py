@@ -63,11 +63,11 @@ enrichement_of_zero - adjusting this is usually unnecessary. troubleshooting
         only so no need for normal settings
 
 """
-import os, sys
+import os
 import pandas as pd
 from PyQt5 import uic, QtWidgets
 
-import deuterater.settings as settings
+import rater.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_string_info
 
 
@@ -89,7 +89,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.fill_study_type_combobox()
         self.all_settings=[
             setting_string_info(self.recognize_available_cores, "recognize_available_cores",
-                                 settings.recognize_available_cores, True),
+                                settings.recognize_available_cores, True),
             setting_numerical_info(self.default_cores, "n_processors",
                                    settings.n_processors, True),
             setting_string_info(self.study_type_combobox, "study_type",
@@ -97,9 +97,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.rt_unit, "id_file_rt_unit",
                                 settings.id_file_rt_unit, False),
             setting_numerical_info(self.time_window, "time_window",
-                                    settings.time_window, False),
+                                   settings.time_window, False),
             setting_numerical_info(self.ppm_error, "ppm_window",
-                                    settings.ppm_window, True),
+                                   settings.ppm_window, True),
             setting_string_info(self.heavy_label, "heavy_isotope",
                                 settings.heavy_isotope, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
@@ -111,15 +111,15 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
                                    settings.minimum_nonzero_points, True),
             setting_string_info(self.roll_up_option,"roll_up_rate_calc",
-                                 settings.roll_up_rate_calc, True),
-            setting_string_info(self.asymptope_type, "asymptote", 
-                                 settings.asymptote, False),
+                                settings.roll_up_rate_calc, True),
+            setting_string_info(self.asymptope_type, "asymptote",
+                                settings.asymptote, False),
             setting_numerical_info(self.fixed_asymptote_value, "fixed_asymptote_value",
                                    settings.fixed_asymptote_value, False),
             setting_numerical_info(self.proliferation_adjustment, "proliferation_adjustment",
                                    settings.proliferation_adjustment, False),
             setting_string_info(self.bias_selection_option, "bias_calculation",
-                                 settings.bias_calculation, False),
+                                settings.bias_calculation, False),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
                                    settings.abundance_manual_bias, False),
             setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
@@ -130,12 +130,12 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.min_allowed_abund_max_delta, False),
             setting_numerical_info(self.min_sequence_length, "min_aa_sequence_length",
                                    settings.min_aa_sequence_length, True),
-            setting_numerical_info(self.min_n_value, "min_allowed_n_values", 
+            setting_numerical_info(self.min_n_value, "min_allowed_n_values",
                                    settings.min_allowed_n_values, True),
             setting_numerical_info(self.ms_level, "ms_level",
                                    settings.ms_level, True),
             setting_string_info(self.use_chromatography_division, "use_chromatography_division",
-                                   settings.use_chromatography_division, False),
+                                settings.use_chromatography_division, False),
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True)
             ]
@@ -147,7 +147,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.setWindowTitle("Rate Calculator Settings")
         
     def fill_study_type_combobox(self):
-        temp_df = pd.read_csv(settings.aa_label_path, sep = "\t")
+        temp_df = pd.read_csv(settings.aa_label_path, sep ="\t")
         self.study_types =  list(temp_df["study_type"].unique())
         for study_type in self.study_types:
             self.study_type_combobox.addItem(study_type)

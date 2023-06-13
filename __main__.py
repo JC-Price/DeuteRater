@@ -614,6 +614,8 @@
 #     app.exec_()
 
 if __name__ == '__main__':
-    from main_gui import main
-    main()
+    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+        outf.write("__main__.py - Running main method in main_gui.py from __main__.py\n")
+        from main_gui import main
+        main()
 

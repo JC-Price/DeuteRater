@@ -13,7 +13,6 @@ readability and consistency, as well as easy to use in the command line
 
 # $we will of course need to expand things later, but we'll sort that out later
 import os
-import sys
 import multiprocessing as mp
 import csv
 import pandas as pd
@@ -22,18 +21,18 @@ from tqdm import tqdm
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile, rmtree
 
-from deuteconvert.peaks85 import Peaks85
-from deuteconvert.peaksXplus import PeaksXplus
-from deuteconvert.peaksXpro import PeaksXpro
-from deuteconvert.PCDL_converter import PCDL_Converter
-from deuterater.extractor import Extractor
+from convert.peaks85 import Peaks85
+from convert.peaksXplus import PeaksXplus
+from convert.peaksXpro import PeaksXpro
+from convert.PCDL_converter import PCDL_Converter
+from rater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
-from deuterater.theory_preparer import TheoryPreparer
-from deuterater.fraction_new_calculator import FractionNewCalculator
-from deuterater.rate_calculator import RateCalculator
+from rater.theory_preparer import TheoryPreparer
+from rater.fraction_new_calculator import FractionNewCalculator
+from rater.rate_calculator import RateCalculator
 from utils.chromatography_division import ChromatographyDivider
 from utils.useful_classes import deuterater_step, deuteconvert_peaks_required_headers
-import deuterater.settings as settings
+import rater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 import gui_software.Converter_Settings as guide_settings
 
@@ -781,6 +780,9 @@ def make_temp_file(filename, new_filename):
 
 
 def main():
+    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+        outf.write("main_gui.py/main() - Preparing application window\n")
+
     # $needed for windows multiprocessing which will happen at some point
     import sys
     if os.name == "nt":
@@ -797,6 +799,11 @@ def main():
     gui_object.show()
     app.exec_()
 
+    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+        outf.write("main_gui.py/main() - Application exucted\n")
+
 
 if __name__ == '__main__':
+    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+        outf.write("main_gui.py - Attempting to run main method in main_gui.py\n")
     main()
