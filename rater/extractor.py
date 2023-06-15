@@ -55,7 +55,7 @@ from utils.exc import InvalidHeaderError  # noqa: 401
 
 # TODO: Code for Validating headers
 # TODO: n_isos to look for should be supplied in the ID file
-#   NOTE: this includes consideration of peaks_included_under_mass_cutoff
+# NOTE: this includes consideration of peaks_included_under_mass_cutoff
 # TODO: chunk on lines not number of partitions
 # TODO: we achieve best efficiency if the number of chunks is a multiple
 #       of the number of processors. Does this need to be implemented?
@@ -74,7 +74,7 @@ from utils.exc import InvalidHeaderError  # noqa: 401
 
 
 class Extractor:  # TODO name change
-    '''Class that handles extracting the relevant data from an mzml file.
+    """Class that handles extracting the relevant data from an mzml file.
 
     TODO: Add more info on what this does/how it differs from extract
 
@@ -94,10 +94,10 @@ class Extractor:  # TODO name change
     model : :obj:`pandas.Dataframe`
         The aggregation of the data extracted from `ids` and `mzml`
 
-    '''
+    """
 
     def __init__(self, settings_path, id_path, mzml_path, out_path):
-        '''
+        """
         Parameters
         ----------
         ids : str
@@ -105,7 +105,7 @@ class Extractor:  # TODO name change
             will likely have been taken from an unlabele-
             For addition information, see the settings file's documentation
 
-        '''
+        """
         self.settings_path = settings_path
         settings.load(self.settings_path)
 
@@ -173,7 +173,7 @@ class Extractor:  # TODO name change
         )
 
     def _load_ids(self, filename):
-        '''Loads the id file into memory
+        """Loads the id file into memory
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class Extractor:  # TODO name change
         InvalidHeaderError
             If the file does not contain the appropriate information.
 
-        '''
+        """
         self.ids = pd.read_csv(self.id_path)
         if self._id_rt_unit == 'sec':
             self.ids['rt'] = self.ids['Precursor Retention Time (sec)'].apply(lambda x: x / 60.0)
@@ -215,13 +215,13 @@ class Extractor:  # TODO name change
         # self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
 
     def _partition_ids(self, trim):
-        '''splits the id file
+        """splits the id file
 
         Returns
         -------
         :obj:`list` of :obj:`pandas.Dataframe`
 
-        '''
+        """
         # NOTE: there is not really a reason to chunk the read operation
         # until the ID files are gigabytes in size
         if trim:
@@ -266,7 +266,7 @@ class Extractor:  # TODO name change
             )
 
     def _get_mzml_bounds(self, filename):
-        '''Loads the mzml file (or at least a reader)
+        """Loads the mzml file (or at least a reader)
 
         Parameters
         ----------
@@ -283,7 +283,7 @@ class Extractor:  # TODO name change
         FileNotFoundError
             If the file does not exist
 
-        '''
+        """
         # Open a pointer to the specified mzml file
         mzml_fp = pymzml.run.Reader(
             path_or_file=self.mzml_path,
@@ -302,11 +302,11 @@ class Extractor:  # TODO name change
         mzml_fp.close()
 
     def run(self):
-        '''Performs data extraction data from the mzml according to id file
+        """Performs data extraction data from the mzml according to id file
 
         TODO: add a much longer explanation of why we needed special functions
               to chunk the data with overlap in the windows
-        '''
+        """
         # These partial function applications (from python's 'functools'
         #   library) allow us to pass the same information to each of the
         #   chunks.

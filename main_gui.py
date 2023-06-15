@@ -780,8 +780,8 @@ def make_temp_file(filename, new_filename):
 
 
 def main():
-    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
-        outf.write("main_gui.py/main() - Preparing application window\n")
+    # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+    #     outf.write("main_gui.py/main() - Preparing application window\n")
 
     # $needed for windows multiprocessing which will happen at some point
     import sys
@@ -799,11 +799,11 @@ def main():
     gui_object.show()
     app.exec_()
 
-    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
-        outf.write("main_gui.py/main() - Application exucted\n")
+    # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+    #     outf.write("main_gui.py/main() - Application exucted\n")
 
 
 if __name__ == '__main__':
-    with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
-        outf.write("main_gui.py - Attempting to run main method in main_gui.py\n")
+    # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
+    #     outf.write("main_gui.py - Attempting to run main method in main_gui.py\n")
     main()
