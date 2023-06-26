@@ -5,12 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
-      <change afterPath="$PROJECT_DIR$/convert/L4D_analyzer_converter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Deutrater_readme.docx" beforeDir="false" afterPath="$PROJECT_DIR$/Deutrater_readme.docx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_gui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/rater/extractor.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +60,7 @@
       <recent name="C:\Users\benny\OneDrive\Documents\GitHub\DeuteRater" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.L4D_analyzer_converter">
+  <component name="RunManager" selected="Python.DeuteRater">
     <configuration name="DeuteRater" type="PythonConfigurationType" factoryName="Python">
       <module name="DeuteRater" />
       <option name="INTERPRETER_OPTIONS" value="" />
