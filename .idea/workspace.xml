@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/graphing_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/graphing_tools.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,6 +36,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;DeuteRater-IMS&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/Brigham Young Univ/DeuteRater Development/DeuteRater/DeuteRater&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
