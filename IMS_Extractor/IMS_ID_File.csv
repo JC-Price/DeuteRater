@@ -1,0 +1,3 @@
+Lipid Name,Lipid Unique Identifier,Precursor m/z,Precursor Retention Time (sec),Precursor Drift Time (ms),Identification Charge,LMP,HMP,cf,neutromers_to_extract,literature_n,Adduct,Adduct_cf,rt,dt,z,mz,n_isos
+Testing Lipid,Testing_Lipid,517.4185,124.16,28.3,1,,,Not_Caring,3,,M+H,Not_Caring,17.136,28.3,1,517.4185,3
+LPC 16:0/0:0,LPC 16:0/0:0,518.3213,1025.61,26.65,1,,,na,3,,M+H,Not_Caring,17.0935,26.65,1,518.3213,3

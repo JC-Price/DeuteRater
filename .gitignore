@@ -1,7 +1,4 @@
-
-.idea/DeuteRater-dev.iml
-.idea/inspectionProfiles/profiles_settings.xml
-.idea/inspectionProfiles/Project_Default.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/vcs.xml
+/IMS_Extractor/deuterater/main_mzml_file.tsv
+/IMS_Extractor/deuterater/main_mzml_file_fixed.tsv
+/IMS_Extractor/A3D32M1_pos_3.20-end_DI3.d.HRdm.mzML
+/IMS_Extractor/A3D32M1_pos_3.20-end_DI3.d.HRdm_extracted_multi.tsv

@@ -1,0 +1,7 @@
+# All new columns added during DueteRater's extractor step
+
+new_extractor_columns:
+  - test_1
+  - test_2
+  - test_3
+
