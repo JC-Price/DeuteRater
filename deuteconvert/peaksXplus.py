@@ -44,9 +44,9 @@ import os
 
 from copy import copy
 
-from convert.base_converter import BaseConverter
-import convert.peptide_utils as peputils
-import convert.settings as settings
+from deuteconvert.base_converter import BaseConverter
+import deuteconvert.peptide_utils as peputils
+import deuteconvert.settings as settings
 
 # TODO: PTMs to resource json
 # TODO: slots
@@ -61,7 +61,7 @@ json_path = os.path.join(main_location, "resources", "ptms.json")
 
 
 #$adjusted from peaks 8.5 converter for use with Peaks X+
-class PeaksXpro(BaseConverter):
+class PeaksXplus(BaseConverter):
     # TODO: slots
 
     # TODO: These constants need organized as well
@@ -156,18 +156,18 @@ class PeaksXpro(BaseConverter):
         df_feature = self._prepare_feature()
         # except Exception as e:
         #     print(e)
-        self._id_df = PeaksXpro._merge_data(
+        self._id_df = PeaksXplus._merge_data(
             df_feature, df_protein_peptides, df_proteins
         )
 
         funcs = [
-            PeaksXpro._initial_filters,
-            PeaksXpro._interpret_aa_sequences,
-            PeaksXpro._set_n_peaks,
-            PeaksXpro._proximity_filter,
-            PeaksXpro._finalize,
-            PeaksXpro._expand_to_charge_states,
-            PeaksXpro._proximity_filter
+            PeaksXplus._initial_filters,
+            PeaksXplus._interpret_aa_sequences,
+            PeaksXplus._set_n_peaks,
+            PeaksXplus._proximity_filter,
+            PeaksXplus._finalize,
+            PeaksXplus._expand_to_charge_states,
+            PeaksXplus._proximity_filter
         ]
         for fn in funcs:
             self._id_df = fn(self._id_df)
@@ -177,7 +177,7 @@ class PeaksXpro(BaseConverter):
 
     @staticmethod
     def _parse_accession(acc):
-        return acc.split(PeaksXpro.accession_parse_token)[0]
+        return acc.split(PeaksXplus.accession_parse_token)[1]
     
     
     @staticmethod
@@ -303,17 +303,17 @@ class PeaksXpro(BaseConverter):
             df[['rt_start', 'rt_end', 'rt_mean']] * 60
         df['rt_width'] = df['rt_end'].values - df['rt_start'].values
         df['accessions'] = df['accessions'].str.split(':').fillna('').map(
-            partial(map, PeaksXpro._parse_accession)).map(list)
+            partial(map, PeaksXplus._parse_accession)).map(list)
         #$this is a bit of a change in that features annoyingly does not have
         #$the ptms marked.  it does have the notes in the sequence though
         #$so we'll make the ptm column. we'll try and just run it backwards
         for row in df.itertuples():
-            df.at[row.Index, 'ptm'] = PeaksXpro._reversed_ptm(row.peptide)
+            df.at[row.Index, 'ptm'] = PeaksXplus._reversed_ptm(row.peptide)
         
         ptm_mask = (df['ptm'] != '')
         for row in df[ptm_mask].itertuples():
             df.at[row.Index, 'peptide'] = \
-                PeaksXpro._process_ptm(row.ptm, row.peptide)
+                PeaksXplus._process_ptm(row.ptm, row.peptide)
         df['first_accession'] = df['accessions'].str[0]
 
 #####################################################
@@ -390,7 +390,7 @@ class PeaksXpro(BaseConverter):
         ptm_mask = (df['ptm'] != '')
         for row in df[ptm_mask].itertuples():
             df.at[row.Index, 'peptide'] = \
-                PeaksXpro._process_ptm(row.ptm, row.peptide)
+                PeaksXplus._process_ptm(row.ptm, row.peptide)
         df['peptide'] = df['peptide'].str.split('.').str[1]
         df = df.drop('ptm', axis=1)
         return df
@@ -406,7 +406,7 @@ class PeaksXpro(BaseConverter):
         }
         df = df[keep_cols].rename(columns=rename_cols)
         # df = df[df['num_unique'] >= settings.required_unique]  # TODO
-        df['accession'] = df['accession'].map(PeaksXpro._parse_accession)
+        df['accession'] = df['accession'].map(PeaksXplus._parse_accession)
         description_regex = r'(.*?)OS=(.*?)(?:GN=(.*?))?PE=(.*?)SV=(.*)'
         description_strings = df['protein'].str.extract(
             description_regex, expand=True
@@ -502,7 +502,7 @@ class PeaksXpro(BaseConverter):
         too_close = []
         for i in range(len(list_of_lists)):
             for j in range(i+1, len(list_of_lists)):
-                current_ppm = PeaksXpro._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
+                current_ppm = PeaksXplus._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
                 if current_ppm > settings.mz_proximity_tolerance: 
                     break
                 if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance:
@@ -530,10 +530,10 @@ class PeaksXpro(BaseConverter):
         all_data = []
         for sub_list in list_of_lists:
             premass = sub_list[precursor_mz_index] * sub_list[id_charge_index] - \
-                sub_list[id_charge_index] * PeaksXpro.PROTON_MASS
+                sub_list[id_charge_index] * PeaksXplus.PROTON_MASS
             for z in range(settings.min_charge_state, settings.max_charge_state + 1):
                 quick_list =copy(sub_list)
-                quick_list[precursor_mz_index] = (premass + float(z) * PeaksXpro.PROTON_MASS) / float(z)
+                quick_list[precursor_mz_index] = (premass + float(z) * PeaksXplus.PROTON_MASS) / float(z)
                 quick_list[id_charge_index] = z
                 all_data.append(quick_list)
         return pd.DataFrame(all_data, columns = all_columns)
@@ -558,7 +558,7 @@ class PeaksXpro(BaseConverter):
     def _finalize(df):
         df = df[df['peptide'].str.len() >= 6]
         df = df.sort_index()
-        df = df[PeaksXpro.correct_header_order].rename(
-            columns=PeaksXpro.correct_header_names
+        df = df[PeaksXplus.correct_header_order].rename(
+            columns=PeaksXplus.correct_header_names
         )
         return df

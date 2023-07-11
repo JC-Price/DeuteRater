@@ -31,6 +31,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+
 # This code was made to take in 3 files from PEAKs:
 # feature, peptides, protein-peptides
 # TODO: Drop duplicates after sorting for best results
@@ -44,9 +45,9 @@ import os
 
 from copy import copy
 
-from convert.base_converter import BaseConverter
-import convert.peptide_utils as peputils
-import convert.settings as settings
+from deuteconvert.base_converter import BaseConverter
+import deuteconvert.peptide_utils as peputils
+import deuteconvert.settings as settings
 
 # TODO: PTMs to resource json
 # TODO: slots
@@ -60,18 +61,17 @@ main_location = os.path.dirname(location)
 json_path = os.path.join(main_location, "resources", "ptms.json")
 
 
-#$adjusted from peaks 8.5 converter for use with Peaks X+
-class PeaksXplus(BaseConverter):
+# Written for use with peaks version 8.5
+class Peaks85(BaseConverter):
     # TODO: slots
 
     # TODO: These constants need organized as well
     accession_parse_token = '|'
-    PROTON_MASS = 1.007825
+    PROTON_MASS = 1.007825  # TODO: Check that this is correct
 
     # These are the most likely things to change in different versions
     correct_header_names = {
         'peptide': 'Sequence',
-        # change the name of rt_mean to P.R.T (sec)
         'rt_mean': 'Precursor Retention Time (sec)',
         'rt_start': 'rt_start',
         'rt_end': 'rt_end',
@@ -82,7 +82,7 @@ class PeaksXplus(BaseConverter):
         'first_accession': 'Protein ID',
         'accessions': 'Homologous Proteins',
         'ptm': 'ptm',
-         #'quality': 'quality',
+        'quality': 'quality',
         'avg_ppm': 'avg_ppm',
         'start_loc': 'start_loc',
         'end_loc': 'end_loc',
@@ -94,7 +94,6 @@ class PeaksXplus(BaseConverter):
         'protein_existence': 'protein_existence',
         'sequence_version': 'sequence_version',
         'cf': 'cf',
-        #'theoretical_mass': 'theoretical_mass',
         'neutromers_to_extract': 'neutromers_to_extract',
         'literature_n': 'literature_n'
     }
@@ -109,10 +108,9 @@ class PeaksXplus(BaseConverter):
         'rt_width',
         'mz',
         'theoretical_mass',
-        #'Peptide Theoretical Mass',
         'z',
         'ptm',
-         #'quality',
+        'quality',
         'avg_ppm',
         'start_loc',
         'end_loc',
@@ -124,7 +122,6 @@ class PeaksXplus(BaseConverter):
         'protein_existence',
         'sequence_version',
         'cf',
-        #'theoretical_mass',
         'neutromers_to_extract',
         'literature_n'
     ]
@@ -156,18 +153,18 @@ class PeaksXplus(BaseConverter):
         df_feature = self._prepare_feature()
         # except Exception as e:
         #     print(e)
-        self._id_df = PeaksXplus._merge_data(
+        self._id_df = Peaks85._merge_data(
             df_feature, df_protein_peptides, df_proteins
         )
 
         funcs = [
-            PeaksXplus._initial_filters,
-            PeaksXplus._interpret_aa_sequences,
-            PeaksXplus._set_n_peaks,
-            PeaksXplus._proximity_filter,
-            PeaksXplus._finalize,
-            PeaksXplus._expand_to_charge_states,
-            PeaksXplus._proximity_filter
+            Peaks85._initial_filters,
+            Peaks85._interpret_aa_sequences,
+            Peaks85._set_n_peaks,
+            Peaks85._proximity_filter,
+            Peaks85._finalize,
+            Peaks85._expand_to_charge_states,
+            Peaks85._proximity_filter
         ]
         for fn in funcs:
             self._id_df = fn(self._id_df)
@@ -177,32 +174,7 @@ class PeaksXplus(BaseConverter):
 
     @staticmethod
     def _parse_accession(acc):
-        return acc.split(PeaksXplus.accession_parse_token)[1]
-    
-    
-    @staticmethod
-    def _reversed_ptm(peptide_str):
-        with open(json_path) as ptms_json: #open(settings.ptms_path) as ptms_json:
-            known_ptms = json.load(ptms_json)
-        reversed_dict = {}
-        for key in known_ptms:
-            for mini_list in known_ptms[key]:
-                reversed_dict[mini_list[1]] = key
-        
-        all_modifications = []
-        for key in reversed_dict:
-            
-            if key in peptide_str:
-                all_modifications.append(reversed_dict[key])
-        #$need to add mutations. inserts, substitutions, and deletions
-        #$since substitutions can happen for all can't just add, so just
-        #$look for a few keywords
-        for mutation in ["(ins", "(sub", "(del"]:
-            if mutation in peptide_str:
-                all_modifications.append('Mutation')
-                break
-        
-        return "; ".join(all_modifications)
+        return acc.split(Peaks85.accession_parse_token)[1]
 
     @staticmethod
     def _process_ptm(ptm_string, peptide_sequence):
@@ -217,8 +189,6 @@ class PeaksXplus(BaseConverter):
                     seq = seq.replace(mod_pair[1], mod_pair[0])
             elif ptm == 'Mutation':
                 seq = re.sub(r'\(sub [a-zA-Z0-9]\)', '', seq)
-                seq = re.sub(r'\(del [a-zA-Z0-9]\)', '', seq)
-                seq = re.sub(r'\(ins\)', '', seq)
         return seq
 
     @staticmethod
@@ -260,32 +230,27 @@ class PeaksXplus(BaseConverter):
 
     def _prepare_feature(self):  # change RT mean (in feature) to rt_mean
         df = pd.read_csv(self.feat_path)
-        
-        #$I have not seen evidence for this X+, it is likley a possibility
-        #$however, I can't uset RT for this and checking for extras is not 
-        #$reasonable since RT begin and end also have RT. For now we will
-        #$comment it out until we find out if these are included
         # Get retention time column names
-        #rt_names = [col for col in df.columns if 'RT mean' in col]
-        #del rt_names[-1]
+        rt_names = [col for col in df.columns if 'RT mean' in col]
+        del rt_names[-1]
 
         keep_cols = [
-            'DB Peptide',
-            'Denovo Peptide',
-            'RT Begin',
-            'RT End',
-            'RT',
+            'Peptide',
+            'RT range',
+            'RT mean',
             'm/z', 'z',
-            'Accession'
+            'Accession',
+            'PTM'
         ]
-        #keep_cols.extend(rt_names)
+        keep_cols.extend(rt_names)
         rename_cols = {
-            'RT Begin': 'rt_start',
-            'RT End': 'rt_end',
-            'RT': 'rt_mean',
+            'Peptide': 'peptide',
+            'RT range': 'rt_range',
+            'RT mean': 'rt_mean',
             'm/z': 'mz',
             'z': 'z',
-            'Accession': 'accessions'
+            'Accession': 'accessions',
+            'PTM': 'ptm'
         }
         dtype_dict = {
             'rt_start': np.float,
@@ -296,57 +261,42 @@ class PeaksXplus(BaseConverter):
         }
 
         df = df[keep_cols].rename(columns=rename_cols)
-        df['peptide'] = df['DB Peptide'].fillna(df['Denovo Peptide'])
-        df = df.drop(['DB Peptide', 'Denovo Peptide'], axis=1)
-        df = df.astype(dtype=dtype_dict)
+        df['rt_start'], df['rt_end'] = df['rt_range'].str.split(' - ').str
+        df = df.drop('rt_range', axis=1).astype(dtype=dtype_dict)
         df[['rt_start', 'rt_end', 'rt_mean']] = \
             df[['rt_start', 'rt_end', 'rt_mean']] * 60
         df['rt_width'] = df['rt_end'].values - df['rt_start'].values
         df['accessions'] = df['accessions'].str.split(':').fillna('').map(
-            partial(map, PeaksXplus._parse_accession)).map(list)
-        #$this is a bit of a change in that features annoyingly does not have
-        #$the ptms marked.  it does have the notes in the sequence though
-        #$so we'll make the ptm column. we'll try and just run it backwards
-        for row in df.itertuples():
-            df.at[row.Index, 'ptm'] = PeaksXplus._reversed_ptm(row.peptide)
-        
+            partial(map, Peaks85._parse_accession)).map(list)
+        df['ptm'] = df['ptm'].fillna('')
         ptm_mask = (df['ptm'] != '')
         for row in df[ptm_mask].itertuples():
             df.at[row.Index, 'peptide'] = \
-                PeaksXplus._process_ptm(row.ptm, row.peptide)
+                Peaks85._process_ptm(row.ptm, row.peptide)
         df['first_accession'] = df['accessions'].str[0]
 
 #####################################################
         # replace dashes (NaN values) with 0
-        #for col in rt_names:
-        #    df[col] = df[col].replace('-', 0)
-        #$replacement for above.  comment out if when finish
-        df['rt_mean'] = df['rt_mean'].replace('-', 0)
-
+        for col in rt_names:
+            df[col] = df[col].replace('-', 0)
 
         # filter based on starting time
         df = df[df['rt_mean'] >= settings.start_time]
 
         # count number of reps in retention time
-        #$ when figure out how reps are represented uncomment the loop
         df['num_reps'] = 0
-        #for column_name in rt_names:
-        #    df.update(df.loc[df[column_name] != 0]['num_reps'] + 1)
+        for column_name in rt_names:
+            df.update(df.loc[df[column_name] != 0]['num_reps'] + 1)
 
         # fix the column types
-        #df = df.astype(dict.fromkeys(rt_names, np.float))
+        df = df.astype(dict.fromkeys(rt_names, np.float))
 
         # calculate the standard error of the mean
-        """
-        get rid of this block comment when we figure out the the reps in 
-        X+ and remove the line following this comment
         df['std_error'] = df[rt_names].sem(axis='columns').abs()
-        """
-        df['std_error'] = 0
+
         df = df.astype({'std_error': np.float})
-        #$uncomment the folling line when figure out how the RT duplicates are 
-        #$marked. only the next line, not the loc[groupby] statements
-        #df = df.drop(labels=rt_names, axis='columns')
+        df = df.drop(labels=rt_names, axis='columns')
+
         # df = df.loc[df.groupby('peptide')['std_error'].idxmin(), ]
         # df = df.loc[df.groupby('peptide')['num_reps'].idxmax(), ]
         # df = df.loc[df.groupby('peptide')['rt_width'].idxmin(), ]
@@ -363,21 +313,18 @@ class PeaksXplus(BaseConverter):
 
     def _prepare_protein_peptides(self):
         df = pd.read_csv(self.protpep_path)
-        #$quality has been moved around. of these files only in the features.csv
-        #$which is constant currently.  conveniently we're not using that currently
-        #$uncomment if necessary
         keep_cols = [
             'Peptide',
-             #'Quality',
-            'ppm',
+            'Quality',
+            'Avg. ppm',
             'Start',
             'End',
             'PTM'
         ]
         rename_cols = {
             'Peptide': 'peptide',
-             #'Quality': 'quality',
-            'ppm': 'avg_ppm',
+            'Quality': 'quality',
+            'Avg. ppm': 'avg_ppm',
             'Start': 'start_loc',
             'End': 'end_loc',
             'PTM': 'ptm'
@@ -390,7 +337,7 @@ class PeaksXplus(BaseConverter):
         ptm_mask = (df['ptm'] != '')
         for row in df[ptm_mask].itertuples():
             df.at[row.Index, 'peptide'] = \
-                PeaksXplus._process_ptm(row.ptm, row.peptide)
+                Peaks85._process_ptm(row.ptm, row.peptide)
         df['peptide'] = df['peptide'].str.split('.').str[1]
         df = df.drop('ptm', axis=1)
         return df
@@ -406,7 +353,7 @@ class PeaksXplus(BaseConverter):
         }
         df = df[keep_cols].rename(columns=rename_cols)
         # df = df[df['num_unique'] >= settings.required_unique]  # TODO
-        df['accession'] = df['accession'].map(PeaksXplus._parse_accession)
+        df['accession'] = df['accession'].map(Peaks85._parse_accession)
         description_regex = r'(.*?)OS=(.*?)(?:GN=(.*?))?PE=(.*?)SV=(.*)'
         description_strings = df['protein'].str.extract(
             description_regex, expand=True
@@ -447,8 +394,7 @@ class PeaksXplus(BaseConverter):
             0,  # Hydrogen
             10,  # Carbon-12
             13,  # Nitrogen-14
-            15,  # Oxygen-16,
-            30, # Phosphorous
+            15,  # Oxygen-16
             31  # Sulfer-32
         ]
         elem_df = elem_df.iloc[element_index_mask]
@@ -502,7 +448,7 @@ class PeaksXplus(BaseConverter):
         too_close = []
         for i in range(len(list_of_lists)):
             for j in range(i+1, len(list_of_lists)):
-                current_ppm = PeaksXplus._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
+                current_ppm = Peaks85._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
                 if current_ppm > settings.mz_proximity_tolerance: 
                     break
                 if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance:
@@ -520,7 +466,6 @@ class PeaksXplus(BaseConverter):
     #             lambda x: x[x[toSortBy] == x[toSortBy].max()])
     #     return df
 
-    #$commented is easier to read but in use is much faster
     @staticmethod
     def _expand_to_charge_states(df):
         all_columns = list(df.columns)
@@ -530,10 +475,10 @@ class PeaksXplus(BaseConverter):
         all_data = []
         for sub_list in list_of_lists:
             premass = sub_list[precursor_mz_index] * sub_list[id_charge_index] - \
-                sub_list[id_charge_index] * PeaksXplus.PROTON_MASS
+                sub_list[id_charge_index] * Peaks85.PROTON_MASS
             for z in range(settings.min_charge_state, settings.max_charge_state + 1):
                 quick_list =copy(sub_list)
-                quick_list[precursor_mz_index] = (premass + float(z) * PeaksXplus.PROTON_MASS) / float(z)
+                quick_list[precursor_mz_index] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
                 quick_list[id_charge_index] = z
                 all_data.append(quick_list)
         return pd.DataFrame(all_data, columns = all_columns)
@@ -543,22 +488,19 @@ class PeaksXplus(BaseConverter):
         for row in df.iterrows():
             temp_row = row[1]
             premass = float(temp_row['Precursor m/z']) * float(temp_row['Identification Charge']) - \
-                      float(temp_row['Identification Charge']) * PeaksXplus.PROTON_MASS
+                      float(temp_row['Identification Charge']) * Peaks85.PROTON_MASS
             for z in range(settings.min_charge_state, settings.max_charge_state + 1):
-                temp_row['Precursor m/z'] = (premass + float(z) * PeaksXplus.PROTON_MASS) / float(z)
+                temp_row['Precursor m/z'] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
                 temp_row['Identification Charge'] = float(z)
                 df_new = df_new.append(temp_row)
 
         return df_new
         """
-
-
-
     @staticmethod
     def _finalize(df):
-        df = df[df['peptide'].str.len() >= 6]
+        df = df[df['peptide'].str.len() >= 6]  # TODO: Make magic number a setting
         df = df.sort_index()
-        df = df[PeaksXplus.correct_header_order].rename(
-            columns=PeaksXplus.correct_header_names
+        df = df[Peaks85.correct_header_order].rename(
+            columns=Peaks85.correct_header_names
         )
         return df

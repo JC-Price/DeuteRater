@@ -21,18 +21,18 @@ from tqdm import tqdm
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile, rmtree
 
-from convert.peaks85 import Peaks85
-from convert.peaksXplus import PeaksXplus
-from convert.peaksXpro import PeaksXpro
-from convert.PCDL_converter import PCDL_Converter
-from rater.extractor import Extractor
+from deuteconvert.peaks85 import Peaks85
+from deuteconvert.peaksXplus import PeaksXplus
+from deuteconvert.peaksXpro import PeaksXpro
+from deuteconvert.PCDL_converter import PCDL_Converter
+from deuterater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
-from rater.theory_preparer import TheoryPreparer
-from rater.fraction_new_calculator import FractionNewCalculator
-from rater.rate_calculator import RateCalculator
+from deuterater.theory_preparer import TheoryPreparer
+from deuterater.fraction_new_calculator import FractionNewCalculator
+from deuterater.rate_calculator import RateCalculator
 from utils.chromatography_division import ChromatographyDivider
 from utils.useful_classes import deuterater_step, deuteconvert_peaks_required_headers
-import rater.settings as settings
+import deuterater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 import gui_software.Converter_Settings as guide_settings
 

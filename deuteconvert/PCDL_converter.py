@@ -13,7 +13,7 @@ from copy import deepcopy
 
 try:
     from .base_converter import BaseConverter
-    from convert import settings
+    from deuteconvert import settings
 except:
     from base_converter import BaseConverter
     import settings
