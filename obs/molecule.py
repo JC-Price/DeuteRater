@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import numpy as np
 import warnings
 try:
-    import rater.settings as settings
+    import deuterater.settings as settings
 except:
     import DeuteRater.deuterater.settings as settings
 

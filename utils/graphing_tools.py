@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-import rater.settings as settings
+import deuterater.settings as settings
 
 main_line_symbol = 'k-'
 # error_line_symbol = 'k--'

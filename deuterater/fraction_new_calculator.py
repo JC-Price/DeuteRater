@@ -42,7 +42,7 @@ from tqdm import tqdm  # noqa: 401
 
 from utils.emass import parse_cf, emass, normalize
 
-import rater.settings as settings
+import deuterater.settings as settings
 
 # $at this point we have far too many columns to be practical
 # $this is not a problem for theory since that is largely a combination of

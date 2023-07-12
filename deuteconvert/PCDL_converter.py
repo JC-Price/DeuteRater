@@ -7,9 +7,9 @@ import pandas as pd
 import numpy as np
 from copy import deepcopy
 
-#from functools import partial
-#import json
-#import re
+# from functools import partial
+# import json
+# import re
 
 try:
     from .base_converter import BaseConverter
@@ -17,6 +17,7 @@ try:
 except:
     from base_converter import BaseConverter
     import settings
+
 
 def tk_get_single_file(extension='*', prompt="Select file"):
     from tkinter import filedialog
@@ -26,7 +27,7 @@ def tk_get_single_file(extension='*', prompt="Select file"):
         extension = '*' + extension
     root = Tk()
     root.withdraw()
-    if (extension == '*'):
+    if extension == '*':
         root.filename = filedialog.askopenfilename(
             initialdir=os.getcwd(), title=prompt)
     else:
@@ -38,21 +39,23 @@ def tk_get_single_file(extension='*', prompt="Select file"):
     filename = root.filename
     return filename  # A string representing the file path
 
+
 ELECTRON_MASS = 0.000549
 
-atomic_mass =    {'H': 1.0078246,
-                  'C': 12.0000000,
-                  'N': 14.0030732,
-                  'O': 15.9949141,
-                  'P': 30.973762,
-                  'S': 31.972070,
-                  'F': 18.99840322,
-                  'D': 2.0141021,
-                  'Cl': 34.9688527,
-                  'Br': 78.9183376,
-                  'I': 126.9044719,
-                  'Si': 27.9769265,
-                  'Na': 22.98976928}
+atomic_mass = {'H': 1.0078246,
+               'C': 12.0000000,
+               'N': 14.0030732,
+               'O': 15.9949141,
+               'P': 30.973762,
+               'S': 31.972070,
+               'F': 18.99840322,
+               'D': 2.0141021,
+               'Cl': 34.9688527,
+               'Br': 78.9183376,
+               'I': 126.9044719,
+               'Si': 27.9769265,
+               'Na': 22.98976928}
+
 
 class PCDL_Converter(BaseConverter):
     # TODO: slots
@@ -66,14 +69,14 @@ class PCDL_Converter(BaseConverter):
 
     # These are the most likely things to change in different versions
     correct_header_names = {
-         'RT': 'Precursor Retention Time (sec)',
-         "Mass": 'Precursor m/z',
-         "": 'Identification Charge',
-         "": "Lipid Unique Identifier",
-         "": "LMP",
-         "Name ": "Lipid Name",
-         "": "HMP",
-         "Formula": "cf"
+        'RT': 'Precursor Retention Time (sec)',
+        "Mass": 'Precursor m/z',
+        "": 'Identification Charge',
+        "": "Lipid Unique Identifier",
+        "": "LMP",
+        "Name ": "Lipid Name",
+        "": "HMP",
+        "Formula": "cf"
     }
 
     PCDL_correct_header_names = {
@@ -82,7 +85,7 @@ class PCDL_Converter(BaseConverter):
         "Precursor m/z": "Mass",
         "Precursor Retention Time (min)": "Retention Time"
     }
-    
+
     PCDL_correct_header_order = [
         "Name", "Formula", "Mass", "Retention Time", "Retention Index", "Cation", "Anion", "CAS", "ChemSpider",
         "PubChem", "Synonyms", "IUPAC", "NumSpectra", "CCS Count"
@@ -211,15 +214,16 @@ class PCDL_Converter(BaseConverter):
                 temp_row = df.loc[row[0]]
             except:
                 print("Oops, what happened")
-                
+
             formmap = PCDL_Converter._parse_cf(row.cf)
 
             default_mz = temp_row['Precursor m/z']
-            
+
             if settings.H_adduct:
                 hydrogen_adduct = deepcopy(formmap)
                 hydrogen_adduct['H'] += 1
-                hydrogen_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in hydrogen_adduct.items())
+                hydrogen_cf = ''.join(
+                    '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in hydrogen_adduct.items())
                 hydrogen_mz = default_mz + atomic_mass["H"]
                 temp_row['Adduct'] = 'M+H'
                 temp_row['Adduct_cf'] = hydrogen_cf
@@ -229,7 +233,8 @@ class PCDL_Converter(BaseConverter):
             if settings.Na_adduct:
                 sodium_adduct = deepcopy(formmap)
                 sodium_adduct['Na'] += 1
-                sodium_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in sodium_adduct.items())
+                sodium_cf = ''.join(
+                    '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in sodium_adduct.items())
                 sodium_mz = default_mz + atomic_mass["Na"]
                 temp_row['Adduct'] = 'M+Na'
                 temp_row['Adduct_cf'] = sodium_cf
@@ -241,7 +246,9 @@ class PCDL_Converter(BaseConverter):
                     hydrogen_minus_water = deepcopy(formmap)
                     hydrogen_minus_water['H'] -= 1
                     hydrogen_minus_water['O'] -= 1
-                    hydrogen_minus_water_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in hydrogen_minus_water.items())
+                    hydrogen_minus_water_cf = ''.join(
+                        '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in
+                        hydrogen_minus_water.items())
                     hydrogen_minus_water_mz = default_mz - atomic_mass["H"] - atomic_mass["O"]
                     temp_row['Adduct'] = 'M+H-[H20]'
                     temp_row['Adduct_cf'] = hydrogen_minus_water_cf
@@ -254,7 +261,9 @@ class PCDL_Converter(BaseConverter):
                     sodium_minus_water['Na'] += 1
                     sodium_minus_water['H'] -= 2
                     sodium_minus_water['O'] -= 1
-                    sodium_minus_water_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in sodium_minus_water.items())
+                    sodium_minus_water_cf = ''.join(
+                        '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in
+                        sodium_minus_water.items())
                     sodium_minus_water_mz = default_mz + atomic_mass["Na"] - atomic_mass["H"] * 2 - atomic_mass["O"]
                     temp_row['Adduct'] = 'M+Na-[H2O]'
                     temp_row['Adduct_cf'] = sodium_minus_water_cf
@@ -265,26 +274,29 @@ class PCDL_Converter(BaseConverter):
                 ammonium_adduct = deepcopy(formmap)
                 ammonium_adduct['N'] += 1
                 ammonium_adduct['H'] += 4
-                ammonium_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in ammonium_adduct.items())
+                ammonium_cf = ''.join(
+                    '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in ammonium_adduct.items())
                 ammonium_adduct_mz = default_mz + atomic_mass["N"] + atomic_mass["H"] * 4
                 temp_row['Adduct'] = 'M+NH4'
                 temp_row['Adduct_cf'] = ammonium_cf
                 temp_row['Precursor m/z'] = ammonium_adduct_mz
                 expanded_df = expanded_df.append(temp_row, ignore_index=True)
-            
+
             if settings.NH4_H2O_adduct:
                 if "O" in formmap:
                     ammonium_minus_water = deepcopy(formmap)
                     ammonium_minus_water['N'] += 1
                     ammonium_minus_water['H'] += 2
                     ammonium_minus_water['O'] -= 1
-                    ammonium_minus_water_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in ammonium_minus_water.items())
+                    ammonium_minus_water_cf = ''.join(
+                        '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in
+                        ammonium_minus_water.items())
                     ammonium_minus_water_mz = default_mz + atomic_mass["N"] + atomic_mass["H"] - atomic_mass["O"]
                     temp_row['Adduct'] = 'M+NH4-[H2O]'
                     temp_row['Adduct_cf'] = ammonium_minus_water_cf
                     temp_row['Precursor m/z'] = ammonium_minus_water_mz
                     expanded_df = expanded_df.append(temp_row, ignore_index=True)
-        
+
             if settings.formate_adduct:
                 # Formate:
                 formate_adduct = deepcopy(formmap)
@@ -298,7 +310,7 @@ class PCDL_Converter(BaseConverter):
                 temp_row['Adduct_cf'] = formate_cf
                 temp_row['Precursor m/z'] = formate_mz
                 expanded_df = expanded_df.append(temp_row, ignore_index=True)
-            
+
             if settings.acetate_adduct:
                 # Acetate:
                 acetate_adduct = deepcopy(formmap)
@@ -350,7 +362,7 @@ class PCDL_Converter(BaseConverter):
                     expanded_df = expanded_df.append(temp_row, ignore_index=True)
 
         return expanded_df
-    
+
     @staticmethod
     def _correct_adduct_cf(df):
         for idx, row in df.iterrows():
@@ -358,7 +370,8 @@ class PCDL_Converter(BaseConverter):
             if row.Adduct == "[M+H]+":
                 hydrogen_adduct = deepcopy(formmap)
                 hydrogen_adduct['H'] += 1
-                hydrogen_cf = ''.join('%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in hydrogen_adduct.items())
+                hydrogen_cf = ''.join(
+                    '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in hydrogen_adduct.items())
                 df.at[idx, 'Adduct'] = 'M+H'
                 df.at[idx, 'Adduct_cf'] = hydrogen_cf
             elif row.Adduct == "[M+H4N]+":
@@ -397,7 +410,7 @@ class PCDL_Converter(BaseConverter):
             else:
                 raise Exception(f"Unrecognized Adduct {row.Adduct}")
         return df
-    
+
     @staticmethod
     def _parse_cf(cf):
         import re
@@ -409,7 +422,7 @@ class PCDL_Converter(BaseConverter):
             number = e[len(element):]
             if number == "": number = 1  # $ need the one to be there if element is alone
             formmap[element] = int(number)
-    
+
         # add extra items if they don't exist
         if 'N' not in formmap:
             formmap['N'] = 0
@@ -419,7 +432,7 @@ class PCDL_Converter(BaseConverter):
             formmap['H'] = 0
         if 'O' not in formmap:
             formmap['O'] = 0
-            
+
         return formmap
 
     @staticmethod
@@ -481,10 +494,12 @@ class PCDL_Converter(BaseConverter):
         self._id_df['literature_n'] = np.nan
         self._id_df['HMP'] = np.nan
         self._id_df['LMP'] = np.nan
-        self._id_df['Lipid Unique Identifier'] = self._id_df['Lipid Name'] + "_" + self._id_df['Precursor Retention Time (sec)'].apply(lambda x: str("{:.3f}".format(x/60)))
+        self._id_df['Lipid Unique Identifier'] = self._id_df['Lipid Name'] + "_" + self._id_df[
+            'Precursor Retention Time (sec)'].apply(lambda x: str("{:.3f}".format(x / 60)))
         self._id_df = self._id_df[header_order].rename(
             columns=PCDL_Converter.correct_header_names
         )
+
 
 def main():
     file = [tk_get_single_file()]
@@ -493,6 +508,7 @@ def main():
     print("done")
 
     converter.write(file[0][:-4] + "_ID_File.csv")
+
 
 if __name__ == "__main__":
     main()

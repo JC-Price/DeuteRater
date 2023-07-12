@@ -6,7 +6,7 @@ try:
     from obs.id import ID
     from obs.envelope import Envelope
     from obs.molecule import Molecule
-    import rater.settings as settings
+    import deuterater.settings as settings
 except:
     from DeuteRater.obs.peak import Peak
     from DeuteRater.obs.id import ID

@@ -47,7 +47,7 @@ import warnings  # noqa: 401
 from math import ceil
 from operator import mul
 
-import rater.settings as settings
+import deuterater.settings as settings
 import utils.mzml as dml
 import utils.extract as due
 from utils.exc import InvalidHeaderError  # noqa: 401

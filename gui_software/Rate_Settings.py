@@ -67,7 +67,7 @@ import os
 import pandas as pd
 from PyQt5 import uic, QtWidgets
 
-import rater.settings as settings
+import deuterater.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_string_info
 
 

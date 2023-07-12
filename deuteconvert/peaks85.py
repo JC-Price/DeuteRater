@@ -181,7 +181,7 @@ class Peaks85(BaseConverter):
         seq = peptide_sequence
         ptms = [ptm.strip() for ptm in ptm_string.split(';')]
         # TODO: dynamically load ptm file reference? should use gui or file?
-        with open(json_path) as ptms_json: #open(settings.ptms_path) as ptms_json:
+        with open(json_path) as ptms_json:  # open(settings.ptms_path) as ptms_json:
             known_ptms = json.load(ptms_json)
         for ptm in ptms:
             if ptm in known_ptms.keys():
@@ -386,10 +386,10 @@ class Peaks85(BaseConverter):
         aa_label_df.set_index('study_type', inplace=True)
         # TODO: Find out where to store settings, then decide which 'studytype'
         #       to use as default.
-        aa_labeling_dict = aa_label_df.loc[settings.study_type,].to_dict()
+        aa_labeling_dict = aa_label_df.loc[settings.study_type, ].to_dict()
 
         elem_df = pd.read_csv(settings.elems_path, sep='\t')
-        # This is necessary if we have all of the different isotopes in the tsv
+        # This is necessary if we have all the different isotopes in the tsv
         element_index_mask = [
             0,  # Hydrogen
             10,  # Carbon-12
@@ -433,7 +433,8 @@ class Peaks85(BaseConverter):
         return abs(ppm)
     #$swapped to use multiple for loops instead of df.  need to recalculate
     #$all ppms based on current row, and there should a small number of relevant
-    #$masses so we can break out of the internal for quickly
+    #$masses, so we can break out of the internal for quickly
+
     @staticmethod
     def _proximity_filter(df):
         try:
@@ -452,7 +453,7 @@ class Peaks85(BaseConverter):
                 if current_ppm > settings.mz_proximity_tolerance: 
                     break
                 if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance:
-                    too_close.extend([i,j])
+                    too_close.extend([i, j])
         too_close = list(set(too_close))
         return df.drop(df.index[too_close])
 
@@ -477,25 +478,26 @@ class Peaks85(BaseConverter):
             premass = sub_list[precursor_mz_index] * sub_list[id_charge_index] - \
                 sub_list[id_charge_index] * Peaks85.PROTON_MASS
             for z in range(settings.min_charge_state, settings.max_charge_state + 1):
-                quick_list =copy(sub_list)
+                quick_list = copy(sub_list)
                 quick_list[precursor_mz_index] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
                 quick_list[id_charge_index] = z
                 all_data.append(quick_list)
-        return pd.DataFrame(all_data, columns = all_columns)
-        """
-        df_new = pd.DataFrame(columns=df.columns)
+        return pd.DataFrame(all_data, columns=all_columns)
+        # """
+        # df_new = pd.DataFrame(columns=df.columns)
+        #
+        # for row in df.iterrows():
+        #     temp_row = row[1]
+        #     premass = float(temp_row['Precursor m/z']) * float(temp_row['Identification Charge']) - \
+        #               float(temp_row['Identification Charge']) * Peaks85.PROTON_MASS
+        #     for z in range(settings.min_charge_state, settings.max_charge_state + 1):
+        #         temp_row['Precursor m/z'] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
+        #         temp_row['Identification Charge'] = float(z)
+        #         df_new = df_new.append(temp_row)
+        #
+        # return df_new
+        # """
 
-        for row in df.iterrows():
-            temp_row = row[1]
-            premass = float(temp_row['Precursor m/z']) * float(temp_row['Identification Charge']) - \
-                      float(temp_row['Identification Charge']) * Peaks85.PROTON_MASS
-            for z in range(settings.min_charge_state, settings.max_charge_state + 1):
-                temp_row['Precursor m/z'] = (premass + float(z) * Peaks85.PROTON_MASS) / float(z)
-                temp_row['Identification Charge'] = float(z)
-                df_new = df_new.append(temp_row)
-
-        return df_new
-        """
     @staticmethod
     def _finalize(df):
         df = df[df['peptide'].str.len() >= 6]  # TODO: Make magic number a setting

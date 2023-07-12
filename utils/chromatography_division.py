@@ -6,7 +6,7 @@ try:
     from obs.id import ID
     from obs.envelope import Envelope
     from obs.molecule import Molecule
-    import rater.settings as settings
+    import deuterater.settings as settings
 except: # noqa
     print("Your directories are in a weird place...")
 #     from DeuteRater.obs.peak import Peak

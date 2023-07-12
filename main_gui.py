@@ -116,8 +116,9 @@ convert_needed_headers = {
 }
 
 default_converter = "Peaks XPro - Peptides"
-# TODO$ may need to adjust the header or shove in the n-value calculator
-converter_header = PeaksXplus.correct_header_order
+# TODO: may need to adjust the header or shove in the n-value calculator
+protein_converter_header = PeaksXplus.correct_header_order
+lipid_converter_header = PCDL_Converter.correct_header_order
 
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
 loaded_ui = uic.loadUiType(main_file_ui_location)[0]
@@ -259,7 +260,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 if id_file_type != "Template":
                     converter.write(save_file)
                 else:
-                    df = pd.DataFrame(columns=converter_header)
+                    # Ben D: We need to distinguish between protein and lipid ID file templates
+                    if self.LipidButton.isChecked():
+                        # Create lipid ID file template
+                        df = pd.DataFrame(columns=lipid_converter_header)
+                    else:
+                        # Otherwise, use the protein template
+                        df = pd.DataFrame(columns=protein_converter_header)
                     df.to_csv(save_file, sep=',', index=False)
                 break
             except IOError:
@@ -267,8 +274,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                                   ("File {} is open in another program. Please close it and "
                                                    "try again or select a different file".format(save_file)))
         self.file_loc = os.path.dirname(save_file)
-        QtWidgets.QMessageBox.information(self, "Success",
-                                          "ID file successfully saved")
+        QtWidgets.QMessageBox.information(self, "Success", "ID file successfully saved")
 
     def _calc_rates(self):
         try:

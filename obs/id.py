@@ -35,7 +35,7 @@ try:
     from obs.envelope import Envelope  # noqa: 401
     from obs.peak import Peak
     from utils.math import angle_between  # noqa: 401
-    import rater.settings as settings
+    import deuterater.settings as settings
 except:
     from DeuteRater.obs.envelope import Envelope  # noqa: 401
     from DeuteRater.obs.peak import Peak

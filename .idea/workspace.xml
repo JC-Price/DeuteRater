@@ -7,23 +7,23 @@
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/L4D_analyzer_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/L4D_analyzer_converter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/PCDL_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/base_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/base_converter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/peaks85.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaks85.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/peaksXplus.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaksXplus.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/peaksXpro.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaksXpro.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/peptide_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peptide_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/convert/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuteconvert/peaks85.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/peaks85.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/extractor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/rate_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/rate_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/theory_preparer.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/theory_preparer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Converter_Settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Converter_Settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Rate_Settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Rate_Settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui_software/Time_Enrichment_Table.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui_software/Time_Enrichment_Table.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_gui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/extractor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/fraction_new_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/rate_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/rate_calculator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rater/theory_preparer.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/theory_preparer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/id.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/id.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obs/molecule.py" beforeDir="false" afterPath="$PROJECT_DIR$/obs/molecule.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/NValueCalculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/NValueCalculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/chromatography_division.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/chromatography_division.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/chromatography_division_unoptimized.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/chromatography_division_unoptimized.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/extract.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/extract.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/graphing_tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/graphing_tools.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

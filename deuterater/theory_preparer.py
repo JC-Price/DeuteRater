@@ -48,10 +48,10 @@ import multiprocessing as mp
 
 from tqdm import tqdm  # noqa: 401
 
-import rater.settings as settings
+import deuterater.settings as settings
 import utils.NValueCalculator as nvct
 
-import convert.peptide_utils as peputils
+import deuteconvert.peptide_utils as peputils
 
 
 literature_n_name = "literature_n"

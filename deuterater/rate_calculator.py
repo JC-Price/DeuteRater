@@ -45,7 +45,7 @@ import multiprocessing as mp
 
 from tqdm import tqdm  # noqa: 401
 
-import rater.settings as settings
+import deuterater.settings as settings
 import utils.rate_equations as dur
 from utils.graphing_tools import graph_rate
 
