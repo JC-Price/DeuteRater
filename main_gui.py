@@ -118,7 +118,8 @@ convert_needed_headers = {
 default_converter = "Peaks XPro - Peptides"
 # TODO: may need to adjust the header or shove in the n-value calculator
 protein_converter_header = PeaksXplus.correct_header_order
-lipid_converter_header = PCDL_Converter.correct_header_order
+lipid_converter_header = PCDL_Converter.development_header_order
+#lipid_converter_header = PCDL_Converter.correct_header_order
 
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
 loaded_ui = uic.loadUiType(main_file_ui_location)[0]

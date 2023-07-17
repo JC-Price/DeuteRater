@@ -179,12 +179,12 @@ class PCDL_Converter(BaseConverter):
             'Name': 'Lipid Name',
             'Formula': 'cf',
             'Mass': 'Precursor m/z',
-            'Retention Time': 'Precursor Retention Time (sec)',
+            'RT': 'Precursor Retention Time (sec)',
         }
         if "Ion Species" in df.columns:
             rename_cols["Ion Species"] = "Adduct"
 
-        keep_cols = ['Name', 'Formula', 'Mass', 'Retention Time']
+        keep_cols = ['Name', 'Formula', 'Mass', 'RT']
 
         dtype_dict = {
             'Precursor Retention Time (sec)': np.float64,
@@ -496,9 +496,9 @@ class PCDL_Converter(BaseConverter):
         self._id_df['LMP'] = np.nan
         self._id_df['Lipid Unique Identifier'] = self._id_df['Lipid Name'] + "_" + self._id_df[
             'Precursor Retention Time (sec)'].apply(lambda x: str("{:.3f}".format(x / 60)))
-        self._id_df = self._id_df[header_order].rename(
-            columns=PCDL_Converter.correct_header_names
-        )
+        # self._id_df = self._id_df[header_order].rename(
+        #     columns=PCDL_Converter.correct_header_names
+        # )
 
 
 def main():
