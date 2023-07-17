@@ -53,7 +53,6 @@ import utils.NValueCalculator as nvct
 
 import deuteconvert.peptide_utils as peputils
 
-
 literature_n_name = "literature_n"
 sequence_column_name = "Sequence"
 
@@ -113,7 +112,7 @@ class TheoryPreparer:
                     total=len(self._enrichment_df), desc="Theory Generation: "
                 )
             )
-            
+
         elif settings.debug_level >= 1:
             print('Beginning single-processor theory preparation.')
             args_list = self._enrichment_df.to_records(index=False).tolist()
@@ -121,7 +120,7 @@ class TheoryPreparer:
                             total=len(self._enrichment_df)):
                 # TODO: how to handle functions. Default I would think
                 df = pd.read_csv(filepath_or_buffer=row.Filename, sep='\t')
-                
+
                 if self.biomolecule_type == "Peptide":
                     func = partial(TheoryPreparer._mp_prepare, self.settings_path,
                                    aa_labeling_dict=self.aa_labeling_dict)
@@ -129,7 +128,7 @@ class TheoryPreparer:
                     func = partial(TheoryPreparer._mp_prepare, self.settings_path)
                 if "mzs_list" in df.columns:
                     df.drop(inplace=True, columns=["mzs_list", "intensities_list", "rt_list", "baseline_list"])
-                    
+
                 df = func(args_list[row.Index])
                 df['timepoint'] = row.Time
                 df['enrichment'] = row.Enrichment
@@ -138,46 +137,51 @@ class TheoryPreparer:
                 results.append(df)
 
         self.model = pd.concat(results)
-        #if self.biomolecule_type == "Peptide":
+        # if self.biomolecule_type == "Peptide":
         #    self.model = self.model.drop(columns=['drop'])
 
         if settings.use_empir_n_value:
             self.model = self.model.reset_index(drop=True)
             self.model["row_num"] = np.arange(0, self.model.shape[0])
             self.model = self.model.loc[self.model["no_fn"] == ""]
-            
+
             column_list = list(
-                self.model.columns[self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
+                self.model.columns[
+                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
             column_list.sort()
             self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
-            
+
             # n_val_df = self.model
             calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
             calculator.run()
             self.model = calculator.full_df
-            
+
             full_df = self.model.copy()
 
             # Determine what the highest timepoint is and only look at those rows
             highest_timepoint = max(full_df['time'].unique())
             lipid_groups = full_df.groupby(by='adduct_molecule_sg')
-            
+
             # # Compare reproducibility across reps
             for group in lipid_groups:
                 group_df = group[1]
-                high_tp_df = group_df.loc[group_df['time'] == highest_timepoint] # Only look at lipids that occur at the highest timepoint overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
+                high_tp_df = group_df.loc[group_df[
+                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest timepoint overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
                 if high_tp_df.empty:
-                    #$ BN -1 is only for max time had no n-values (or grouping had no max time)
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = -1 # If there is no lipids in the highest timepoint, set n_value as -1
+                    # $ BN -1 is only for max time had no n-values (or grouping had no max time)
+                    full_df.loc[full_df['adduct_molecule_sg'] == group[
+                        0], 'n_value'] = -1  # If there is no lipids in the highest timepoint, set n_value as -1
                     continue
                 # Remove reproducibility filter - CQ 15 Sept 2021
                 if settings.remove_filters:
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(high_tp_df['empir_n'].median())
+                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
+                        high_tp_df['empir_n'].median())
                 else:
-                    median_n = round(high_tp_df['empir_n'].median()) #$ BN rounding
+                    median_n = round(high_tp_df['empir_n'].median())  # BN rounding
                     # CQ Changed arrange so it has integers in the range. Trying to include as many values as possible within arange.
                     try:
-                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1, 1.0) #$ BN swapped to arange added ", 1.0"
+                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
+                                                 1.0)  # BN swapped to arange added ", 1.0"
                     except:
                         pass
                     is_in_range_n = high_tp_df['empir_n'].apply(lambda x: x in median_range)
@@ -191,45 +195,48 @@ class TheoryPreparer:
                             confidence_interval = (m, m)
                         else:
                             confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
-    
+
                         full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = median_n
-                        full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'low_CI_n_value'] = confidence_interval[0]
-                        full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'high_CI_n_value'] = confidence_interval[1]
+                        full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'low_CI_n_value'] = confidence_interval[
+                            0]
+                        full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'high_CI_n_value'] = confidence_interval[
+                            1]
                     elif high_tp_df.shape[0] == 1:
                         # If there is not 2 replicates of a specific lipid in the highest timecourse, set n_value as -2
-                        full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = -2 #$ BN -2 indicates an error where max time n-values fell outside the "good"range
+                        full_df.loc[full_df['adduct_molecule_sg'] == group[
+                            0], 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
                     else:
                         # If the replicates of a specific lipid do not have reproducable n-values, set n_value as -3
                         full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = -3
 
             full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
-                                                     'n_value': 'empir_n'})
+                                              'n_value': 'empir_n'})
 
             full_df.loc[full_df.index, "n_val_calc_n"] = full_df["n_val_calc_n"]
             full_df.loc[full_df.index, "empir_n"] = full_df["empir_n"]
             self.model = full_df
-            
+
         self._mp_pool.close()
         self._mp_pool.join()
 
     @staticmethod
     def _mp_prepare(settings_path, args, aa_labeling_dict=None):
         settings.load(settings_path)
-        #file_path, time, enrichment = args
+        # file_path, time, enrichment = args
         file_path, time, enrichment, sample_group, biological_replicate = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         if "mzs_list" in df.columns:
             df.drop(inplace=True, columns=["mzs_list", "intensities_list", "rt_list", "baseline_list"])
         df = TheoryPreparer._apply_filters(df)
         if aa_labeling_dict:
-            #$don't include an else for either if statement.  no need to calculate if column exists
-            #$ and we don't want to add the column if we can't calculate it since checking for it is an error check for later steps
+            # $don't include an else for either if statement.  no need to calculate if column exists
+            # $ and we don't want to add the column if we can't calculate it since checking for it is an error check for later steps
             if literature_n_name not in df.columns:
                 if aa_labeling_dict != "":
-                    df = df.apply(TheoryPreparer._calculate_literature_n, axis =1 , args = (aa_labeling_dict,))
+                    df = df.apply(TheoryPreparer._calculate_literature_n, axis=1, args=(aa_labeling_dict,))
         df['time'] = time
         df['enrichment'] = enrichment
-        df["sample_group"]  = sample_group
+        df["sample_group"] = sample_group
         df["bio_rep"] = biological_replicate
         return df
 
@@ -279,7 +286,7 @@ class TheoryPreparer:
                         settings.mz_proximity_tolerance)
                 data.loc[mask, 'drop'] = True
             # data = data[~data['drop']]
-    
+
             df.loc[data.loc[data["drop"] == True].index] = "mz_proximity_tolerance_exceeded"
 
         # TODO: Check to see if no data went through

@@ -75,11 +75,11 @@ protein_itertuple_renamer = {
 }
 
 lipid_itertuple_renamer = {
-    "n_isos": "num_peaks",
     "literature_n": "n_value",
-    "Lipid Unique Identifier": "Lipid_Unique_Identifier",
-    "Lipid Name": "Lipid_Name"
+    "Lipid Unique Identifier": "Lipid_Unique_Identifier"
 }
+
+#    "n_isos": "num_peaks", "Lipid Name": "Lipid_Name"
 
 
 class FractionNewCalculator:

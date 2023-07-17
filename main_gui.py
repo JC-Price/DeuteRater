@@ -75,8 +75,18 @@ Fracnew_object = deuterater_step("frac_new_output.tsv", [
                                  [
                                      "Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
-                                     "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
+                                     "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                      "sample_group"])
+
+# Fracnew_object = deuterater_step("frac_new_output.tsv", [
+#     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
+#     "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
+#     "Sequence", "cf", "abundances", "mzs", "timepoint", "enrichment", "sample_group"],
+#                                  [
+#                                      "Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+#                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+#                                      "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
+#                                      "sample_group"])
 # $rate needs reassignment based on settings. We'll read in and make later
 Rate_object = deuterater_step("calculated_rates.tsv", [], [])
 
@@ -511,7 +521,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         if biomolecule_type == "Peptide":
                             step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
                         elif biomolecule_type == "Lipid":
-                            step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
+                            # step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
+                            step_object_dict['Fraction New Calculation'].lipid_required_columns.append('n_val_calc_n')
                     else:
                         # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
                         try:

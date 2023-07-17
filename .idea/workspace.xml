@@ -6,8 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuteconvert/PCDL_converter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deuterater/theory_preparer.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/theory_preparer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_gui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/useful_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/useful_classes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -194,6 +196,21 @@
           <url>file://$PROJECT_DIR$/deuteconvert/PCDL_converter.py</url>
           <line>195</line>
           <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/obs/id.py</url>
+          <line>333</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/utils/useful_classes.py</url>
+          <line>88</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/utils/useful_classes.py</url>
+          <line>91</line>
+          <option name="timeStamp" value="11" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
