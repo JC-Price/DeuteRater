@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="90c01483-7793-47ef-bd47-fbd9303b0f30" name="Changes" comment="Working on new read me">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/fraction_new_calculator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deuterater/theory_preparer.py" beforeDir="false" afterPath="$PROJECT_DIR$/deuterater/theory_preparer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_gui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/useful_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/useful_classes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

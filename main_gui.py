@@ -516,7 +516,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         "Fraction New Calculation",
                         "spreadsheet (*.csv *.tsv)"
                     )
-                    if previous_output_file == "": return
+                    if previous_output_file == "":
+                        return
                     if settings.use_empir_n_value:
                         if biomolecule_type == "Peptide":
                             step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
@@ -535,7 +536,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     infile_is_good = self.check_input(
                         step_object_dict["Fraction New Calculation"],
                         previous_output_file, biomolecule_type)
-                    if not infile_is_good: return
+                    if not infile_is_good:
+                        return
                 # $not sure why this would happen but we'll put it here
                 # $to avoid future error
                 elif not os.path.exists(previous_output_file):
