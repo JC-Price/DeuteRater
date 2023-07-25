@@ -1,5 +1,5 @@
 ID_weight: 0.7
-aa_labeling_sites_path: C:\Users\benny\OneDrive\Documents\GitHub\DeuteRater\resources\aa_labeling_sites.tsv
+aa_labeling_sites_path: /home/JCPriceLab/PycharmProjects/DeuteRater/resources/aa_labeling_sites.tsv
 abundance_agreement_filter: 0.1
 abundance_manual_bias: 0.0
 adduct_weight: 1.0

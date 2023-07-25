@@ -249,8 +249,8 @@ class RateCalculator:
 
         id_values, group = data_tuple[0], data_tuple[1]
         id_name = id_values[0]
-        if id_name == "PC 16:1_20:4_1827.4104000000002":
-            print("Found you.")
+        # if id_name == "PC 16:1_20:4_1827.4104000000002":
+        #     print("Found you.")
         sample_group_name = id_values[1]
         if biomolecule_type == "Peptide":
             common_name = group[settings.peptide_analyte_name_column].iloc[0]
@@ -513,4 +513,5 @@ class RateCalculator:
     def _error_trimmer(df, error_columns):
         df[error_columns] = df[error_columns].apply(
             pd.to_numeric, errors='coerce')
-        return df.dropna(axis=0, subset=error_columns)
+        temp = df.dropna(axis=0, subset=error_columns)
+        return temp
