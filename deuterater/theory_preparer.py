@@ -81,7 +81,6 @@ class TheoryPreparer:
         if settings.recognize_available_cores is True:
             # BD: Issue with mp.cpu_count() finding too many cores available
             self._n_processors = round(mp.cpu_count() * 0.75)
-            # self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
         # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
@@ -178,10 +177,10 @@ class TheoryPreparer:
                         high_tp_df['empir_n'].median())
                 else:
                     median_n = round(high_tp_df['empir_n'].median())  # BN rounding
-                    # CQ Changed arrange so it has integers in the range. Trying to include as many values as possible within arange.
+                    # CQ Changed arrange so it has integers in the range. Trying to include as many values as possible within a range.
                     try:
                         median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
-                                                 1.0)  # BN swapped to arange added ", 1.0"
+                                                 1.0)  # BN swapped to a range added ", 1.0"
                     except:
                         pass
                     is_in_range_n = high_tp_df['empir_n'].apply(lambda x: x in median_range)
@@ -202,11 +201,11 @@ class TheoryPreparer:
                         full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'high_CI_n_value'] = confidence_interval[
                             1]
                     elif high_tp_df.shape[0] == 1:
-                        # If there is not 2 replicates of a specific lipid in the highest timecourse, set n_value as -2
+                        # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
                         full_df.loc[full_df['adduct_molecule_sg'] == group[
                             0], 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
                     else:
-                        # If the replicates of a specific lipid do not have reproducable n-values, set n_value as -3
+                        # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
                         full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = -3
 
             full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
@@ -253,7 +252,7 @@ class TheoryPreparer:
 
     @staticmethod
     def _apply_filters(df):
-        '''filters the internal dataframe
+        """filters the internal dataframe
 
         This function does not modify the dataframe in place.
 
@@ -266,9 +265,8 @@ class TheoryPreparer:
         -------
         :obj:`pandas.Dataframe`
             The filtered dataframe. Does not modify in place.
-        '''
+        """
         # This is 'clean_up_data' in the old deuterater
-        # This is a
         df["no_fn"] = ""
 
         df.loc[df["mzs"].isna(), "no_fn"] = "no spectra extracted"
@@ -277,19 +275,20 @@ class TheoryPreparer:
             axis='index',
             subset=['mzs', 'abundances']
         ).copy()
-        data['drop'] = False
-        # remove any rows that have an m/z that is within the proximinity tolerance
+        data['drop'] = "False"
+        # remove any rows that have an m/z that is within the proximity tolerance
         # Remove proximity Filter - CQ 15 Sept 2021
         if not settings.remove_filters:
             for row in data.itertuples():
                 mask = ((data['mz'] - row.mz).abs() <
                         settings.mz_proximity_tolerance)
-                data.loc[mask, 'drop'] = True
+                data.loc[mask, 'drop'] = "True"
             # data = data[~data['drop']]
 
-            df.loc[data.loc[data["drop"] == True].index] = "mz_proximity_tolerance_exceeded"
+            df.loc[data.loc[data["drop"] == "True"].index] = "mz_proximity_tolerance_exceeded"
 
         # TODO: Check to see if no data went through
+
         return df
 
 

@@ -117,9 +117,9 @@ convert_needed_headers = {
 
 default_converter = "Peaks XPro - Peptides"
 # TODO: may need to adjust the header or shove in the n-value calculator
+# TODO: Does this need to be PeaksXPro.correct_header_order???
 protein_converter_header = PeaksXplus.correct_header_order
 lipid_converter_header = PCDL_Converter.development_header_order
-#lipid_converter_header = PCDL_Converter.correct_header_order
 
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
 loaded_ui = uic.loadUiType(main_file_ui_location)[0]
@@ -375,15 +375,19 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             if analysis_step == "Extract":
                 # $no if for this one, if extract is here it is the start
                 id_file = self.collect_single_file("ID", "Extract", "CSV (*.csv)")
-                if id_file == "": return
-                # $always check if is good since it is first
+                if id_file == "":
+                    return
+
+                # $always check if infile is good since it is first
                 infile_is_good = self.check_input(step_object_dict["Extract"],
                                                   id_file, biomolecule_type)
-                if not infile_is_good:  return
+                if not infile_is_good:
+                    return
 
                 mzml_files = self.collect_multiple_files("Centroided Data",
                                                          "Extract", "mzML (*.mzML)")
-                if mzml_files == []: return
+                if mzml_files == []:
+                    return
 
                 mzml_filenames = [os.path.basename(filename) for filename in
                                   mzml_files]
@@ -418,7 +422,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     # $now that the table is done we need to confirm the user
                     # $hit the proceed button on the table (same check as in
                     # $elif analysis_step == "Theory Generation" )
-                    if not os.path.exists(previous_output_file): return
+                    if not os.path.exists(previous_output_file):
+                        return
+
                 # $ modified from the extract-dir argument from the command line
                 for m in tqdm(range(len(mzml_files)), total=len(mzml_files), desc="Extracting mzml files: "):
                     extractor = Extractor(
@@ -442,23 +448,24 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 # $if coming right after a list
-                if extracted_files == []:
+                if not extracted_files:  # aka. if extracted_files is empty
                     extracted_files = self.collect_multiple_files(
                         "Extracted Data",
                         "Provide Time and Enrichment",
                         "TSV (*.tsv)"
                     )
-                    if extracted_files == []: return
+                    if not extracted_files:
+                        return
                     # $ensure the input files are good. only need to deal with
                     # $if the user just selected
                     for e_file in extracted_files:
                         infile_is_good = self.check_input(
                             step_object_dict["Provide Time and Enrichment"],
                             e_file, biomolecule_type)
-                        if not infile_is_good: return
+                        if not infile_is_good:
+                            return
 
-                # $ now that we have the extracted files we can make a table
-                # $the talbe will handle the output
+                # Now that we have the extracted files we can make a table to handle the input
                 previous_output_file = step_object_dict[
                     "Provide Time and Enrichment"].full_filename
                 self.get_data_table = TimeEnrichmentWindow(self,
@@ -472,22 +479,25 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         "Theory Generation",
                         "spreadsheet (*.csv *.tsv)"
                     )
-                    if previous_output_file == "": return
+                    if previous_output_file == "":
+                        return
                     infile_is_good = self.check_input(
                         step_object_dict["Theory Generation"],
                         previous_output_file, biomolecule_type)
-                    if not infile_is_good: return
-                # $else is to deal with a failed write from the previous table
-                # $ don't need an error message just return
+                    if not infile_is_good:
+                        return
+                # else is to deal with a failed write from the previous table
+                # don't need an error message just return
                 elif not os.path.exists(previous_output_file):
                     return
 
-                # $final check to see if all of the files in the input table
-                # $still exist.  don't want to error out in the middle of
-                # $multiprocessing
+                # Final check to see if all the files in the input table
+                # still exist.  We don't want to error out in the middle of
+                # multiprocessing
                 final_proceed = self.check_files_from_files(
                     previous_output_file, 0)
-                if not final_proceed: return
+                if not final_proceed:
+                    return
 
                 theorist = TheoryPreparer(
                     enrichment_path=previous_output_file,
