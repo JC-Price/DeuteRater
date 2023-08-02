@@ -290,6 +290,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         if self.PeptideButton.isChecked():
             biomolecule_type = "Peptide"
+            settings.use_empir_n_value = False
         elif self.LipidButton.isChecked():
             biomolecule_type = "Lipid"
 
@@ -519,9 +520,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     if previous_output_file == "":
                         return
                     if settings.use_empir_n_value:
-                        if biomolecule_type == "Peptide":
-                            step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
-                        elif biomolecule_type == "Lipid":
+                        # We shouldn't be using this option for peptides - Ben D
+                        # if biomolecule_type == "Peptide":
+                        #     step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
+                        if biomolecule_type == "Lipid":
                             # step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
                             step_object_dict['Fraction New Calculation'].lipid_required_columns.append('n_val_calc_n')
                     else:
@@ -538,8 +540,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         previous_output_file, biomolecule_type)
                     if not infile_is_good:
                         return
-                # $not sure why this would happen but we'll put it here
-                # $to avoid future error
+                # $not sure why this would happen, but we'll put it here to avoid future error
                 elif not os.path.exists(previous_output_file):
                     return
                 fnewcalc = FractionNewCalculator(

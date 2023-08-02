@@ -88,6 +88,7 @@ class FractionNewCalculator:
         self.settings_path = settings_path
         if biomolecule_type == "Peptide":
             itertuple_renamer = copy(protein_itertuple_renamer)
+            settings.use_empir_n_value = False
         elif biomolecule_type == "Lipid":
             itertuple_renamer = copy(lipid_itertuple_renamer)
 
@@ -111,6 +112,8 @@ class FractionNewCalculator:
         if settings.use_empir_n_value:
             itertuple_renamer['literature_n'] = 'literature_n'
             itertuple_renamer['empir_n'] = 'n_value'
+        else:
+            itertuple_renamer['literature_n'] = 'n_value'
         if model_path[-4:] == ".tsv":
             self.model = pd.read_csv(model_path, sep='\t')
         elif model_path[-4:] == ".csv":

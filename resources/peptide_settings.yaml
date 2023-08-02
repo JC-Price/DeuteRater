@@ -227,8 +227,9 @@ min_aa_sequence_length: !!int 6
 #$too small
 min_allowed_n_values: !!int 10
 
-#$If the empiracily derived n-value should be used instead of the literature.
-use_empir_n_value: !!bool true
+#$If the empirically derived n-value should be used instead of the literature.
+#$We should be using the literature n-value for peptides.
+use_empir_n_value: !!bool false
 
 #$peaks that have a low minimum abundance change possible tend to be either 
 #$noisy, or increase and then decrease which our calculations does not account

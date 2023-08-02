@@ -63,10 +63,13 @@ class TheoryPreparer:
         self.settings_path = settings_path
         self.enrichment_path = Path(enrichment_path)
         self.biomolecule_type = biomolecule_type
+
+        # use amino acid dictionary to determine literature n-values
         if self.biomolecule_type == "Peptide":
             aa_label_df = pd.read_csv(settings.aa_label_path, sep='\t')
             aa_label_df.set_index('study_type', inplace=True)
             self.aa_labeling_dict = aa_label_df.loc[settings.study_type,].to_dict()
+            settings.use_empir_n_value = False
 
         if self.enrichment_path.suffix == '.tsv':
             self._enrichment_df = pd.read_csv(
@@ -78,12 +81,15 @@ class TheoryPreparer:
                 filepath_or_buffer=str(self.enrichment_path),
                 sep=','
             )
+
+        # set up multiprocessing
         if settings.recognize_available_cores is True:
             # BD: Issue with mp.cpu_count() finding too many cores available
             self._n_processors = round(mp.cpu_count() * 0.75)
         else:
             self._n_processors = settings.n_processors
-        # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
+
+        # breaks windows/python interactions if too many cores are used
         if self._n_processors > 60:
             self.n_processors = 60
         self._mp_pool = mp.Pool(self._n_processors)
@@ -276,7 +282,7 @@ class TheoryPreparer:
             subset=['mzs', 'abundances']
         ).copy()
         data['drop'] = "False"
-        # remove any rows that have an m/z that is within the proximity tolerance
+        # remove any rows that have an m/z that is within the proximity toleran  row row                                                                                                                      row                                             row                                   row                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         bn ce
         # Remove proximity Filter - CQ 15 Sept 2021
         if not settings.remove_filters:
             for row in data.itertuples():
