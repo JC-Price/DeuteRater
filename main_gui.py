@@ -88,13 +88,15 @@ step_object_dict = {
     "Rate Calculation": Rate_object
 }
 
-convert_options = {
-    "Peaks 8.5 - Peptides": Peaks85,
-    "Peaks X+ - Peptides": PeaksXplus,
-    "Peaks XPro - Peptides": PeaksXpro,
-    "MassHunter PCDL": PCDL_Converter,
-    "Template": ""
-}
+convert_options = ["Peptide Template", "Lipid Template"]
+# convert_options = {
+#     "Peaks 8.5 - Peptides": Peaks85,
+#     "Peaks X+ - Peptides": PeaksXplus,
+#     "Peaks XPro - Peptides": PeaksXpro,
+#     "MassHunter PCDL": PCDL_Converter,
+#     "Template": ""
+# }
+
 convert_needed_headers = {
     "Peaks 8.5 - Peptides": deuteconvert_peaks_required_headers(
         ['Accession', '#Peptides', '#Unique', 'Description'],
@@ -115,7 +117,7 @@ convert_needed_headers = {
     )
 }
 
-default_converter = "Peaks XPro - Peptides"
+default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
 # TODO: Does this need to be PeaksXPro.correct_header_order???
 protein_converter_header = PeaksXplus.correct_header_order
@@ -142,7 +144,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.file_loc = location
 
         # $set up the id file options
-        self.id_file_options.addItems(convert_options.keys())
+        self.id_file_options.addItems(convert_options)
         # $set the default value for the converter
         index = self.id_file_options.findText(default_converter)
         self.id_file_options.setCurrentIndex(index)
@@ -160,68 +162,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.Logo.setScaledContents(True)
         self.setWindowTitle("DeuteRater")
 
-    def Peaks_File_Collection(self, header_checker_object):
-        # $ get the files we need
-        # TODO switch to reading from a folder instead of individual files?$
-        QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
-                                                         "files you would like to turn into a ID file. The order is \""
-                                                         "proteins.csv\", \"protein-peptides.csv\", \"feature.csv\""))
-
-        protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
-                                                                        "Choose protein file to Load", self.file_loc,
-                                                                        "CSV (*.csv)",
-                                                                        options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if protein_file == "":
-            return ""
-        else:
-            has_needed_columns = header_checker_object.protein_file_check(protein_file)
-            if not has_needed_columns:
-                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(
-                    protein_file)))
-                return ""
-            self.file_loc = os.path.dirname(protein_file)
-        protein_peptide_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Choose protein_peptide file to Load", self.file_loc,
-            "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if protein_peptide_file == "":
-            return ""
-        else:
-            has_needed_columns = header_checker_object.protein_peptide_check(protein_peptide_file)
-            if not has_needed_columns:
-                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(
-                    protein_peptide_file)))
-                return ""
-            self.file_loc = os.path.dirname(protein_peptide_file)
-        feature_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
-                                                                        "Choose features file to Load", self.file_loc,
-                                                                        "CSV (*.csv)",
-                                                                        options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if feature_file == "":
-            return ""
-        else:
-            has_needed_columns = header_checker_object.features_check(feature_file)
-            if not has_needed_columns:
-                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(
-                    feature_file)))
-                return ""
-            self.file_loc = os.path.dirname(feature_file)
-        return [protein_file, protein_peptide_file, feature_file]
-
-    def Masshunter_File_Collection(self):
-        QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
-                                                         "MassHunter file you would like to turn into a id file."))
-        masshunter_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Choose MassHunter file to Load", self.file_loc,
-            "CSV (*.csv)", options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        if masshunter_file == "":
-            return ""
-        else:
-            self.file_loc = os.path.dirname(masshunter_file)
-            return [masshunter_file]
-
     # $this is to govern the different id file functions
     def _create_id(self):
         try:
@@ -232,21 +172,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
     def create_id_file(self):
         id_file_type = str(self.id_file_options.currentText())
-        # $collect any id files needed
-        # $template doesn't need one since it just needs one output
-        if id_file_type in ["Peaks 8.5 - Peptides", "Peaks X+ - Peptides", "Peaks XPro - Peptides"]:
-            input_files = self.Peaks_File_Collection(convert_needed_headers[id_file_type])
-        elif id_file_type == "MassHunter PCDL":
-            input_files = self.Masshunter_File_Collection()
-
-        # $id_file_type has to be first or input_files may not be defined
-        if id_file_type != "Template" and input_files == "":
-            return
-        if id_file_type != "Template":
-            # $do the actual calculations
-            converter = convert_options[id_file_type](input_files,
-                                                      id_settings_file)
-            converter.convert()
 
         # $get output file
         QtWidgets.QMessageBox.information(self, "Info", ("Your id file was "
@@ -258,17 +183,14 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             if save_file == "":
                 return
             try:
-                if id_file_type != "Template":
-                    converter.write(save_file)
+                # Ben D: We need to distinguish between protein and lipid ID file templates
+                if id_file_type == "Lipid Template":
+                    # Create lipid ID file template
+                    df = pd.DataFrame(columns=lipid_converter_header)
                 else:
-                    # Ben D: We need to distinguish between protein and lipid ID file templates
-                    if self.LipidButton.isChecked():
-                        # Create lipid ID file template
-                        df = pd.DataFrame(columns=lipid_converter_header)
-                    else:
-                        # Otherwise, use the protein template
-                        df = pd.DataFrame(columns=protein_converter_header)
-                    df.to_csv(save_file, sep=',', index=False)
+                    # Otherwise, use the protein template
+                    df = pd.DataFrame(columns=protein_converter_header)
+                df.to_csv(save_file, sep=',', index=False)
                 break
             except IOError:
                 QtWidgets.QMessageBox.information(self, "Error",
@@ -291,7 +213,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         if self.PeptideButton.isChecked():
             biomolecule_type = "Peptide"
             settings.use_empir_n_value = False
-        elif self.LipidButton.isChecked():
+        else:
             biomolecule_type = "Lipid"
 
         # $first we need to check which steps are checked

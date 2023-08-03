@@ -563,12 +563,7 @@
     <widget class="QComboBox" name="calculate_n_values">
      <item>
       <property name="text">
-       <string>Yes</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>No</string>
+       <string>Based on analysis</string>
       </property>
      </item>
     </widget>
