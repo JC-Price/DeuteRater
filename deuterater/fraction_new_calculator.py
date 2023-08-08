@@ -70,16 +70,18 @@ protein_itertuple_renamer = {
     "Protein ID": "Protein_ID",
     "Protein Name": "Protein_Name",
     "Homologous Proteins": "Homologous_Proteins",
-    "n_isos": "num_peaks",
     "literature_n": "n_value"
 }
 
+# "n_isos": "num_peaks",
+
 lipid_itertuple_renamer = {
     "literature_n": "n_value",
+    "Lipid Unique Identifier": "Lipid_Unique_Identifier",
+    "Lipid Name": "Lipid_Name",
 }
 
-#    "n_isos": "num_peaks", "Lipid Name": "Lipid_Name"
-#    "Lipid Unique Identifier": "Lipid_Unique_Identifier"
+#    "n_isos": "num_peaks",
 
 
 class FractionNewCalculator:
@@ -264,7 +266,7 @@ class FractionNewCalculator:
                 n_H=num_h,
                 low_pct=0,
                 high_pct=use_enrich,
-                num_peaks=int(row.num_peaks),
+                num_peaks=int(row.n_isos),
                 testing=False
             )
             e_mzs, e_abunds = enriched_results
