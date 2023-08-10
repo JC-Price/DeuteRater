@@ -190,6 +190,18 @@ class ChromatographyDivider:
                                               tqdm(molecule_groups, desc="dividing chromatography: ",
                                                    total=num_groups))
 
+                with open("logs.txt", 'a') as log:
+                    log.write("Settings Path: " + str(self.settings_path) + "\n")
+                    log.write("Input Paths: " + str(self.input_paths) + "\n")
+                    log.write("Output Paths: " + str(self.out_paths) + "\n")
+                    log.write("Interfile\n")
+                    log.write("Biomolecule type: " + self.biomolecule_type + "\n")
+                    log.write("DF Columns: " + str(df.columns) + "\n")
+                    log.write("Column Names: " + str(col_names) + "\n")
+                    log.write("Molecule Group Name: " + str(molecule_group_name) + "\n")
+                    log.write("Molecule Groups: " + str(molecule_groups.groups) + "\n")
+                    log.write("Molecules: " + str(molecules) + "\n\n")
+
             elif settings.debug_level >= 1:
                 func = partial(self.handle_molecule, settings_path=self.settings_path)
                 for group in tqdm(molecule_groups, desc="dividing chromatography: ", total=num_groups):

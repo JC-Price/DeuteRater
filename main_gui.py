@@ -236,6 +236,18 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             QtWidgets.QFileDialog.ShowDirsOnly)
         if output_folder == "":
             return
+
+        # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
+        if settings.debug_level == 0:
+            with open("logs.txt", 'w') as log:
+                log.write("***** OUTPUT FOLDER: " + str(output_folder) + " *****\n\n")
+                log.write("Biomolecule type: " + biomolecule_type + "\n")
+                log.write("Selected worklist: " + str(worklist) + "\n\n")
+                log.write("main_gui/executable location: " + str(location) + "\n")
+                log.write("Rate Settings: " + str(default_rate_settings) + "\n")
+                log.write("ID Settings: " + str(id_settings_file) + "\n")
+                log.write("Default ID Settings: " + str(default_id_settings) + "\n\n")
+
         # $change location we start asking for things at
         # $don't change since all output is going in here
         self.file_loc = output_folder
@@ -283,12 +295,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             step_object_dict[worklist_step].complete_filename(self.file_loc)
             outputs_to_check.append(step_object_dict[worklist_step].full_filename)
         # $if should only fail if an extract only, but that may occur
-        if outputs_to_check != []:
+        if outputs_to_check:
             proceed = self.check_file_removal(outputs_to_check)
             if not proceed:
                 return
 
-        # $now we need to get input and do the work. each step can only occur
+        # $Now we need to get the input and do the work. Each step can only occur
         # $once and they occur in order. so we will write them in order
         # todo$ see if we can compress the code and make sure it is readable
         previous_output_file = ""
@@ -309,7 +321,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 mzml_files = self.collect_multiple_files("Centroided Data",
                                                          "Extract", "mzML (*.mzML)")
-                if mzml_files == []:
+                if not mzml_files:
                     return
 
                 mzml_filenames = [os.path.basename(filename) for filename in
@@ -330,8 +342,21 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 needed_files = list(set(extracted_files + extracted_intermediate_files))
                 proceed = self.check_file_removal(needed_files)
-                if not proceed:  return
+                if not proceed:
+                    return
                 self._make_folder(os.path.join(output_folder, "No_Division"))
+
+                # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
+                if settings.debug_level == 0:
+                    with open("logs.txt", 'a') as log:
+                        log.write("Selected ID File: " + str(id_file) + "\n")
+                        log.write("Selected mzml Files: " + str(mzml_filenames) + "\n")
+                        log.write("Extracted Files: " + str(extracted_files) + "\n")
+                        log.write("Extracted Intermediate Files: " + str(extracted_intermediate_files) + "\n")
+                        log.write("Needed Files: " + str(needed_files) + "\n\n")
+                        log.write("Now preparing for extraction...\n\n")
+
+
                 # $need to run the table if necessary. taken from the
                 # $"Provide Time and Enrichment" elif
                 if "Provide Time and Enrichment" in worklist:
@@ -360,7 +385,18 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.run()
                     extractor.write()
                     del extractor
+
+                # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
+                if settings.debug_level == 0:
+                    with open("logs.txt", 'a') as log:
+                        log.write("Extraction completed.\n\n")
+
                 if settings.use_chromatography_division != "No":
+                    # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
+                    if settings.debug_level == 0:
+                        with open("logs.txt", 'a') as log:
+                            log.write("Beginning Chromatography Division...\n\n")
+
                     divider = ChromatographyDivider(settings_path=rate_settings_file,
                                                     input_paths=extracted_intermediate_files,
                                                     out_paths=extracted_files,
@@ -368,6 +404,11 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                                     )
                     divider.divide()
                     del divider
+
+                    # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
+                    if settings.debug_level == 0:
+                        with open("logs.txt", 'a') as log:
+                            log.write("Finished Chromatography Division\n\n")
 
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 # $if coming right after a list
@@ -750,3 +791,8 @@ if __name__ == '__main__':
     # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
     #     outf.write("main_gui.py - Attempting to run main method in main_gui.py\n")
     main()
+
+    # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
+    if settings.debug_level == 1:
+        with open("logs.txt", 'w') as log:
+            log.write("\n\n\n")
