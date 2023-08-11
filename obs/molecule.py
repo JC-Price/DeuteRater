@@ -102,8 +102,8 @@ class Molecule(object):
         distance_between_scans = whole_rt_range / len(rt_list)
         allowed_scan_variance = int(allowed_peak_variance_min / distance_between_scans)
 
-        # Grab peaks from all of the ids for comparison. Also, remove any peaks
-        #   that are at the beginning or ending scan of the 3 minute window.
+        # Grab peaks from all the ids for comparison. Also, remove any peaks
+        #   that are at the beginning or ending scan of the 3-minute window.
         from copy import deepcopy, copy
         available_chrom_peaks = list()
         id_neutromer_peak_indexes = list()
@@ -118,7 +118,7 @@ class Molecule(object):
             available_chrom_peaks[-1].insert(0, rep)
             chrom_peak_indexes[-1].insert(0, rep)
 
-            # Remove any peaks that has it's center at the end or beginning of 3 minute window.
+            # Remove any peaks that has its center at the end or beginning of 3-minute window.
             if len(id.rt_peak_index) > 1:
                 end_range = None
                 start_range = None
@@ -437,7 +437,7 @@ class Molecule(object):
         to_string = ['m-1_mz', 'm-1_abundance', 'm_end+1_mz', 'm_end+1_mz', 'm_end+1_abundance', 'mads', 'mzs', 'abundances']
         df = df.astype({a: str for a in to_string})
         for rep, id in self.ids.items():
-            name_column = list(set(df.columns).intersection({"Lipid Unique Identifier", "Sequence"}))
+            name_column = list(set(df.columns).intersection({"Lipid_Unique_Identifier", "Sequence"}))
             row = df[df[name_column[0]] == self.name]
             row = row.loc[row["name_check"] == rep]
             for row_index in row["row_num"]:

@@ -12,6 +12,7 @@ readability and consistency, as well as easy to use in the command line
 """
 
 # $we will of course need to expand things later, but we'll sort that out later
+import sys
 import os
 import multiprocessing as mp
 import csv
@@ -36,8 +37,8 @@ import deuterater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 import gui_software.Converter_Settings as guide_settings
 
-# location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.abspath(__file__))
+location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.abspath(__file__))
 
 rate_settings_file = os.path.join(location, "resources", "temp_settings.yaml")
 default_rate_settings = os.path.join(location, "resources", "settings.yaml")
@@ -53,7 +54,7 @@ Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                                       'Precursor m/z', 'Identification Charge', 'Sequence',
                                       'Protein ID', "cf"],
                                  ['Precursor Retention Time (sec)', 'Precursor m/z',
-                                  'Identification Charge', "Lipid Unique Identifier",
+                                  'Identification Charge', "Lipid_Unique_Identifier",
                                   "LMP", "Lipid Name", "HMP", "cf"])
 Time_Enrich_object = deuterater_step("time_enrichment_data.tsv",
                                      [
@@ -62,7 +63,7 @@ Time_Enrich_object = deuterater_step("time_enrichment_data.tsv",
                                          "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
                                          "Sequence", "cf", "abundances", "mzs"
                                      ],
-                                     ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+                                     ["Precursor Retention Time (sec)", "Lipid_Unique_Identifier", "Precursor m/z",
                                       "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
                                       "Lipid Name", "cf", "abundances", "mzs"])
 Theory_object = deuterater_step("theory_output.tsv",
@@ -73,7 +74,7 @@ Fracnew_object = deuterater_step("frac_new_output.tsv", [
     "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
     "Sequence", "cf", "abundances", "mzs", "timepoint", "enrichment", "sample_group"],
                                  [
-                                     "Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+                                     "Precursor Retention Time (sec)", "Lipid_Unique_Identifier", "Precursor m/z",
                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
                                      "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
                                      "sample_group"])
@@ -239,7 +240,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
         if settings.debug_level == 0:
-            with open("logs.txt", 'w') as log:
+            with open("D:\\DeuteRater Logs\\logs.txt", 'w') as log:
                 log.write("***** OUTPUT FOLDER: " + str(output_folder) + " *****\n\n")
                 log.write("Biomolecule type: " + biomolecule_type + "\n")
                 log.write("Selected worklist: " + str(worklist) + "\n\n")
@@ -348,7 +349,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                 if settings.debug_level == 0:
-                    with open("logs.txt", 'a') as log:
+                    with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
                         log.write("Selected ID File: " + str(id_file) + "\n")
                         log.write("Selected mzml Files: " + str(mzml_filenames) + "\n")
                         log.write("Extracted Files: " + str(extracted_files) + "\n")
@@ -388,13 +389,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                 if settings.debug_level == 0:
-                    with open("logs.txt", 'a') as log:
+                    with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
                         log.write("Extraction completed.\n\n")
 
                 if settings.use_chromatography_division != "No":
                     # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                     if settings.debug_level == 0:
-                        with open("logs.txt", 'a') as log:
+                        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
                             log.write("Beginning Chromatography Division...\n\n")
 
                     divider = ChromatographyDivider(settings_path=rate_settings_file,
@@ -407,7 +408,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                     # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                     if settings.debug_level == 0:
-                        with open("logs.txt", 'a') as log:
+                        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
                             log.write("Finished Chromatography Division\n\n")
 
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
@@ -764,9 +765,6 @@ def make_temp_file(filename, new_filename):
 
 
 def main():
-    # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
-    #     outf.write("main_gui.py/main() - Preparing application window\n")
-
     # $needed for windows multiprocessing which will happen at some point
     import sys
     if os.name == "nt":
@@ -783,16 +781,12 @@ def main():
     gui_object.show()
     app.exec_()
 
-    # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
-    #     outf.write("main_gui.py/main() - Application exucted\n")
 
 
 if __name__ == '__main__':
-    # with open("C:\\Users\\benny\\OneDrive\\Desktop\\logs.txt", 'w') as outf:
-    #     outf.write("main_gui.py - Attempting to run main method in main_gui.py\n")
     main()
 
     # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
     if settings.debug_level == 1:
-        with open("logs.txt", 'w') as log:
+        with open("D:\\DeuteRater Logs\\logs.txt", 'w') as log:
             log.write("\n\n\n")

@@ -267,7 +267,7 @@ def handle_single_file(lipids_selected, biomolecule_type, files):
 	# Before reading in the chromatography data, read in all available lipids to find the
 	# index that the needed lipids are located in the file being read in to save time and space.
 	if biomolecule_type == "Lipid":
-		col_type = "Lipid Unique Identifier"
+		col_type = "Lipid_Unique_Identifier"
 		index_col = "Adduct_cf"
 	else:
 		col_type = "Sequence"
@@ -415,7 +415,7 @@ def handle_single_lipid(lipid_selected, chrom_files, divided_files):
 		# index that the needed lipids are located in the file being read in to save time and space.
 		global biomolecule_type
 		if biomolecule_type == "Lipid":
-			col_type = "Lipid Unique Identifier"
+			col_type = "Lipid_Unique_Identifier"
 			index_col = "Adduct_cf"
 		else:
 			col_type = "Sequence"

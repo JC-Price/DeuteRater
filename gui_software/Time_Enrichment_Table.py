@@ -7,6 +7,7 @@ Created on Fri Sep 25 08:21:34 2020
 The point of this is to hold the time and enrichment table
 any adjustments to the table should be made here or in the qt designer
 """
+import sys
 import os
 import csv
 import pandas as pd
@@ -14,8 +15,8 @@ import pandas as pd
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 
 
-#location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ui_file = os.path.join(location, "ui_files", "Time_Enrichment_Table.ui")
 

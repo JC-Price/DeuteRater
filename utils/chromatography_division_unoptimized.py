@@ -153,7 +153,7 @@ class ChromatographyDivider:
             possible_rows.sort()
             df['name_check'] = df.apply(lambda x: "_".join(x.loc[possible_rows].astype(str)), axis=1)
             if self.biomolecule_type == "Lipid" or self.biomolecule_type == "Lipids":
-                molecule_groups = df.groupby(by="Lipid Unique Identifier")
+                molecule_groups = df.groupby(by="Lipid_Unique_Identifier")
             else:
                 molecule_groups = df.groupby(by=df.columns[0])
             df["Extraction_Updated"] = ""
@@ -188,7 +188,7 @@ class ChromatographyDivider:
                 possible_rows.sort()
                 df['name_check'] = df.apply(lambda x: "_".join(x.loc[possible_rows].astype(str)), axis=1)
                 if self.biomolecule_type == "Lipid":
-                    molecule_groups = df.groupby(by="Lipid Unique Identifier")
+                    molecule_groups = df.groupby(by="Lipid_Unique_Identifier")
                 else:
                     molecule_groups = df.groupby(by=df.columns[0])
                 df["Extraction_Updated"] = ""

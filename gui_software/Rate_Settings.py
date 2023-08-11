@@ -63,6 +63,7 @@ enrichement_of_zero - adjusting this is usually unnecessary. troubleshooting
         only so no need for normal settings
 
 """
+import sys
 import os
 import pandas as pd
 from PyQt5 import uic, QtWidgets
@@ -71,8 +72,8 @@ import deuterater.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_string_info
 
 
-#location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 settings_file_ui_location = os.path.join(location, "ui_files", "Settings_Menu.ui")
 loaded_ui = uic.loadUiType(settings_file_ui_location)[0]

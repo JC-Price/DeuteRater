@@ -81,8 +81,13 @@ class ChromatographyDivider:
         settings.load(settings_path)
         molecule = Molecule(group[0])
         data = list()
+
+        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+            log.write("\nOpening .tsv files...\n")
         # Load in the data from the .tsv files
         for filename in np.unique(group[1]["infile"]):
+            with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+                log.write(str(filename) + "\n")
             file_df = group[1].loc[group[1]["infile"] == filename]
             indexes = list(file_df["index"])
             indexes.append(-1)
@@ -97,6 +102,10 @@ class ChromatographyDivider:
             df["filename"] = np.unique(file_df["filename"])[0]
             data.append(df)
         df = pd.concat(data)
+        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+            log.write("Dataframe: " + "\n")
+            log.write(str(df) + "\n")
+
         for series in df.iterrows():
             row = series[1]
             mzs = ChromatographyDivider.parse_2d_list(row.mzs_list)
@@ -155,12 +164,16 @@ class ChromatographyDivider:
         molecule = ChromatographyDivider.divide_molecule(molecule)
         group_df = molecule.update_output_file(df)
 
+        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+            log.write("Molecule: " + str(molecule) + "\n")
+            log.write("group_df: " + str(group_df) + "\n")
+
         return group_df
 
     def divide(self):
         if self.biomolecule_type == "Lipid":
-            col_names = ["Lipid Unique Identifier", "rt_list", "mzml_path", "Adduct", "z"]
-            molecule_group_name = "Lipid Unique Identifier"
+            col_names = ["Lipid_Unique_Identifier", "rt_list", "mzml_path", "Adduct", "z"]
+            molecule_group_name = "Lipid_Unique_Identifier"
         elif self.biomolecule_type == "Peptide":
             col_names = ["Sequence", "rt_list", "mzml_path", "z"]
             molecule_group_name = "Sequence"
@@ -190,7 +203,7 @@ class ChromatographyDivider:
                                               tqdm(molecule_groups, desc="dividing chromatography: ",
                                                    total=num_groups))
 
-                with open("logs.txt", 'a') as log:
+                with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
                     log.write("Settings Path: " + str(self.settings_path) + "\n")
                     log.write("Input Paths: " + str(self.input_paths) + "\n")
                     log.write("Output Paths: " + str(self.out_paths) + "\n")

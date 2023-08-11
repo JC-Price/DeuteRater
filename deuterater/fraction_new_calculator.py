@@ -77,7 +77,7 @@ protein_itertuple_renamer = {
 
 lipid_itertuple_renamer = {
     "literature_n": "n_value",
-    "Lipid Unique Identifier": "Lipid_Unique_Identifier",
+    "Lipid_Unique_Identifier": "Lipid_Unique_Identifier",
     "Lipid Name": "Lipid_Name",
 }
 

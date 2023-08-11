@@ -76,7 +76,7 @@ class L4D_Analyzer_Converter(BaseConverter):
 
     correct_header_order = [
         "Lipid Name",
-        "Lipid Unique Identifier",
+        "Lipid_Unique_Identifier",
         "Possible Annotations",
         'cf',
         'Adduct',
@@ -399,7 +399,7 @@ class L4D_Analyzer_Converter(BaseConverter):
         self._id_df['literature_n'] = np.nan
         self._id_df['HMP'] = np.nan
         self._id_df['LMP'] = np.nan
-        self._id_df['Lipid Unique Identifier'] = self._id_df['Lipid Name'] + "_" + self._id_df[
+        self._id_df['Lipid_Unique_Identifier'] = self._id_df['Lipid Name'] + "_" + self._id_df[
             'Precursor Retention Time (sec)'].apply(lambda x: str("{:.3f}".format(x / 60))) + str(self._id_df[
                                                                                                       'Precursor Drift Time (ms)'])
         self._id_df = self._id_df[header_order].rename(
