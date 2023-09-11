@@ -72,7 +72,7 @@ class PCDL_Converter(BaseConverter):
         'RT': 'Precursor Retention Time (sec)',
         "Mass": 'Precursor m/z',
         "": 'Identification Charge',
-        "": "Lipid_Unique_Identifier",
+        "": "Lipid Unique_Identifier",
         "": "LMP",
         "Name ": "Lipid Name",
         "": "HMP",
@@ -121,6 +121,8 @@ class PCDL_Converter(BaseConverter):
         'cf',
         'neutromers_to_extract',
         'literature_n',
+        'Adduct',
+        'Adduct_cf',
         'Matched_Results_Analysis',
         'Matched_Details_Replicates_Used'
     ]

@@ -152,7 +152,7 @@ class TheoryPreparer:
 
             column_list = list(
                 self.model.columns[
-                    self.model.columns.isin(["Adduct", "sample_group", "Lipid_Unique_Identifier", "Sequence"])])
+                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
             column_list.sort()
             self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
 

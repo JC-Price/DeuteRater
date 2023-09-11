@@ -71,8 +71,8 @@ H2O_loss: bool
 
 expand_to_adducts: bool
 
-location = os.path.dirname(os.path.abspath(sys.executable))
-# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# location = os.path.dirname(os.path.abspath(sys.executable))
+location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link

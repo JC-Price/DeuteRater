@@ -55,8 +55,8 @@ import deuteconvert.settings as settings
 # TODO: make sure that all of the virtual base class functions are implemented
 
 
-location = os.path.abspath(sys.executable)
-# location = os.path.dirname(os.path.abspath(__file__))
+# location = os.path.abspath(sys.executable)
+location = os.path.dirname(os.path.abspath(__file__))
 
 main_location = os.path.dirname(location)
 json_path = os.path.join(main_location, "resources", "ptms.json")

@@ -15,8 +15,8 @@ import pandas as pd
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 
 
-location = os.path.dirname(os.path.abspath(sys.executable))
-# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# location = os.path.dirname(os.path.abspath(sys.executable))
+location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ui_file = os.path.join(location, "ui_files", "Time_Enrichment_Table.ui")
 

@@ -1,5 +1,5 @@
 ID_weight: 0.7
-aa_labeling_sites_path: /home/JCPriceLab/PycharmProjects/DeuteRater/resources/aa_labeling_sites.tsv
+aa_labeling_sites_path: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater\resources\aa_labeling_sites.tsv
 abundance_agreement_filter: 0.1
 abundance_manual_bias: 0.0
 adduct_weight: 1.0
@@ -24,7 +24,7 @@ id_file_rt_unit: sec
 intensity_filter: 20000
 intensity_weight: 0.6
 labeling_step_size: 0.001
-lipid_analyte_id_column: Lipid_Unique_Identifier
+lipid_analyte_id_column: Lipid Unique Identifier
 lipid_analyte_name_column: Lipid_Name
 max_valid_angle: 1.2
 maximum_theoretical_pct: 0.071

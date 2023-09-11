@@ -437,7 +437,7 @@ class Molecule(object):
         to_string = ['m-1_mz', 'm-1_abundance', 'm_end+1_mz', 'm_end+1_mz', 'm_end+1_abundance', 'mads', 'mzs', 'abundances']
         df = df.astype({a: str for a in to_string})
         for rep, id in self.ids.items():
-            name_column = list(set(df.columns).intersection({"Lipid_Unique_Identifier", "Sequence"}))
+            name_column = list(set(df.columns).intersection({"Lipid Unique Identifier", "Sequence"}))
             row = df[df[name_column[0]] == self.name]
             row = row.loc[row["name_check"] == rep]
             for row_index in row["row_num"]:

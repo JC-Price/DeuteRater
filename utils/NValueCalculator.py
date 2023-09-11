@@ -115,6 +115,8 @@ class NValueCalculator:
             pd.DataFrame: A DataFrame containing the n-value and associated standard deviation
         """
         results = []
+
+
         try:
             # print(f"Started group #" + str(partition[1].index[0]) + f" at: " + str(time.perf_counter() - start) + f" seconds", end='\r')
             # Each chemical formula has only 1 enrichment value

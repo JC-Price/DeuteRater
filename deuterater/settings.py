@@ -62,8 +62,8 @@ except:
 
 # NOTE: we can use LibYAML c bindings if we need more speed
 
-location = os.path.dirname(os.path.abspath(sys.executable))
-# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# location = os.path.dirname(os.path.abspath(sys.executable))
+location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
 debug_level: int

@@ -37,8 +37,11 @@ import deuterater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 import gui_software.Converter_Settings as guide_settings
 
-location = os.path.dirname(os.path.abspath(sys.executable))
-# location = os.path.dirname(os.path.abspath(__file__))
+exe_mode = False
+if exe_mode:
+    location = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    location = os.path.dirname(os.path.abspath(__file__))
 
 rate_settings_file = os.path.join(location, "resources", "temp_settings.yaml")
 default_rate_settings = os.path.join(location, "resources", "settings.yaml")
@@ -54,7 +57,7 @@ Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                                       'Precursor m/z', 'Identification Charge', 'Sequence',
                                       'Protein ID', "cf"],
                                  ['Precursor Retention Time (sec)', 'Precursor m/z',
-                                  'Identification Charge', "Lipid_Unique_Identifier",
+                                  'Identification Charge', "Lipid Unique Identifier",
                                   "LMP", "Lipid Name", "HMP", "cf"])
 Time_Enrich_object = deuterater_step("time_enrichment_data.tsv",
                                      [
@@ -63,7 +66,7 @@ Time_Enrich_object = deuterater_step("time_enrichment_data.tsv",
                                          "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
                                          "Sequence", "cf", "abundances", "mzs"
                                      ],
-                                     ["Precursor Retention Time (sec)", "Lipid_Unique_Identifier", "Precursor m/z",
+                                     ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
                                       "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
                                       "Lipid Name", "cf", "abundances", "mzs"])
 Theory_object = deuterater_step("theory_output.tsv",
@@ -74,7 +77,7 @@ Fracnew_object = deuterater_step("frac_new_output.tsv", [
     "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
     "Sequence", "cf", "abundances", "mzs", "timepoint", "enrichment", "sample_group"],
                                  [
-                                     "Precursor Retention Time (sec)", "Lipid_Unique_Identifier", "Precursor m/z",
+                                     "Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
                                      "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
                                      "sample_group"])
@@ -121,8 +124,19 @@ convert_needed_headers = {
 default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
 # TODO: Does this need to be PeaksXPro.correct_header_order???
-protein_converter_header = PeaksXplus.correct_header_order
-lipid_converter_header = PCDL_Converter.development_header_order
+protein_converter_header = ['peptide', 'first_accession', 'protein', 'rt_mean', 'rt_start', 'rt_end', 'rt_width', 'mz',
+                            'theoretical_mass', 'z', 'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides',
+                            'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version', 'cf',
+                            'neutromers_to_extract', 'literature_n']
+protein_template_example = ['EXAMPLE DATA: EGIVALR', 'P80317', 'T-complex protein 1 subunit zeta', '1693.2', '1661.4',
+                            '1717.2', '55.8',
+                            '757.459575', '756.4493882', '1', '', '4.7', '308', '314', '22', '15', '[\'P80317\']',
+                            'Mus musculus OX=10090', 'Cct6a', '1', '3', 'C33H60N10O10', '3', '15.66']
+lipid_converter_header = ['Lipid Name', 'Lipid_Unique_Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
+                          "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'literature_n',
+                          'Adduct', 'Adduct_cf', 'Matched_Results_Analysis', 'Matched_Details_Replicates_Used']
+lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
+                          '1', '', '', 'C7H16NO2', '3', '', 'M+H', 'C7H17NO2', '', '']
 
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
 loaded_ui = uic.loadUiType(main_file_ui_location)[0]
@@ -188,9 +202,11 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 if id_file_type == "Lipid Template":
                     # Create lipid ID file template
                     df = pd.DataFrame(columns=lipid_converter_header)
+                    df.loc[0] = lipid_template_example
                 else:
                     # Otherwise, use the protein template
                     df = pd.DataFrame(columns=protein_converter_header)
+                    df.loc[0] = protein_template_example
                 df.to_csv(save_file, sep=',', index=False)
                 break
             except IOError:
@@ -240,7 +256,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
         if settings.debug_level == 0:
-            with open("D:\\DeuteRater Logs\\logs.txt", 'w') as log:
+            with open("logs.txt", 'w') as log:
                 log.write("***** OUTPUT FOLDER: " + str(output_folder) + " *****\n\n")
                 log.write("Biomolecule type: " + biomolecule_type + "\n")
                 log.write("Selected worklist: " + str(worklist) + "\n\n")
@@ -349,14 +365,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                 if settings.debug_level == 0:
-                    with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+                    with open("logs.txt", 'a') as log:
                         log.write("Selected ID File: " + str(id_file) + "\n")
                         log.write("Selected mzml Files: " + str(mzml_filenames) + "\n")
                         log.write("Extracted Files: " + str(extracted_files) + "\n")
                         log.write("Extracted Intermediate Files: " + str(extracted_intermediate_files) + "\n")
                         log.write("Needed Files: " + str(needed_files) + "\n\n")
                         log.write("Now preparing for extraction...\n\n")
-
 
                 # $need to run the table if necessary. taken from the
                 # $"Provide Time and Enrichment" elif
@@ -389,13 +404,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                 if settings.debug_level == 0:
-                    with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+                    with open("logs.txt", 'a') as log:
                         log.write("Extraction completed.\n\n")
 
                 if settings.use_chromatography_division != "No":
                     # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                     if settings.debug_level == 0:
-                        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+                        with open("logs.txt", 'a') as log:
                             log.write("Beginning Chromatography Division...\n\n")
 
                     divider = ChromatographyDivider(settings_path=rate_settings_file,
@@ -408,7 +423,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                     # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
                     if settings.debug_level == 0:
-                        with open("D:\\DeuteRater Logs\\logs.txt", 'a') as log:
+                        with open("logs.txt", 'a') as log:
                             log.write("Finished Chromatography Division\n\n")
 
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
@@ -782,11 +797,10 @@ def main():
     app.exec_()
 
 
-
 if __name__ == '__main__':
     main()
 
     # Adding some debugger logs so we can debug DeuteRater .exe - Ben Driggs
     if settings.debug_level == 1:
-        with open("D:\\DeuteRater Logs\\logs.txt", 'w') as log:
+        with open("logs.txt", 'w') as log:
             log.write("\n\n\n")

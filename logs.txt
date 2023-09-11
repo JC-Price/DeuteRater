@@ -1,0 +1,10 @@
+***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Test *****
+
+Biomolecule type: Lipid
+Selected worklist: ['Theory Generation', 'Fraction New Calculation', 'Rate Calculation']
+
+main_gui/executable location: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater
+Rate Settings: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater\resources\settings.yaml
+ID Settings: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater\resources\temp_id_settings.yaml
+Default ID Settings: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater\resources\id_settings.yaml
+
