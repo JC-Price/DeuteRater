@@ -24,7 +24,7 @@ loaded_ui = uic.loadUiType(ui_file)[0]
 
 #$ it is tricky to actually get the header out of the qtablewidget and they
 #$ need different checks anyway, so we'll just declare it here
-current_columns = ["Filename", "Time", "Enrichment", "Sample_Group", "Biological_Replicate"]
+current_columns = ["Filename", "Time", "Enrichment", "Sample_Group", "Biological_Replicate", "Calculate_N_Value"]
 
 
 class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
@@ -97,11 +97,16 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
             for i in range(current_columns.index("Sample_Group"), len(current_columns)):
                 test_value, error_code = TimeEnrichmentWindow._basic_string_check(
                         self.TimeEnrichmentTable.item(r,i).text(),
-                        current_columns[i], r)
+                                                                                current_columns[i], r)
                 if error_code:
                     QtWidgets.QMessageBox.information(self, "Error", test_value)
                     return
                 current_row.append(test_value)
+
+            if current_row[i].lower() not in ['yes', 'no']:
+                QtWidgets.QMessageBox.information(self, "Reminder", "Must answer yes or no for each replicate in the Calculate N-Value column")
+                return
+
             results.append(current_row)
         #$ if we've gotten here, we're good to write out
         with open(self.outfile, "w", newline ='') as temp_out:

@@ -60,7 +60,7 @@ class NValueCalculator:
             df.at[row.Index, 'intensities'] = [float(i) / s for i in temp]
 
         df = df.reset_index(drop=False)
-        df = df[['index', 'chemical_formula', 'adduct_chemical_formula', 'intensities', 'enrichment', 'sample_group']]
+        df = df[['index', 'chemical_formula', 'adduct_chemical_formula', 'intensities', 'enrichment', 'sample_group', 'calculate_n_value']]
         df.loc[:, "divider"] = df['chemical_formula'] + df['adduct_chemical_formula']
         df.sort_values(by="divider")
 
@@ -146,7 +146,13 @@ class NValueCalculator:
                     emass_results_dict[enrichment] = emass_results
                 emass_results = emass_results_dict[enrichment]
                 try:
-                    results.append(NValueCalculator.analyze_row(row, emass_results))
+                    if row.calculate_n_value == "yes":
+                        # Calculate n-values for any row that has 'yes' - Ben Driggs
+                        results.append(NValueCalculator.analyze_row(row, emass_results))
+                    else:
+                        # Otherwise we want to skip n-value calculations - Ben Driggs
+                        n_value, stddev, dIt_n_value, dIt_stddev = np.nan
+                        results.append(n_value, stddev, dIt_n_value, dIt_stddev)
                 except Exception as e:
                     print("EXCEPTION OCCURED WITH {}!".format(row))
             return pd.concat(
@@ -165,7 +171,7 @@ class NValueCalculator:
         Calculates n-value for each row
 
         Parameters:
-            row (pd.Series): Contains chemical formula, empirical intensity data, and enrichment level,
+            row (pd.Series): Contains chemical formula, empirical intensity data, and enrichment level, and whether an n-value should be calculated
             plot_dir (str): The directory to output fraction_new .csv files to.
             emass_results (pd.DataFrame): Results from emass containing unlabeled & labeled intensity and m/z data.
 

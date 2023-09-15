@@ -139,6 +139,7 @@ class TheoryPreparer:
                 df['enrichment'] = row.Enrichment
                 df["sample_group"] = row.Sample_Group
                 df["bio_rep"] = row.Biological_Replicate
+                df["Calculate N-Value?"] = row.calculate_n_value
                 results.append(df)
 
         self.model = pd.concat(results)
@@ -156,6 +157,7 @@ class TheoryPreparer:
             column_list.sort()
             self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
 
+            # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
             # n_val_df = self.model
             calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
             calculator.run()
@@ -163,7 +165,7 @@ class TheoryPreparer:
 
             full_df = self.model.copy()
 
-            # Determine what the highest timepoint is and only look at those rows
+            # Determine what the highest time point is and only look at those rows
             highest_timepoint = max(full_df['time'].unique())
             lipid_groups = full_df.groupby(by='adduct_molecule_sg')
 
@@ -171,7 +173,7 @@ class TheoryPreparer:
             for group in lipid_groups:
                 group_df = group[1]
                 high_tp_df = group_df.loc[group_df[
-                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest timepoint overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
+                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
                 if high_tp_df.empty:
                     # $ BN -1 is only for max time had no n-values (or grouping had no max time)
                     full_df.loc[full_df['adduct_molecule_sg'] == group[
@@ -183,7 +185,7 @@ class TheoryPreparer:
                         high_tp_df['empir_n'].median())
                 else:
                     median_n = round(high_tp_df['empir_n'].median())  # BN rounding
-                    # CQ Changed arrange so it has integers in the range. Trying to include as many values as possible within a range.
+                    # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
                     try:
                         median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
                                                  1.0)  # BN swapped to a range added ", 1.0"
@@ -228,7 +230,7 @@ class TheoryPreparer:
     def _mp_prepare(settings_path, args, aa_labeling_dict=None):
         settings.load(settings_path)
         # file_path, time, enrichment = args
-        file_path, time, enrichment, sample_group, biological_replicate = args
+        file_path, time, enrichment, sample_group, biological_replicate, calculate_n_values = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         if "mzs_list" in df.columns:
             df.drop(inplace=True, columns=["mzs_list", "intensities_list", "rt_list", "baseline_list"])
@@ -243,6 +245,7 @@ class TheoryPreparer:
         df['enrichment'] = enrichment
         df["sample_group"] = sample_group
         df["bio_rep"] = biological_replicate
+        df['calculate_n_value'] = calculate_n_values
         return df
 
     @staticmethod
