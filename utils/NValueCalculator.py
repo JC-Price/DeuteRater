@@ -116,12 +116,11 @@ class NValueCalculator:
         """
         results = []
 
-
         try:
             # print(f"Started group #" + str(partition[1].index[0]) + f" at: " + str(time.perf_counter() - start) + f" seconds", end='\r')
             # Each chemical formula has only 1 enrichment value
             # Because adducts can occur, we need to only look at hydrogens that would be in the actual molecule.
-            #	I need to ask Rusty if I should just choose the smaller cf, or which cf we want to use.
+            # I need to ask Rusty if I should just choose the smaller cf, or which cf we want to use.
             num_h_adduct, cf, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
             num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
             if num_h_no_adduct < num_h_adduct:
@@ -134,6 +133,13 @@ class NValueCalculator:
             num_peaks = max(partition[1].intensities.str.len())
             emass_results_dict = dict()
             for row in partition[1].itertuples(index=False):
+                # Determine if we should calculate n-value for current row
+                if row.calculate_n_value == "yes":
+                    calc_n_value = True
+                else:
+                    calc_n_value = False
+
+                # Get/find enrichment value
                 enrichment = row.enrichment
                 if enrichment == 0:
                     enrichment = 0.05
@@ -145,14 +151,10 @@ class NValueCalculator:
                         print("Chemical Formula ", row.cf, " contains unsupported molecules")
                     emass_results_dict[enrichment] = emass_results
                 emass_results = emass_results_dict[enrichment]
+
+                # Calculate n-values and standard deviations
                 try:
-                    if row.calculate_n_value == "yes":
-                        # Calculate n-values for any row that has 'yes' - Ben Driggs
-                        results.append(NValueCalculator.analyze_row(row, emass_results))
-                    else:
-                        # Otherwise we want to skip n-value calculations - Ben Driggs
-                        n_value, stddev, dIt_n_value, dIt_stddev = np.nan
-                        results.append(n_value, stddev, dIt_n_value, dIt_stddev)
+                    results.append(NValueCalculator.analyze_row(row, emass_results, calc_n_value))
                 except Exception as e:
                     print("EXCEPTION OCCURED WITH {}!".format(row))
             return pd.concat(
@@ -166,7 +168,7 @@ class NValueCalculator:
             )
 
     @staticmethod
-    def analyze_row(row, emass_results):
+    def analyze_row(row, emass_results, calc_n_value):
         """
         Calculates n-value for each row
 
@@ -174,9 +176,10 @@ class NValueCalculator:
             row (pd.Series): Contains chemical formula, empirical intensity data, and enrichment level, and whether an n-value should be calculated
             plot_dir (str): The directory to output fraction_new .csv files to.
             emass_results (pd.DataFrame): Results from emass containing unlabeled & labeled intensity and m/z data.
+            calc_n_value: boolean determined by user in the Time and Enrichment table to decide whether an n-value should be calculated
 
         Returns:
-            Tuple: a tuple containing the given n-value and the stddev associated with it.
+            Tuple: a tuple containing the given n-value and the stddev associated with it (will be empty if n-value was not calculated).
         """
 
         def calc_stddev(fraction_new, MINIMUM_PEAKS=3):
@@ -338,46 +341,52 @@ class NValueCalculator:
 
             return empir_v_emass_angles, angle_n_value, peaks_included
 
-        # could speed up by forgoing mzs, but mzs will be needed down the line
-        emass_unlabeled_data, emass_labeled_data = emass_results
+        if calc_n_value:
+            # could speed up by forgoing mzs, but mzs will be needed down the line
+            emass_unlabeled_data, emass_labeled_data = emass_results
 
-        # Returns 2 tuples of DataFrame with rows representing # of hydrogens that have been deuterated,
-        # columns represent the peak #, data is m/z for 1st and intensity for 2nd
-        (emass_unlabeled_mz, emass_unlabeled_intensities) = emass_unlabeled_data
-        (emass_labeled_mz, emass_labeled_intensities) = emass_labeled_data
+            # Returns 2 tuples of DataFrame with rows representing # of hydrogens that have been deuterated,
+            # columns represent the peak #, data is m/z for 1st and intensity for 2nd
+            (emass_unlabeled_mz, emass_unlabeled_intensities) = emass_unlabeled_data
+            (emass_labeled_mz, emass_labeled_intensities) = emass_labeled_data
 
-        unfiltered_fraction_new = emass_unlabeled_intensities.copy()
-        dIt_data = emass_unlabeled_intensities.copy()
+            unfiltered_fraction_new = emass_unlabeled_intensities.copy()
+            dIt_data = emass_unlabeled_intensities.copy()
 
-        # Generate fraction_new and dIt data
-        for peak, ie in enumerate(row.intensities):
-            unfiltered_fraction_new['I' + str(peak)] = (
-                    (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - ie) /
-                    (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - emass_labeled_intensities['I' + str(peak)])
-            )
+            # Generate fraction_new and dIt data
+            for peak, ie in enumerate(row.intensities):
+                unfiltered_fraction_new['I' + str(peak)] = (
+                        (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - ie) /
+                        (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - emass_labeled_intensities['I' + str(peak)])
+                )
 
-            dIt_data['I' + str(peak)] = (
-                np.abs((emass_labeled_intensities['I' + str(peak)] - emass_unlabeled_intensities['I' + str(peak)].iloc[
-                    0])))
+                dIt_data['I' + str(peak)] = (
+                    np.abs((emass_labeled_intensities['I' + str(peak)] - emass_unlabeled_intensities['I' + str(peak)].iloc[
+                        0])))
 
-        # Calculate n-value with no filters (using stddev)
-        unfiltered_fraction_new, n_value, stddev, peaks_included = n_value_by_stddev(unfiltered_fraction_new)
+            # Calculate n-value with no filters (using stddev)
+            unfiltered_fraction_new, n_value, stddev, peaks_included = n_value_by_stddev(unfiltered_fraction_new)
 
-        dIt_unfiltered_fraction_new, dIt_n_value, dIt_stddev, dIt_peaks_included = n_value_dIt_filter(
-            unfiltered_fraction_new, dIt_data)
+            dIt_unfiltered_fraction_new, dIt_n_value, dIt_stddev, dIt_peaks_included = n_value_dIt_filter(
+                unfiltered_fraction_new, dIt_data)
 
-        # import matplotlib.pyplot as plt
-        # plt.plot(unfiltered_fraction_new['stddev'], label="normal n")
-        # plt.title(str.format("{}_{}\n n_value = {}", row.chemical_formula, row.sample_group, int(n_value)))
-        # plt.legend()
-        # plt.savefig(str.format("{}_{}_{}.png", row.chemical_formula, row.sample_group, row.index))
-        # plt.clf()
-        # if not np.isnan(dIt_n_value):
-        # 	plt.plot(dIt_unfiltered_fraction_new['stddev'], label="dIt n")
-        # 	plt.title(str.format("{}_{}\n dIt_n_value = {}", row.chemical_formula, row.sample_group, int(dIt_n_value)))
-        # 	plt.legend()
-        # 	plt.savefig(str.format("{}_{}_dIt_{}.png", row.chemical_formula, row.sample_group, row.index))
-        # 	plt.clf()
+            # import matplotlib.pyplot as plt
+            # plt.plot(unfiltered_fraction_new['stddev'], label="normal n")
+            # plt.title(str.format("{}_{}\n n_value = {}", row.chemical_formula, row.sample_group, int(n_value)))
+            # plt.legend()
+            # plt.savefig(str.format("{}_{}_{}.png", row.chemical_formula, row.sample_group, row.index))
+            # plt.clf()
+            # if not np.isnan(dIt_n_value):
+            # 	plt.plot(dIt_unfiltered_fraction_new['stddev'], label="dIt n")
+            # 	plt.title(str.format("{}_{}\n dIt_n_value = {}", row.chemical_formula, row.sample_group, int(dIt_n_value)))
+            # 	plt.legend()
+            # 	plt.savefig(str.format("{}_{}_dIt_{}.png", row.chemical_formula, row.sample_group, row.index))
+            # 	plt.clf()
+        else:
+            n_value = np.nan
+            stddev = np.nan
+            dIt_n_value = np.nan
+            dIt_stddev = np.nan
 
         return n_value, stddev, dIt_n_value, dIt_stddev
 

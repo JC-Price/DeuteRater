@@ -1,4 +1,4 @@
-***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Test *****
+***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/N-value-calc-test *****
 
 Biomolecule type: Lipid
 Selected worklist: ['Theory Generation', 'Fraction New Calculation', 'Rate Calculation']
