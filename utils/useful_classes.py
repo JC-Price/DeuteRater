@@ -34,7 +34,7 @@ import os
 import csv
 
 
-# $similar to deuterater step the goal is to force the the correct headers.
+# $similar to deuterater step the goal is to force the correct headers.
 # $useful for peaks only. could adjust this and deuterater step to inherit from a common parent class
 # $or merge into one class, but not worth it right now
 class deuteconvert_peaks_required_headers(object):

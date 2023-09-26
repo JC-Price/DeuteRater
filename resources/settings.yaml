@@ -159,7 +159,7 @@ peptide_analyte_name_column: !!str "Protein_Name"
 
 lipid_analyte_id_column: !!str "Lipid Unique Identifier"
 
-lipid_analyte_name_column: !!str "Lipid_Name"
+lipid_analyte_name_column: !!str "Lipid Name"
 
 study_type: "tissue"
 

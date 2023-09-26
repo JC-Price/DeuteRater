@@ -224,8 +224,13 @@ class FractionNewCalculator:
     @staticmethod
     def _mp_prepare(df, settings_path, biomolecule_type):
         settings.load(settings_path)
+
+        # Remove NaN values for row.n_value and replace with error code -4
+        df['n_value'] = df['n_value'].fillna(int(-4))
+
         # $can start with itertuples.  if need be can swap to apply
         for row in df.itertuples(index=True):
+
             if settings.remove_filters:
                 if row.n_value < 0:
                     df = FractionNewCalculator._error_method(df, row,

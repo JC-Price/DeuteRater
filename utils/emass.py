@@ -336,23 +336,26 @@ def emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
                 master_isotope['H'][1].abundance + pct
             )
         ]
-        for n in n_list:
-            #rounding is needed or the int in emass will do it 
-            #which will likely be wrong
-            #at least here we control it
-            rounded_n = round(n)
 
-            # Used to handle n-values that are impossible to actually calculate
-            if rounded_n > n_H:
-                rounded_n = n_H
-        
-            chem_format = new_parser(parsed_cf.format(
-                (n_H - rounded_n), rounded_n))
-            result = calculate([isotope(0, 1)], chem_format, limit, charge)
-            mz_list, intensity_list = print_pattern(result, digits)
-            # the lengths of these lists are 11+ before truncating
-            mz_lists.append([n] + mz_list[:trunc_len])
-            intensity_lists.append([n] + normalize(intensity_list[:trunc_len]))
+        # TODO: Make sure changes actually work
+        for n in n_list:
+            if n != np.nan:
+                #rounding is needed or the int in emass will do it
+                #which will likely be wrong
+                #at least here we control it
+                rounded_n = round(n)
+
+                # Used to handle n-values that are impossible to actually calculate
+                if rounded_n > n_H:
+                    rounded_n = n_H
+
+                chem_format = new_parser(parsed_cf.format(
+                    (n_H - rounded_n), rounded_n))
+                result = calculate([isotope(0, 1)], chem_format, limit, charge)
+                mz_list, intensity_list = print_pattern(result, digits)
+                # the lengths of these lists are 11+ before truncating
+                mz_lists.append([n] + mz_list[:trunc_len])
+                intensity_lists.append([n] + normalize(intensity_list[:trunc_len]))
 
             # Added for testing purposes ~ Chad Quilling
             # M0_intensity_lists.append(

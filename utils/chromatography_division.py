@@ -257,6 +257,7 @@ class ChromatographyDivider:
                                       leave=False):
                         molecules.append(func(group))
 
+                # Try making this pd.concat([molecules]) so we don't get the fatal error in the .exe - Ben Driggs
                 df = pd.concat(molecules)
 
                 df.to_csv(outfile, sep='\t', index=False)
