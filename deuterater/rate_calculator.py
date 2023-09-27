@@ -85,7 +85,8 @@ class RateCalculator:
     def write(self):
         self.rate_model.to_csv(
             path_or_buf=self.out_path,
-            index=False,
+            sep='\t',
+            index=False
         )
         self.datapoint_model.to_csv(  # CQ
             path_or_buf=self.out_path[:-4] + "_datapoints.tsv",
