@@ -1,7 +1,7 @@
-***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Rerun (More efficient N-value calculations)/ApoE2 *****
+***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Testing/Graphing Test *****
 
 Biomolecule type: Lipid
-Selected worklist: ['Provide Time and Enrichment', 'Theory Generation', 'Fraction New Calculation', 'Rate Calculation']
+Selected worklist: ['Rate Calculation']
 
 main_gui/executable location: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater
 Rate Settings: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater\resources\settings.yaml

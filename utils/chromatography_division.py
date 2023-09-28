@@ -217,7 +217,7 @@ class ChromatographyDivider:
 
             elif settings.debug_level >= 1:
                 func = partial(self.handle_molecule, settings_path=self.settings_path)
-                for group in tqdm(molecule_groups, desc="dividing chromatography: ", total=num_groups):
+                for group in tqdm(molecule_groups, desc="Dividing Chromatography: ", total=num_groups):
                     molecules.append(func(group))
 
             df = pd.concat(molecules)
