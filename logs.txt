@@ -1,4 +1,4 @@
-***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Testing/Graphing Test *****
+***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Rerun (More efficient N-value calculations)/ApoE2 - New min nonzero timepoints *****
 
 Biomolecule type: Lipid
 Selected worklist: ['Rate Calculation']

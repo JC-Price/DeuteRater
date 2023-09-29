@@ -62,7 +62,7 @@ trim_ids_to_mzml_bounds: false
 unique_sequence_column: Sequence
 use_abundance: M0
 use_chromatography_division: Interfile
-use_empir_n_value: true
+use_empir_n_value: false
 use_neutromer_spacing: false
 variance_weight: 1.0
 verbose_rate: true
