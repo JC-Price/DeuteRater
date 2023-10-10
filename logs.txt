@@ -1,7 +1,7 @@
-***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Rerun (More efficient N-value calculations)/ApoE2 - New min nonzero timepoints *****
+***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Rerun (More efficient N-value calculations)/Test *****
 
 Biomolecule type: Lipid
-Selected worklist: ['Rate Calculation']
+Selected worklist: ['Theory Generation', 'Fraction New Calculation', 'Rate Calculation']
 
 main_gui/executable location: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater
 Rate Settings: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater\resources\settings.yaml
