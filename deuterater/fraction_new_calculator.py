@@ -68,10 +68,10 @@ peptide_extra_columns_to_drop = ["quality", "avg_ppm", "start_loc",
 # $if we're swapping between literature_n and theory_n use this dictionary
 protein_itertuple_renamer = {
     "Protein ID": "Protein_ID",
-    "Protein Name": "Protein_Name",
     "Homologous Proteins": "Homologous_Proteins",
     "literature_n": "n_value"
 }
+#    "Protein Name": "Protein_Name",
 
 # "n_isos": "num_peaks",
 

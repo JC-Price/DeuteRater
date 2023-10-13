@@ -1,6 +1,6 @@
-***** OUTPUT FOLDER: J:/Rusty's Data (rerun)/Rerun (More efficient N-value calculations)/Test *****
+***** OUTPUT FOLDER: J:/DeuteRater Testing/DeuteRater Template Testing/Bare_Protein_Run_Debug_4 *****
 
-Biomolecule type: Lipid
+Biomolecule type: Peptide
 Selected worklist: ['Theory Generation', 'Fraction New Calculation', 'Rate Calculation']
 
 main_gui/executable location: C:\Users\Brigham Young Univ\PycharmProjects\DeuteRater

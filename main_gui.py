@@ -123,16 +123,14 @@ convert_needed_headers = {
 
 default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
-# TODO: Does this need to be PeaksXPro.correct_header_order???
-protein_converter_header = ['peptide', 'first_accession', 'protein', 'rt_mean', 'rt_start', 'rt_end', 'rt_width', 'mz',
-                            'theoretical_mass', 'z', 'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides',
+protein_converter_header = ['Sequence', 'first_accession', 'Protein ID', 'Precursor Retention Time (sec)', 'rt_start', 'rt_end', 'rt_width', 'Precursor m/z',
+                            'theoretical_mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides',
                             'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version', 'cf',
                             'neutromers_to_extract', 'literature_n']
 protein_template_example = ['EXAMPLE DATA: EGIVALR', 'P80317', 'T-complex protein 1 subunit zeta', '1693.2', '1661.4',
-                            '1717.2', '55.8',
-                            '757.459575', '756.4493882', '1', '', '4.7', '308', '314', '22', '15', '[\'P80317\']',
+                            '1717.2', '55.8', '757.459575', '756.4493882', '1', '', '4.7', '308', '314', '22', '15', '[\'P80317\']',
                             'Mus musculus OX=10090', 'Cct6a', '1', '3', 'C33H60N10O10', '3', '15.66']
-lipid_converter_header = ['Lipid Name', 'Lipid_Unique_Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
+lipid_converter_header = ['Lipid Name', 'Lipid Unique Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
                           "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'literature_n',
                           'Adduct', 'Adduct_cf', 'Matched_Results_Analysis', 'Matched_Details_Replicates_Used']
 lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
