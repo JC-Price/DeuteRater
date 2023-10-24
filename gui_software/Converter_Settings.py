@@ -52,8 +52,16 @@ from PyQt5 import uic, QtWidgets
 import deuteconvert.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_checkbox_info
 
+# when compiling/building for an executable, set all of these to True, otherwise leave as False
+# copy "exe_mode = False" and search using ctrl+shift+f to find each instance
+exe_mode = False
+if exe_mode:
+    location = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 settings_file_ui_location = os.path.join(location, "ui_files", "Converter_Settings_Menu.ui")
 loaded_ui = uic.loadUiType(settings_file_ui_location)[0]

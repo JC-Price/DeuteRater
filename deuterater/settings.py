@@ -62,8 +62,16 @@ except:
 
 # NOTE: we can use LibYAML c bindings if we need more speed
 
+# when compiling/building for an executable, set all of these to True, otherwise leave as False
+# copy "exe_mode = False" and search using ctrl+shift+f to find each instance
+exe_mode = False
+if exe_mode:
+    location = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
 debug_level: int

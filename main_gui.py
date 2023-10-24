@@ -37,6 +37,8 @@ import deuterater.settings as settings
 import gui_software.Rate_Settings as rate_settings
 import gui_software.Converter_Settings as guide_settings
 
+# when compiling/building for an executable, set all of these to True, otherwise leave as False
+# copy "exe_mode = False" and search using ctrl+shift+f to find each instance
 exe_mode = False
 if exe_mode:
     location = os.path.dirname(os.path.abspath(sys.executable))

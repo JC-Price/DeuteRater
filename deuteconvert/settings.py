@@ -71,8 +71,16 @@ H2O_loss: bool
 
 expand_to_adducts: bool
 
+# when compiling/building for an executable, set all of these to True, otherwise leave as False
+# copy "exe_mode = False" and search using ctrl+shift+f to find each instance
+exe_mode = False
+if exe_mode:
+    location = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link

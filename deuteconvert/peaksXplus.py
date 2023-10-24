@@ -53,7 +53,6 @@ import deuteconvert.settings as settings
 # TODO: slots
 # TODO: make sure that all of the virtual base class functions are implemented
 
-
 # location = os.path.abspath(sys.executable)
 location = os.path.dirname(os.path.abspath(__file__))
 
