@@ -69,6 +69,7 @@ peptide_extra_columns_to_drop = ["quality", "avg_ppm", "start_loc",
 protein_itertuple_renamer = {
     "Protein ID": "Protein_ID",
     "Homologous Proteins": "Homologous_Proteins",
+    "Protein Name": "Protein_Name",
     "literature_n": "n_value"
 }
 #    "Protein Name": "Protein_Name",

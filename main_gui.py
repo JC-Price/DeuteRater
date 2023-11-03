@@ -125,7 +125,7 @@ convert_needed_headers = {
 
 default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
-protein_converter_header = ['Sequence', 'first_accession', 'Protein ID', 'Precursor Retention Time (sec)', 'rt_start', 'rt_end', 'rt_width', 'Precursor m/z',
+protein_converter_header = ['Sequence', 'first_accession', 'Protein Name', 'Protein ID', 'Precursor Retention Time (sec)', 'rt_start', 'rt_end', 'rt_width', 'Precursor m/z',
                             'theoretical_mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides',
                             'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version', 'cf',
                             'neutromers_to_extract', 'literature_n']

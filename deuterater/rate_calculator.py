@@ -162,6 +162,10 @@ class RateCalculator:
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Abundance Rate Calculation: "):
                     results.append(temp_rate_function(group))
+
+            # for group in tqdm(groups, desc="Abundance Rate Calculation: "):
+            #     results.append(temp_rate_function(group))
+
             rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
             datapoint_results.append([i[1] for i in results])  # CQ
 
