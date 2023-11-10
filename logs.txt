@@ -1,4 +1,4 @@
-***** OUTPUT FOLDER: /media/JCPriceLab/Ben D/DeuteRater Testing/DeuteRater Template Testing/Graphing_Debugging *****
+***** OUTPUT FOLDER: /media/JCPriceLab/Ben D/DeuteRater Testing/BCA2M1 Testing/Legend_Debugging *****
 
 Biomolecule type: Peptide
 Selected worklist: ['Rate Calculation']

@@ -342,6 +342,12 @@ class RateCalculator:
             # $despite the claim in the documentation, according to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]
             # $is standard error, not std dev, so don't divide by sqrt of n
 
+            # Had some issues with protein data where all values in pcov were negative and np.sqrt was throwing an error - Ben D
+            if pcov[0][0] < 0:
+                pcov[0][0] = 0
+            if pcov[1][1] < 0:
+                pcov[1][1] = 0
+
             confint = \
                 t.ppf(.975, num_files - len(popt)) * \
                 np.sqrt(np.diag(pcov))[0]

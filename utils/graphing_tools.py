@@ -132,6 +132,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                 index += 1
                 rep_data = rep_group[1]
                 charge_groups = rep_data.groupby("z")
+                # TODO: Legend labels are being made specifically for lipids, should we add a protein version? - Ben D
                 for charge_group in charge_groups:
                     charge = charge_group[0]
                     should_fill = charge_fill[charge]
