@@ -333,7 +333,7 @@ def handle_single_file(lipids_selected, biomolecule_type, files):
 		else:
 			fig, axs = plt.subplots(5, sharex=True, figsize=(10, 22))
 		
-		adduct_order = ["M+H", "M+H-[H20]", "M+Na",
+		adduct_order = ["M+H", "M+H-[H2O]", "M+Na",
 						"M+Na-[H2O]", "M+NH4", "M+NH4-[H2O]"]
 		
 		charge_order = [1, 2, 3, 4, 5]
@@ -456,7 +456,7 @@ def handle_single_lipid(lipid_selected, chrom_files, divided_files):
 		else:
 			fig, axs = plt.subplots(5, sharex=True, figsize=(10, 22))
 		
-		adduct_order = ["M+H", "M+H-[H20]", "M+Na",
+		adduct_order = ["M+H", "M+H-[H2O]", "M+Na",
 						"M+Na-[H2O]", "M+NH4", "M+NH4-[H2O]"]
 		
 		charge_order = [1, 2, 3, 4, 5]

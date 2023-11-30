@@ -252,7 +252,7 @@ class PCDL_Converter(BaseConverter):
                         '%s%s' % (k, v) if v > 1 else '%s' % (k) if v == 1 else '' for k, v in
                         hydrogen_minus_water.items())
                     hydrogen_minus_water_mz = default_mz - atomic_mass["H"] - atomic_mass["O"]
-                    temp_row['Adduct'] = 'M+H-[H20]'
+                    temp_row['Adduct'] = 'M+H-[H2O]'
                     temp_row['Adduct_cf'] = hydrogen_minus_water_cf
                     temp_row['Precursor m/z'] = hydrogen_minus_water_mz
                     expanded_df = expanded_df.append(temp_row, ignore_index=True)

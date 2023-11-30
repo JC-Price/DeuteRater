@@ -405,25 +405,28 @@ class RateCalculator:
             else:
                 graph_name = None
                 graph_title = None
-
-            if biomolecule_type == "Lipid":
-                if settings.roll_up_rate_calc:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                               rate_eq, graph_folder, max_time,
-                               settings.asymptote, devs, biomolecule_type, full_data=group, title=graph_title)
+            try:
+                if biomolecule_type == "Lipid":
+                    if settings.roll_up_rate_calc:
+                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                                   rate_eq, graph_folder, max_time,
+                                   settings.asymptote, devs, biomolecule_type, full_data=group, title=graph_title)
+                    else:
+                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                                   rate_eq, graph_folder, max_time,
+                                   settings.asymptote, biomolecule_type, full_data=group, title=graph_title)
                 else:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                               rate_eq, graph_folder, max_time,
-                               settings.asymptote, biomolecule_type, full_data=group, title=graph_title)
-            else:
-                if settings.roll_up_rate_calc:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                               rate_eq, graph_folder, max_time,
-                               settings.asymptote, devs, biomolecule_type, title=graph_title)
-                else:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                               rate_eq, graph_folder, max_time,
-                               settings.asymptote, biomolecule_type, title=graph_title)
+                    if settings.roll_up_rate_calc:
+                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                                   rate_eq, graph_folder, max_time,
+                                   settings.asymptote, devs, biomolecule_type, title=graph_title)
+                    else:
+                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                                   rate_eq, graph_folder, max_time,
+                                   settings.asymptote, biomolecule_type, title=graph_title)
+            except Exception as c:
+                print("Graphing failed with the following error: ")
+                print(c)
         except Exception as c:
             # $"we have a guess but are unsure" warning
             if type(c).__name__ == "OptimizeWarning":
