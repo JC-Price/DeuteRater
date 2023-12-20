@@ -50,8 +50,8 @@ from utils.useful_classes import setting_numerical_info, setting_string_info
 #location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-#$paired settings are settings where it makes no sense if the 2nd value is lower than the first
-#$the maximum rate shouldn't be lowered below the minimum rate for example
+# paired settings are settings where it makes no sense if the 2nd value is lower than the first
+# the maximum rate shouldn't be lowered below the minimum rate for example
 paired_settings = [["minimum_allowed_sequence_rate","maximum_allowed_sequence_rate"], 
                    ["lowest_allowed_norm_isotope", "highest_allowed_norm_isotope"]
                    ]
@@ -64,10 +64,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         super(Rate_Setting_Menu, self).__init__(parent)
         settings.load(current_setting_file)
         self.current_setting_file =current_setting_file
-        #$this is needed to slim things down a bit
+        # this is needed to slim things down a bit
         self.setWindowTitle("Rate Settings Menu")
         self.setupUi(self)
-        #$initial set up of the different settings.
+        # initial set up of the different settings.
         self.all_settings=[
             setting_string_info(self.recognize_available_cores, "recognize_available_cores",
                                  settings.recognize_available_cores, True),
@@ -151,9 +151,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.SaveButton.clicked.connect(self.save_settings)
         self.ExitButton.clicked.connect(self.close)
     
-    #$save teh current settings
+    # save teh current settings
     def save_settings(self):
-        #$we need to provide the values that are not altred for the dump
+        # we need to provide the values that are not altred for the dump
         save_value_dict = Rate_Setting_Menu._get_filters()
         for setting_object in self.all_settings:
             name, value = setting_object.save_value()
@@ -168,14 +168,14 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         settings.freeze(self.current_setting_file, save_value_dict)
         return True
        
-    #$if the user wants to exit we can check if something has changed so we can give tham a chance to save
+    # if the user wants to exit we can check if something has changed so we can give tham a chance to save
     def check_for_changes(self):
         for setting in self.all_settings:
             if not setting.compare_value():
                 return False
         return True
 
-    #$load a previous saved settings file
+    # load a previous saved settings file
     def load_settings(self):
         response = QtWidgets.QMessageBox.question(self, "Question", "Would you like to load a already existing settings file? This will overwrite all current settings.",
                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -189,7 +189,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                                                     location,
                                                                     "*.yaml",
                                                                     options=QtWidgets.QFileDialog.DontUseNativeDialog)
-        #$only bother with an error message if there is an error.  if the user just exited without selecting anything don't bother them with it
+        # only bother with an error message if there is an error.  if the user just exited without selecting anything don't bother them with it
         if filename == "":
             return
         
@@ -287,7 +287,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             return
             
     
-    #$should overwrite the close of the exit button and the red x in the corner  
+    # should overwrite the close of the exit button and the red x in the corner  
     def closeEvent(self, event):
         if self.check_for_changes():
             event.accept()
@@ -304,13 +304,13 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                     event.accept()
                 else:
                     event.ignore()  
-            #$hit red x or cancel just don't exit
+            # hit red x or cancel just don't exit
             else: 
                 event.ignore()  
       
-    #$the point of this is to get the values from the settings .yaml 
-    #$that the user is not altering. don't need special classes since 
-    #$ we have to officially declare and all we need to do is get the value
+    # the point of this is to get the values from the settings .yaml 
+    # that the user is not altering. don't need special classes since 
+    #  we have to officially declare and all we need to do is get the value
     @staticmethod
     def _get_filters():
         unalterable_settings = {

@@ -43,8 +43,8 @@ data_points_symbol = 'ro'
 
 multi_colors=['r','g','b','c','m', 'y']
 
-#$need to graph the results of the binomial fit
-#$adapted from code by Christian in the Transtrum lab
+# need to graph the results of the binomial fit
+# adapted from code by Christian in the Transtrum lab
 def graph_rate_results(n_isos, save_file_name, time_data, 
                        normed_isotope_data, mval, theory_times, theory_zero,
                        subject_sequence, save_format):
@@ -60,8 +60,8 @@ def graph_rate_results(n_isos, save_file_name, time_data,
     plt.savefig(save_file_name, format = save_format)
     plt.clf()
 
-#$need to graph the optimization of error for troubleshooting purposes
-#$adapted from code by Christian in the Transtrum lab
+# need to graph the optimization of error for troubleshooting purposes
+# adapted from code by Christian in the Transtrum lab
 def graph_optimization_of_error(k_value, theoretical_k, cost, save_file_name, subject_sequence, legend_name, save_format):
     plt.title(f"Finding optimal k {subject_sequence}")
     plt.ylabel("Sum-square Error")
@@ -72,7 +72,7 @@ def graph_optimization_of_error(k_value, theoretical_k, cost, save_file_name, su
     plt.savefig(save_file_name, format = save_format)
     plt.clf()
 
-#$graph the enrichment spline
+# graph the enrichment spline
 def enrichment_graph(x_values, y_values, predicted_x, 
                      predicted_y, subject_name, save_file, save_format):
     plt.title(subject_name)
@@ -84,16 +84,16 @@ def enrichment_graph(x_values, y_values, predicted_x,
     plt.savefig(save_file, format = save_format)
     plt.clf()
 
-#$graph the protein roll up
+# graph the protein roll up
 def graph_average_boxplots(values, save_file_name, subject_protein_name, save_format):
-    #$give the values some jitter so they are easily visible from each other
-    #$jitter is entirely random.  if we decide to remove, just make all  x_values 1
+    # give the values some jitter so they are easily visible from each other
+    # jitter is entirely random.  if we decide to remove, just make all  x_values 1
     x_values = np.random.normal(1, .035, size = len(values))
     average = np.mean(values)
 
     plt.plot(x_values, values, 'r*', markersize=11, label = "Peptide Rates")
-    #$since the linewidth is an argument, is needs a value, but if we try and declare it as a dict,
-    #$it will not be defined.  declaring its value and forcing to dict gets around that
+    # since the linewidth is an argument, is needs a value, but if we try and declare it as a dict,
+    # it will not be defined.  declaring its value and forcing to dict gets around that
     plt.boxplot(values,
             whiskerprops = dict(linewidth=1.5), 
             boxprops= dict(linewidth=3.0), 
@@ -109,7 +109,7 @@ def graph_average_boxplots(values, save_file_name, subject_protein_name, save_fo
              linestyle="None")
     plt.legend()
     plt.title(subject_protein_name)
-    plt.xticks([]) #$remove x-axis labels to avoid confusion
+    plt.xticks([]) # remove x-axis labels to avoid confusion
     plt.ylabel('Sequence Rate', fontsize=12)
     plt.savefig(save_file_name, format = save_format)
     plt.clf()

@@ -64,9 +64,9 @@ import deuterater.settings as settings
 from utils.graphing_tools import graph_rate_results, graph_optimization_of_error
 from utils.emass import normalize
 
-#$the spline fit used for the deuterium enrichment was previously used as a lambda with a fucntion call
-#$but the pickler for multiprocessing will not take a lambda
-#$this function does the spline calculations in a pickling safe manner.
+# the spline fit used for the deuterium enrichment was previously used as a lambda with a fucntion call
+# but the pickler for multiprocessing will not take a lambda
+# this function does the spline calculations in a pickling safe manner.
 class pickle_safe_spline(object):
     def __init__(self, time_values, deuterium_values):
         self.make_the_spline(time_values, deuterium_values)
@@ -74,8 +74,8 @@ class pickle_safe_spline(object):
         std_d = np.std(d)
         w_y = [3/std_d for i in range(len(t))]
         self.spl = si.splrep(t, d, w=w_y)
-    #$adjusted to ensure it can't give negative values which can happen really early on
-    #$ can't absolute value 
+    # adjusted to ensure it can't give negative values which can happen really early on
+    #  can't absolute value 
     def final_spline(self, x):
         return_value = si.splev(x, self.spl)
         if type(x) != np.ndarray:
@@ -84,7 +84,7 @@ class pickle_safe_spline(object):
             return_value[return_value<0] =0
             return return_value
 
-#$used for an error estimation graph
+# used for an error estimation graph
 def parabola(x, a, b, c):
     return a*x**2 + b*x + c
 
@@ -92,20 +92,20 @@ group_column1 = "sample_id"
 group_column2 = "Sequence"
 time_column = "time"
 
-#$need to deal with warnings.  in particular fitting warnings (ODEintWarning) should not be trusted
-#$turn them into an error so we can catch.  will allow UserWarnings since it usually triggers on "dopri5: larger nsteps needed"
-#$which we do not currently seek to catch. 
+# need to deal with warnings.  in particular fitting warnings (ODEintWarning) should not be trusted
+# turn them into an error so we can catch.  will allow UserWarnings since it usually triggers on "dopri5: larger nsteps needed"
+# which we do not currently seek to catch. 
 w.simplefilter("error", ODEintWarning) 
 w.simplefilter("ignore", UserWarning) 
 
 
-#$as with all the calculation steps this is a class for consistent calls in the main
+# as with all the calculation steps this is a class for consistent calls in the main
 class RateCalculator():
     def __init__(self, model_path, out_path, graph_folder_isotopes, graph_folder_optimization, settings_path):
        
         settings.load(settings_path)
         model_path = Path(model_path)
-        #$allow .tsv and .csv
+        # allow .tsv and .csv
         if model_path.suffix == '.tsv':
             self.model = pd.read_csv(
                 filepath_or_buffer=str(model_path),
@@ -116,7 +116,7 @@ class RateCalculator():
                 filepath_or_buffer=str(model_path)
                 )
         self.max_isos = max(self.model["n_isos"])
-        #$fill the data in the rate_header order.  we can reorder if need be
+        # fill the data in the rate_header order.  we can reorder if need be
         self.out_path = out_path
         self.graph_folder_isotopes = graph_folder_isotopes
         self.graph_folder_optimization = graph_folder_optimization
@@ -124,7 +124,7 @@ class RateCalculator():
             self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
-        #$if multiprocessing need to set that up. more than 60 cores causes problems for windows
+        # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if self._n_processors > 60:
             self.n_processors = 60
         self.make_final_header()
@@ -135,15 +135,15 @@ class RateCalculator():
             index=False
         )
     
-    #$this function governs which types of calculations to do and which
-    #$ rate equation to use. collects results and puts them in self.rate_model
+    # this function governs which types of calculations to do and which
+    #  rate equation to use. collects results and puts them in self.rate_model
     def calculate(self):
         start_time = time.time()
         self.initial_filter()
         self.perform_rate_calculations()
         print ("Time Taken: ", time.time() -start_time)
     
-    #$make needed header
+    # make needed header
     def make_final_header(self):
         self.final_header = ["Subject ID", "Protein ID", "Protein Name", 
                              "Sequence", "Abundance rate", "Unique Timepoints",
@@ -159,31 +159,31 @@ class RateCalculator():
                              "Error column"]
         
         
-    #$since the calculation is more complicated than in other modules there are more functions to govern it
-    #$this function seperates the data by subject and then calculates the enrichment spline. this is then
-    #$passed to run_parallel_groupby which governs the multiprocessing
+    # since the calculation is more complicated than in other modules there are more functions to govern it
+    # this function seperates the data by subject and then calculates the enrichment spline. this is then
+    # passed to run_parallel_groupby which governs the multiprocessing
     def perform_rate_calculations(self):
-        #$list to hold output
+        # list to hold output
         rate_calculation_output = []
-        #$first we will group by the sample_id so we can grab the water equation 
-        #$we need to split by group anyway individual enrichment curves means we need
-        #$different calculations for the same peptide in different subjects
+        # first we will group by the sample_id so we can grab the water equation 
+        # we need to split by group anyway individual enrichment curves means we need
+        # different calculations for the same peptide in different subjects
         for sample_id, id_df in tqdm(self.model.groupby(group_column1), desc="Subject: "):
             
             max_sample_time = id_df[time_column].max()
-            #$need time sorted for the error minimization function.  will sort here to save time
+            # need time sorted for the error minimization function.  will sort here to save time
             id_df = id_df.sort_values(by = time_column)
             
-            #$since values are the same pulling the top row makes as much sense as any other row
-            #$set up the spline
+            # since values are the same pulling the top row makes as much sense as any other row
+            # set up the spline
             first_row = id_df.iloc[0].to_dict() 
             subject_x_values = [float(x) for x in first_row["Time Enrichment"].split(", ")]
             subject_y_values = [float(x) for x in first_row["Enrichment Values"].split(", ")]
             spline_object =pickle_safe_spline(subject_x_values, subject_y_values)
                 
-            #$multiple groupbys should improve readability and is faster than merging them    
-            #$will multiprocess the second groupby. since we are grouping by id and sequence
-            #$various charge states will be grouped into this data.
+            # multiple groupbys should improve readability and is faster than merging them    
+            # will multiprocess the second groupby. since we are grouping by id and sequence
+            # various charge states will be grouped into this data.
             sequence_groupby = id_df.groupby(group_column2)
             one_sample_results =  self.run_parallel_groupby(sequence_groupby, 
                                                            sample_id, 
@@ -193,13 +193,13 @@ class RateCalculator():
             rate_calculation_output.extend(one_sample_results)
         self.final_rates_model = pd.DataFrame(rate_calculation_output, columns = self.final_header)       
                     
-    #$run the analysis.  this function doesn't have any calculation itself 
-    #$it prepares a function for multiprocessing and thne begins the multiprocessing
-    #$uses second answer https://stackoverflow.com/questions/26187759/parallelize-apply-after-pandas-groupby accessed 12/16/2020
+    # run the analysis.  this function doesn't have any calculation itself 
+    # it prepares a function for multiprocessing and thne begins the multiprocessing
+    # uses second answer https://stackoverflow.com/questions/26187759/parallelize-apply-after-pandas-groupby accessed 12/16/2020
     def run_parallel_groupby(self, groupby_object, sample_id, sample_spline, max_sample_time):
         if settings.debug_level == 0:
             mp_pools = mp.Pool(self._n_processors)
-            #$have to pass the settings explicitly (the global settings doesn't play nice with the multiprocessing)
+            # have to pass the settings explicitly (the global settings doesn't play nice with the multiprocessing)
             mp_func = partial(RateCalculator._rate_calculation,
                               sample_id = sample_id,
                               sample_spline =sample_spline,
@@ -222,7 +222,7 @@ class RateCalculator():
             mp_pools.close()
             mp_pools.join()
         else:
-            #$no multiprocessing, for troubleshooting
+            # no multiprocessing, for troubleshooting
             results_list = []
             mp_func = partial(RateCalculator._rate_calculation,
                               sample_id = sample_id,
@@ -247,7 +247,7 @@ class RateCalculator():
         return results_list
     
     
-    #$for now this drops this just drops error messages in certain columns
+    # for now this drops this just drops error messages in certain columns
     def initial_filter(self):
         self.model["Theoretical Unlabeled Normalized Abundances"] = \
             self.model["Theoretical Unlabeled Normalized Abundances"].apply(
@@ -264,9 +264,9 @@ class RateCalculator():
         except:
             return np.nan
     
-    #$this is the return function for _rate_calculation
-    #$since it is a pandas series and there are many values, this function was made to make the 
-    #$_rate_calculation function more readable since it can error out and need output at several different locations
+    # this is the return function for _rate_calculation
+    # since it is a pandas series and there are many values, this function was made to make the 
+    # _rate_calculation function more readable since it can error out and need output at several different locations
     @staticmethod
     def _make_return_series(sample_id, protein_name, protein_english_name,
                                  sequence_name, rate, time_data, unique_times,n_isos,
@@ -292,7 +292,7 @@ class RateCalculator():
                 })
         return return_series
 
-    #$perform the rate calculation
+    # perform the rate calculation
     @staticmethod
     def _rate_calculation(groupby_tuple, sample_id, sample_spline, 
                           graph_folder_isotopes, graph_folder_optimization,
@@ -312,18 +312,18 @@ class RateCalculator():
         
         
         
-        #$ pull out the first row to grab things that are consistent, like n value and n isos
+        #  pull out the first row to grab things that are consistent, like n value and n isos
         generic_first_row = seq_df.iloc[0].to_dict() #same logic as above
         n_isos = int(generic_first_row["n_isos"])
         n_value = round(generic_first_row["literature_n"])
         protein_name = generic_first_row["Protein ID"]
         protein_english_name =  generic_first_row["Protein Name"]
         time_data = np.asarray(seq_df[time_column])
-        #$get the data out 
+        # get the data out 
         empirical_data = np.asarray(seq_df["abundances"])
         
-        #$confirm the data is good before complex calculations begin
-        #$ currently confirms that there are as many non-zero timepoints as the user specified.
+        # confirm the data is good before complex calculations begin
+        #  currently confirms that there are as many non-zero timepoints as the user specified.
         unique_times = sorted(list(set(time_data)))
         non_zero_times = [t for t in unique_times if t!=0.0]
         if len(non_zero_times) < minimum_nonzero_points:
@@ -333,25 +333,25 @@ class RateCalculator():
                                  "insufficient non-zero timepoints", "", "", "")
             return return_series
         
-        #$theoretical y0 from emass
+        # theoretical y0 from emass
         y0 = generic_first_row["Theoretical Unlabeled Normalized Abundances"]
         
-        #$need to collect the data from their strings and perform the normalization
+        # need to collect the data from their strings and perform the normalization
         normed_isotope_data= []
         for measured_isotopes in empirical_data:
-            measured_isotopes = measured_isotopes[1:-1] #$trim terminal parentheses
-            #$make an array of floats from the measured_isotopes string
+            measured_isotopes = measured_isotopes[1:-1] # trim terminal parentheses
+            # make an array of floats from the measured_isotopes string
             measured_isotopes = np.asarray([float(x) for x in measured_isotopes.split(", ")])
-            #$perform the normalization
+            # perform the normalization
             normed_isotope_data.append(normalize(measured_isotopes))
             
         normed_isotope_data = np.asarray(normed_isotope_data[:len(time_data)])
         full_length = len(normed_isotope_data)
         
-        #$we need to trim out points that are theoretically impossible.
-        #$we'll do that by calculating m0 peaks going up or m1-4 peaks going down by more than a certain amount
-        #$the certain amounts will be based on their abundance with no extra isotope
-        #$allowed error can be adjusted in the settings
+        # we need to trim out points that are theoretically impossible.
+        # we'll do that by calculating m0 peaks going up or m1-4 peaks going down by more than a certain amount
+        # the certain amounts will be based on their abundance with no extra isotope
+        # allowed error can be adjusted in the settings
         y0_allowed_error = [y0[0] * highest_allowed_norm_isotope]
         for i in range(1,n_isos):
             y0_allowed_error.append(y0[i] * lowest_allowed_norm_isotope)
@@ -359,15 +359,15 @@ class RateCalculator():
         
         normed_isotope_data = normed_isotope_data[row_mask]
         time_data = time_data[row_mask]
-        #$recalculate unique_times now that we may have dropped some of them
+        # recalculate unique_times now that we may have dropped some of them
         unique_times = sorted(list(set(time_data)))
         
         non_zero_times = [t for t in unique_times if t!=0.0]
         dropped_points = full_length - len(normed_isotope_data)
         
         
-        #$since we just fitered out theoretically impossible points we need to ensure we still
-        #$have sufficient non-zero points to perform the fit
+        # since we just fitered out theoretically impossible points we need to ensure we still
+        # have sufficient non-zero points to perform the fit
         if len(non_zero_times) < minimum_nonzero_points:
             return_series = RateCalculator._make_return_series(sample_id, 
                                  protein_name, protein_english_name,
@@ -377,12 +377,12 @@ class RateCalculator():
                                  "", "", "")
             return return_series
         
-        #$warn if m0 is notstrictly decreasing only functions as a filter if there is only one point per time
-        #$this is to catch fits with a large dip or spike in data that results in a terrible fit.  a noise increase
-        #$should not trigger this. usually only affects one point so multiple points (charge states) at each time are
-        #$resistant to this so that reports an error but will not drop
+        # warn if m0 is notstrictly decreasing only functions as a filter if there is only one point per time
+        # this is to catch fits with a large dip or spike in data that results in a terrible fit.  a noise increase
+        # should not trigger this. usually only affects one point so multiple points (charge states) at each time are
+        # resistant to this so that reports an error but will not drop
         
-        #$unfortunately the possibility for multiple timepoints complicates the analysis since order the points are analyzed
+        # unfortunately the possibility for multiple timepoints complicates the analysis since order the points are analyzed
         m0_values = normed_isotope_data[:, 0]
         relative_m0_decreasing_allowed_noise = y0[0] *m0_decreasing_allowed_noise
         if len(unique_times) == len(time_data):
@@ -408,7 +408,7 @@ class RateCalculator():
             else:
                 m0_constantly_decreasing = True
         
-        #$these functions used for the fit must be defined here.  They were developed by Christian in the Transtrum lab
+        # these functions used for the fit must be defined here.  They were developed by Christian in the Transtrum lab
        
         def dydt(t,y,k,ibase,nobs): #vector of velocity towards equilibrium
             rho=[binom.pmf(ix,n_value,sample_spline.final_spline(t)) for ix in range(nobs)] #equilibrium distribution for the current deut-level
@@ -418,7 +418,7 @@ class RateCalculator():
         
         def mlevels2(t,k,ibase,nobs): #return simulated M-distributions at all times t for a given k
             mval=scipy.integrate.odeint(dydt,ibase+sample_spline.final_spline(0),t,args=tuple([k,ibase,nobs]),tfirst=True)
-            #$quick normalization or they will all be slightly off
+            # quick normalization or they will all be slightly off
             sum_array = mval.sum(axis = 1)
             return np.divide(mval.T,sum_array).T
         
@@ -426,28 +426,28 @@ class RateCalculator():
             return sum((mlevels2(t,k,ibase,nobs) - y).flatten()**2)
         
         number_of_non_zero_fit_points = len([t for t in time_data if t != 0 ])
-        #$the 0 in 0:n_isos used to be 1.  unsure why as it was cutting data.  this may have been for removal of 0 in testing
-        #$will keep the 0:n_isos form as a legacy of this to aid in potential troubleshooting
+        # the 0 in 0:n_isos used to be 1.  unsure why as it was cutting data.  this may have been for removal of 0 in testing
+        # will keep the 0:n_isos form as a legacy of this to aid in potential troubleshooting
         try:
-            #$if we don't allow 0 non-zero timepoints we don't need to check here and can assume that there is at least 1 non-zero timepoint 
-            #$the fitting equation assumes that a 0 is present.  however 0 is forced by the theoretical value
-            #$(like how y= mx has to go through 0).  therefore if 0 is not there we'll add it.  the perfect 0 won't skew the fit, it will prevent
-            #$the first data point from effectively being thrown out
+            # if we don't allow 0 non-zero timepoints we don't need to check here and can assume that there is at least 1 non-zero timepoint 
+            # the fitting equation assumes that a 0 is present.  however 0 is forced by the theoretical value
+            # (like how y= mx has to go through 0).  therefore if 0 is not there we'll add it.  the perfect 0 won't skew the fit, it will prevent
+            # the first data point from effectively being thrown out
             if 0 not in unique_times:
                 fitting_times = np.insert(time_data, 0, 0)
                 fitting_values = [np.asarray(y0)]
                 for l in range(len(normed_isotope_data)):
                     fitting_values.append(normed_isotope_data[l])
                 fitting_values = np.asarray(fitting_values)
-                added_zero = True #$need to know for residual checks
+                added_zero = True # need to know for residual checks
             else:
                 fitting_times = time_data
                 fitting_values = normed_isotope_data
                 added_zero = False
-            #$perform the error minimization fit with the ODE functions
+            # perform the error minimization fit with the ODE functions
             bmin=brent(sse,args=(fitting_times,fitting_values,y0, n_isos),brack=(1e-6,1e-4))
             k_value = bmin
-        #$ if there was a fit warning treat it as an error
+        #  if there was a fit warning treat it as an error
         except ODEintWarning:
             return_series = RateCalculator._make_return_series(sample_id, 
                              protein_name, protein_english_name,
@@ -457,27 +457,27 @@ class RateCalculator():
                              m0_constantly_decreasing, "", "")
             return return_series
         
-        #$we will use the mean of the absolute residuals as an error metric so we need to calculate that
-        #$first we need to determine what the fit predicts the points are
+        # we will use the mean of the absolute residuals as an error metric so we need to calculate that
+        # first we need to determine what the fit predicts the points are
         calculated_values_at_each_time = mlevels2(fitting_times, k=k_value, ibase = y0, nobs=n_isos)
-        #$same problem as above. can easily use fitting times to avoid, but then need to cut out any zero we addedwhen calculating residuals
+        # same problem as above. can easily use fitting times to avoid, but then need to cut out any zero we addedwhen calculating residuals
         if added_zero:
             delta_rel_isotope_int = normed_isotope_data- calculated_values_at_each_time[1:]
         else:
             delta_rel_isotope_int = normed_isotope_data- calculated_values_at_each_time
-        #$absolute value the error to prevent the error in opposite directions from cancelling out and giving an overly optomistic view
+        # absolute value the error to prevent the error in opposite directions from cancelling out and giving an overly optomistic view
         abs_delta = abs(delta_rel_isotope_int)
         
-        #$metric 1 average of the abs value of the errors
+        # metric 1 average of the abs value of the errors
         absolute_error_total_mean = np.mean(abs_delta)
         
-        #$approximate fit variation. used as an error metric and is therefore outside of the graphers
+        # approximate fit variation. used as an error metric and is therefore outside of the graphers
         try:
             h=bmin/7.38906 #h is 2 log-units less than the min
             xval=bmin+[-h,0,h]
             yfit=[0,0,0]
-            #$if we try single point with just one point here it sends the error massive positive or negative
-            #$and even on multiple points sse needs a zero value so this should help
+            # if we try single point with just one point here it sends the error massive positive or negative
+            # and even on multiple points sse needs a zero value so this should help
             for j,x in enumerate(xval):
                 yfit[j]=sse(x,fitting_times,fitting_values,y0, n_isos)
             parfit,pcov=curve_fit(parabola, xval, yfit)
@@ -486,9 +486,9 @@ class RateCalculator():
             approx_variance = "could not find the variance"
         
         
-        #$now that we have the data and fit we need we can start making graphs
+        # now that we have the data and fit we need we can start making graphs
         
-        #$first we need the theoretically perfect lines so we can grph them
+        # first we need the theoretically perfect lines so we can grph them
         theory_times = np.arange(0, max_sample_time + 1, 0.5)
         predicted_isotope_values = mlevels2(theory_times, k=k_value, ibase=y0, nobs = n_isos)
         
@@ -498,13 +498,13 @@ class RateCalculator():
             graph_file_name_optimize = sample_id + "_" + sequence_name + "_optimization." +graph_type
             graph_name_optimize = os.path.join(graph_folder_optimization, graph_file_name_optimize)
         
-        #$now let's actually graphs. rate first
+        # now let's actually graphs. rate first
         graph_rate_results(n_isos, graph_name_isotopes, time_data, 
                        normed_isotope_data, predicted_isotope_values, theory_times,
                        y0,
                        sample_id + "_" + sequence_name, graph_type)
-        #$the user specifies the way they want the error represented or even if they want it presented at all.
-        #$this if takes care of that.
+        # the user specifies the way they want the error represented or even if they want it presented at all.
+        # this if takes care of that.
         if error_estimation == "approximate":
             error_xv=np.arange(0,bmin*3,bmin*3/desired_points_for_optimization_graph)
             error_array = parabola(error_xv,parfit[0],parfit[1],parfit[2])
@@ -513,9 +513,9 @@ class RateCalculator():
         elif error_estimation == "exact":
             error_xv=np.arange(0,bmin*3,bmin*3/desired_points_for_optimization_graph)
             legend_name = "real cost of k"
-            #$possible to error out here so catch it if so
+            # possible to error out here so catch it if so
             try :
-                #$mimic up top.
+                # mimic up top.
                 if 0 not in time_data:
                     time_data = np.insert(time_data, 0,0)
                     normed_isotope_data = np.insert(normed_isotope_data, 0, y0,0)
@@ -524,7 +524,7 @@ class RateCalculator():
             except ODEintWarning:
                 error_array = "Error"
         
-        #$using single or two point fits generally need tighter filters, so for this evaluation we will employ those filters here
+        # using single or two point fits generally need tighter filters, so for this evaluation we will employ those filters here
         if number_of_non_zero_fit_points == 1 and absolute_error_total_mean > median_absolute_residuals_cutoff_single_point:
             return_series = RateCalculator._make_return_series(sample_id, 
                                  protein_name, protein_english_name,
@@ -550,7 +550,7 @@ class RateCalculator():
                                  m0_constantly_decreasing, absolute_error_total_mean, approx_variance)
             return return_series
         
-        #$if all is good this is the final row calculated
+        # if all is good this is the final row calculated
         return_series = RateCalculator._make_return_series(sample_id, 
                                  protein_name, protein_english_name,
                                  sequence_name, k_value, time_data, 

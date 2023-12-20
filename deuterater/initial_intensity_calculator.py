@@ -57,11 +57,11 @@ from utils.emass import emass
 import deuterater.settings as settings
 
 
-max_isos = 5 #$constant based on the n_isos based on the mass (done in the extractor)
-p0_guess = 1 #$seems to work for most fits. if it causes problems we can adjust
+max_isos = 5 # constant based on the n_isos based on the mass (done in the extractor)
+p0_guess = 1 # seems to work for most fits. if it causes problems we can adjust
 
 
-#$as with all the calculation steps this is a class for consistent calls in the main
+# as with all the calculation steps this is a class for consistent calls in the main
 class theoretical_enrichment_calculator(object):
     def __init__(self, prepared_data_path, out_path, settings_path):
         settings.load(settings_path)
@@ -84,7 +84,7 @@ class theoretical_enrichment_calculator(object):
             self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
-        #$if multiprocessing need to set that up. more than 60 cores causes problems for windows
+        # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if self._n_processors > 60:
             self.n_processors = 60
             
@@ -95,8 +95,8 @@ class theoretical_enrichment_calculator(object):
             index=False
         )    
         
-    #$run the analysis.  this function doesn't have any calculation itself (other than merging, transposing, and setting index of the results)
-    #$it prepares a function for multiprocessing and thne begins the multiprocessing
+    # run the analysis.  this function doesn't have any calculation itself (other than merging, transposing, and setting index of the results)
+    # it prepares a function for multiprocessing and thne begins the multiprocessing
     def prepare(self):
         unique_sequnces_df = self.data_df.drop_duplicates(subset = ["Sequence"])
     
@@ -121,7 +121,7 @@ class theoretical_enrichment_calculator(object):
         final_df = final_df.set_index("Sequence")
         self.model = pd.merge(self.data_df, final_df, left_on= "Sequence", right_index = True)
         
-    #$actually runs the relevant calculation. 
+    # actually runs the relevant calculation. 
     @staticmethod
     def _individual_process(df, new_columns, 
                             minimum_n_value,minimum_sequence_length):
@@ -129,7 +129,7 @@ class theoretical_enrichment_calculator(object):
          for row in df.itertuples():
             output_series = pd.Series(index = new_columns, dtype = "object")
             output_series["Sequence"] = row.Sequence
-            #$drop rows we will not use before doing any comples calculations
+            # drop rows we will not use before doing any comples calculations
             if len(row.Sequence) < minimum_sequence_length:
                 variable_list.append(theoretical_enrichment_calculator._error_message_results(
                     f"Sequence is less than {minimum_sequence_length} amino acids",
@@ -150,11 +150,11 @@ class theoretical_enrichment_calculator(object):
          return(pd.concat(variable_list,axis =1))
      
 
-    #$if an error happens it is most efficient to have a function
+    # if an error happens it is most efficient to have a function
     def _error_message_results(error_message, output_series):
-        #$don't need to know which names are which or how many columns there are, 
-        #$just need python to fill all non-Sequence columns
-        #$position 0 is the sequence name which we don't wish to overwrite
+        # don't need to know which names are which or how many columns there are, 
+        # just need python to fill all non-Sequence columns
+        # position 0 is the sequence name which we don't wish to overwrite
         for index_name in output_series.index[1:]:
             output_series[index_name] = error_message
         return output_series
@@ -162,8 +162,8 @@ class theoretical_enrichment_calculator(object):
                 
     
 
-    #$calculate unlabeled intensity, if we need to return  m/z values or
-    #$adjust for different n_values, do it here or in emass itself.
+    # calculate unlabeled intensity, if we need to return  m/z values or
+    # adjust for different n_values, do it here or in emass itself.
     def _fit_emass(sequence, n_isos):
         intensity_values = emass(
                     sequence,
@@ -171,8 +171,8 @@ class theoretical_enrichment_calculator(object):
                 )
         return [str(i) for i in intensity_values]
 
-    #$this creates the header for the variables. is a function in case we need 
-    #$to add various columns  (if we want to graph emass output or something)
+    # this creates the header for the variables. is a function in case we need 
+    # to add various columns  (if we want to graph emass output or something)
     @staticmethod
     def _make_new_columns():
         new_columns = ["Sequence"]

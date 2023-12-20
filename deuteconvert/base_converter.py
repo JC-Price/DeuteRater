@@ -31,7 +31,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-#$template for other templates
+# template for other templates
 from abc import ABC, abstractmethod
 
 # TODO: determine which columns are required

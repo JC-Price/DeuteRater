@@ -55,7 +55,7 @@ from utils.exc import InvalidHeaderError   # noqa: 401
 
 PROTON = 1.007276467
 
-#$as with all the calculation steps this is a class for consistent calls in the main
+# as with all the calculation steps this is a class for consistent calls in the main
 class Extractor:  # TODO name change
     '''Class that handles extracting the relevant data from an mzml file.
 
@@ -108,15 +108,15 @@ class Extractor:  # TODO name change
         self._mzml_native_id_bounds = []
         self.model = pd.DataFrame()
 
-        #$the try except is mostly to catch programming errors in the setup.
-        #$ there isn't a reasonable erro (except the final raise permissionerror but
-        #$ that doesn't need the try except)
+        # the try except is mostly to catch programming errors in the setup.
+        #  there isn't a reasonable erro (except the final raise permissionerror but
+        #  that doesn't need the try except)
         try:
             if settings.recognize_available_cores is True:
                 self._n_processors = mp.cpu_count()
             else:
                 self._n_processors = settings.n_processors
-            #$breaks windows/python interactions if too many cores are used. very niche application but still relevant
+            # breaks windows/python interactions if too many cores are used. very niche application but still relevant
             if self._n_processors > 60:
                 self.n_processors = 60
             self._chunk_size = settings.chunk_size
@@ -192,7 +192,7 @@ class Extractor:  # TODO name change
         self.ids.sort_values(by=['rt'], inplace=True)
         self.ids.reset_index(inplace=True, drop=True)
 
-        #$determines the mass cutoffs for the number of isotopes to extract
+        # determines the mass cutoffs for the number of isotopes to extract
         def num_peaks_by_mass(mass):
             if mass < 1500:
                 return 3
@@ -201,8 +201,8 @@ class Extractor:  # TODO name change
             else:
                 return 5
         
-        #$there are some things the input we need to autofill if the user does not have them
-        #$we'll do this with neutromers_to_extract only.  we'll deal with the rest elsewhere
+        # there are some things the input we need to autofill if the user does not have them
+        # we'll do this with neutromers_to_extract only.  we'll deal with the rest elsewhere
         def autofill(row):
             if np.isnan(row['neutromers_to_extract']) or row['neutromers_to_extract'] == "":
                 row['neutromers_to_extract'] = num_peaks_by_mass(row["Peptide Theoretical Mass"])
@@ -313,7 +313,7 @@ class Extractor:  # TODO name change
         func = partial(func, str(self.mzml_path))  # pass the mzml
         func = partial(func, self._index_ID_map)  # pass the index mapping
 
-        #$set up and run the multiprocessing
+        # set up and run the multiprocessing
         if settings.debug_level == 0:
             try:
                 results = list(

@@ -74,11 +74,11 @@ rt_proximity_tolerance: !!float 1
 # given in parts per million
 mz_proximity_tolerance: !!int 100
 
-#$min sequence allowed for peptides
+# min sequence allowed for peptides
 min_aa_sequence_length: !!int 6
 
-#$minimum allowed n value. if smaller, the maximum theoretical delta will be
-#$too small
+# minimum allowed n value. if smaller, the maximum theoretical delta will be
+# too small
 min_allowed_n_values: !!int 10
 
 starting_enrichment_table_timepoints: !!int 5
@@ -90,7 +90,7 @@ error_estimation: !!str "none" #add
 
 min_non_zero_timepoints_rate: !!int 1
 
-#$don't allow less than 4 or it will prevent spline fitting
+# don't allow less than 4 or it will prevent spline fitting
 min_allowed_timepoints_enrichment: !!int 4
 
 minimum_allowed_sequence_rate: !!float 0.0
@@ -99,10 +99,10 @@ maximum_allowed_sequence_rate: !!float 1.5
 
 minimum_sequences_to_combine_for_protein_rate: !!int 3
 
-#$if need to turn off just make it negative
+# if need to turn off just make it negative
 lowest_allowed_norm_isotope: !!float .8
 
-#$if need to turn off make it 5 or higher
+# if need to turn off make it 5 or higher
 highest_allowed_norm_isotope: !!float 1.2
 
 m0_decreasing_allowed_noise: !!float .15
@@ -116,9 +116,9 @@ median_absolute_residuals_cutoff_general: !!float .02
 desired_points_for_optimization_graph: !!int 25
 
 
-#$A filter used in many areas for scan combining. If a neutromer peak is below the
-#$a intensity filter, it is not considered to gaussian fitting and is not considered
-#$a valid scan. Default = 20k
+# A filter used in many areas for scan combining. If a neutromer peak is below the
+# a intensity filter, it is not considered to gaussian fitting and is not considered
+# a valid scan. Default = 20k
 intensity_filter: !!int 20000
 
 ms_level: !!int 1
@@ -127,16 +127,16 @@ ms_level: !!int 1
 # Default = png. Available: png, pdf, svg
 graph_output_format: !!str "pdf"
 
-#$add ability to Median or Average roll up
-#$allowed settings are Average and Median
+# add ability to Median or Average roll up
+# allowed settings are Average and Median
 protein_combination_method: !!str "Average"
 
 
-#$ whether or not to include some summary columns in the final output
-#$mostly used for troubleshooting.
+#  whether or not to include some summary columns in the final output
+# mostly used for troubleshooting.
 verbose_output: !!bool false
 
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
 
 # How many scans should be looked at when performing a gaussian filter
 # on the scan intensities. Must be an odd number. Default is 9
@@ -156,7 +156,7 @@ allowed_peak_variance_min: !!float 0.1
 # Default = 64 for Orbi (proteins)
 allowed_neutromer_peak_variance: !!int 64
 
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
 
 # A value used to determine how close to baseline the gaussian fitting algorithm
 # peak widths will be chosen from. Default is .9 (90%)

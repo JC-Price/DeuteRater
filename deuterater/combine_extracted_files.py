@@ -61,20 +61,20 @@ import deuteconvert.peptide_utils as peputils
 literature_n_name = "literature_n"
 
 
-#$as with all the calculation steps this is a class for consistent calls in the main
+# as with all the calculation steps this is a class for consistent calls in the main
 class CombineExtractedFiles():
     def __init__(self, enrichment_path, out_path, settings_path, needed_columns):
         settings.load(settings_path)
         self.settings_path = settings_path
         self.enrichment_path = Path(enrichment_path)
         self.needed_columns = needed_columns
-        #$collect necessary components to determine n_value from amino acids
+        # collect necessary components to determine n_value from amino acids
         aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
         aa_label_df.set_index('study_type', inplace=True)
         self.aa_labeling_dict = aa_label_df.loc[settings.label_key, ].to_dict()
         
         
-        #$pull in two sub tables from the output table. posibilities for .tsv and .csv files
+        # pull in two sub tables from the output table. posibilities for .tsv and .csv files
         if self.enrichment_path.suffix == '.tsv':
             self._file_data = pd.read_csv(
                 filepath_or_buffer=str(self.enrichment_path),
@@ -98,13 +98,13 @@ class CombineExtractedFiles():
                 usecols = ["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
             )
             
-        #$since the multiple sub tables can have different length, get rid
-        #$of the rows that are empty
+        # since the multiple sub tables can have different length, get rid
+        # of the rows that are empty
         self._file_data.dropna(inplace = True, how = "all")
         self._enrichment_data.dropna(inplace = True, how = "all")
         self._data_dict = self.collect_enrichment_data()
         
-        #$if multiprocessing need to set that up. more than 60 cores causes problems for windows
+        # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if settings.recognize_available_cores is True:
             self._n_processors = mp.cpu_count()
         else:
@@ -122,7 +122,7 @@ class CombineExtractedFiles():
             sep='\t',
             index=False
         )
-    #$read in data from the user
+    # read in data from the user
     def collect_enrichment_data(self):
         data_dict = {}
         for subject, subject_df in self._enrichment_data.groupby("Subject ID Enrichment"):
@@ -131,8 +131,8 @@ class CombineExtractedFiles():
             data_dict[subject] = [x_values, y_values]
         return data_dict
             
-    #$run the analysis.  this function doesn't have any calculation itself (other than merging results)
-    #$it prepares a function for multiprocessing and thne begins the multiprocessing
+    # run the analysis.  this function doesn't have any calculation itself (other than merging results)
+    # it prepares a function for multiprocessing and thne begins the multiprocessing
     def prepare(self):
         if settings.debug_level == 0:
             args_list = self._file_data.to_records(index=False).tolist()
@@ -166,17 +166,17 @@ class CombineExtractedFiles():
                 results.append(df)
 
         self.model = pd.concat(results)
-        #$now we need to filter columns
-        #$otherwise the carry forward increases file size quite a bit
-        #$by doing here it should not affect anything.
+        # now we need to filter columns
+        # otherwise the carry forward increases file size quite a bit
+        # by doing here it should not affect anything.
         self.model = self.model[self.needed_columns]
         
 
         self._mp_pool.close()
         self._mp_pool.join()
 
-    #$actually runs the relevant calculation. Yes reloading the settings is necessary
-    #$because each process has its own global variables in windows
+    # actually runs the relevant calculation. Yes reloading the settings is necessary
+    # because each process has its own global variables in windows
     @staticmethod
     def _mp_prepare(settings_path, data_dict,  aa_labeling_dict, args):
         settings.load(settings_path)
@@ -184,8 +184,8 @@ class CombineExtractedFiles():
         file_path, time, sample_id = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         df = CombineExtractedFiles._apply_filters(df)
-        #$ if the user or a previous process defined n, that's fine.  but it will be
-        #$needed in the next step so calculate if necessary.
+        #  if the user or a previous process defined n, that's fine.  but it will be
+        # needed in the next step so calculate if necessary.
         if literature_n_name not in df.columns:
             if aa_labeling_dict != "":
                 df = df.apply(CombineExtractedFiles._calculate_literature_n, axis =1 , args = (aa_labeling_dict,))
@@ -196,7 +196,7 @@ class CombineExtractedFiles():
             
         return df
     
-    #$calculate the n value based on amino acid sequence
+    # calculate the n value based on amino acid sequence
     @staticmethod
     def _calculate_literature_n(row, aa_labeling_dict):
         aa_counts = {}
@@ -208,9 +208,9 @@ class CombineExtractedFiles():
         row[literature_n_name] = literature_n
         return row
 
-    #$because the extractor may assign different ids to the same peak in different files,
-    #$we need to account for that. if two peaks are too clos in both retention time and mz
-    #$remove both as we can't be sure of the id without ms/ms which we aren't dealing with
+    # because the extractor may assign different ids to the same peak in different files,
+    # we need to account for that. if two peaks are too clos in both retention time and mz
+    # remove both as we can't be sure of the id without ms/ms which we aren't dealing with
     @staticmethod
     def _apply_filters(df):
         '''filters the internal dataframe
@@ -227,14 +227,14 @@ class CombineExtractedFiles():
         :obj:`pandas.Dataframe`
             The filtered dataframe. Does not modify in place.
         '''
-        #$get rid of lines that are missing mzs and abundances
+        # get rid of lines that are missing mzs and abundances
         df = df.dropna(
             axis='index',
             subset=['mzs', 'abundances']
         ).copy()
         
-        #$ we are going to drop all sequences that are too close in m/z and rt to other sequences
-        #$take out of the dataframe for speed
+        #  we are going to drop all sequences that are too close in m/z and rt to other sequences
+        # take out of the dataframe for speed
         df.sort_values(by='mz', inplace=True)
         mz_index = list(df.columns).index("mz") 
         rt_index = list(df.columns).index("rt")
@@ -252,13 +252,13 @@ class CombineExtractedFiles():
         too_close = list(set(too_close))
         return df.drop(df.index[too_close])
     
-    #$basic ppm calculator
+    # basic ppm calculator
     @staticmethod
     def _ppm_calculator(target, actual):
         ppm = (target-actual)/target * 1000000
         return abs(ppm)
     
-#$can't really use as a main 
+# can't really use as a main 
 def main():
     print('please use the main program interface')
 

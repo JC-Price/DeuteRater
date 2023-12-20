@@ -54,13 +54,13 @@ main_location = os.path.dirname(location)
 json_path = os.path.join(main_location, "resources", "ptms.json")
 
 
-#$adjusted from peaks 8.5 converter for use with Peaks X+
+# adjusted from peaks 8.5 converter for use with Peaks X+
 class PeaksXpro(BaseConverter):
 
     accession_parse_token = '|'
     PROTON_MASS = 1.007825
 
-    #$change the headers to ensure consistent naming
+    # change the headers to ensure consistent naming
     correct_header_names = {
         'peptide': 'Sequence',
         'rt_mean': 'Precursor Retention Time (sec)',
@@ -87,7 +87,7 @@ class PeaksXpro(BaseConverter):
         'neutromers_to_extract': 'neutromers_to_extract',
         'literature_n': 'literature_n'
     }
-    #$ ensure consistent order
+    #  ensure consistent order
     correct_header_order = [
         'peptide',
         'first_accession',
@@ -126,7 +126,7 @@ class PeaksXpro(BaseConverter):
         settings.load(settings_path)
 
 
-    #$get the data and do the analysis
+    # get the data and do the analysis
     def convert(self):
         df_proteins = self._prepare_proteins()
         df_protein_peptides = self._prepare_protein_peptides()
@@ -134,9 +134,9 @@ class PeaksXpro(BaseConverter):
         self._id_df = PeaksXpro._merge_data(
             df_feature, df_protein_peptides, df_proteins
         )
-        #$stps to do in order.  yes proximity filter should be in their twice
-        #$first to save time, and second to ensure no duplicates have popped up in the 
-        #$expand_to_Charge_States function.
+        # stps to do in order.  yes proximity filter should be in their twice
+        # first to save time, and second to ensure no duplicates have popped up in the 
+        # expand_to_Charge_States function.
         funcs = [
             PeaksXpro._interpret_aa_sequences,
             PeaksXpro._set_n_peaks,
@@ -155,8 +155,8 @@ class PeaksXpro(BaseConverter):
     def _parse_accession(acc):
         return acc.split(PeaksXpro.accession_parse_token)[0]
     
-    #$Peaks has a unique way of writing ptms, need to get a dictionary of valid symbols
-    #$ and check for mutations
+    # Peaks has a unique way of writing ptms, need to get a dictionary of valid symbols
+    #  and check for mutations
     @staticmethod
     def _reversed_ptm(peptide_str):
         with open(json_path) as ptms_json: #open(settings.ptms_path) as ptms_json:
@@ -171,9 +171,9 @@ class PeaksXpro(BaseConverter):
             
             if key in peptide_str:
                 all_modifications.append(reversed_dict[key])
-        #$need to add mutations. inserts, substitutions, and deletions
-        #$since substitutions can happen for all can't just add, so just
-        #$look for a few keywords
+        # need to add mutations. inserts, substitutions, and deletions
+        # since substitutions can happen for all can't just add, so just
+        # look for a few keywords
         for mutation in ["(ins", "(sub", "(del"]:
             if mutation in peptide_str:
                 all_modifications.append('Mutation')
@@ -181,7 +181,7 @@ class PeaksXpro(BaseConverter):
         
         return "; ".join(all_modifications)
 
-    #$need to actually replace the modifications with the correct single letter code
+    # need to actually replace the modifications with the correct single letter code
     @staticmethod
     def _process_ptm(ptm_string, peptide_sequence):
         seq = peptide_sequence
@@ -199,7 +199,7 @@ class PeaksXpro(BaseConverter):
                 seq = re.sub(r'\(ins\)', '', seq)
         return seq
 
-    #$actually merge the three separate inputs
+    # actually merge the three separate inputs
     @staticmethod
     def _merge_data(df_feature, df_protein_peptides, df_proteins):
         data = df_feature.merge(
@@ -221,14 +221,14 @@ class PeaksXpro(BaseConverter):
         ).reset_index(drop=True)
         return data
 
-    #$deal with the peptide_features file
+    # deal with the peptide_features file
     def _prepare_feature(self):  # change RT mean (in feature) to rt_mean
         df = pd.read_csv(self.feat_path)
         
-        #$I have not seen evidence for this X+, it is likley a possibility
-        #$however, I can't uset RT for this and checking for extras is not 
-        #$reasonable since RT begin and end also have RT. For now we will
-        #$comment it out until we find out if these are included
+        # I have not seen evidence for this X+, it is likley a possibility
+        # however, I can't uset RT for this and checking for extras is not 
+        # reasonable since RT begin and end also have RT. For now we will
+        # comment it out until we find out if these are included
         # Get retention time column names
         #rt_names = [col for col in df.columns if 'RT mean' in col]
         #del rt_names[-1]
@@ -268,9 +268,9 @@ class PeaksXpro(BaseConverter):
         df['rt_width'] = df['rt_end'].values - df['rt_start'].values
         df['accessions'] = df['accessions'].str.split(':').fillna('').map(
             partial(map, PeaksXpro._parse_accession)).map(list)
-        #$this is a bit of a change in that features annoyingly does not have
-        #$the ptms marked.  it does have the notes in the sequence though
-        #$so we'll make the ptm column. we'll try and just run it backwards
+        # this is a bit of a change in that features annoyingly does not have
+        # the ptms marked.  it does have the notes in the sequence though
+        # so we'll make the ptm column. we'll try and just run it backwards
         for row in df.itertuples():
             df.at[row.Index, 'ptm'] = PeaksXpro._reversed_ptm(row.peptide)
         
@@ -286,7 +286,7 @@ class PeaksXpro(BaseConverter):
         df = df[df['rt_mean'] >= settings.start_time]
 
         # count number of reps in retention time
-        #$ when figure out how reps are represented uncomment the loop
+        #  when figure out how reps are represented uncomment the loop
         df['num_reps'] = 0
         #for column_name in rt_names:
         #    df.update(df.loc[df[column_name] != 0]['num_reps'] + 1)
@@ -311,11 +311,11 @@ class PeaksXpro(BaseConverter):
 
         df = df.sort_values(by=['peptide'])
         return df
-    #$prepare the protein peptide file, mostly renaming, trimming and some parsing.
+    # prepare the protein peptide file, mostly renaming, trimming and some parsing.
     def _prepare_protein_peptides(self):
         df = pd.read_csv(self.protpep_path)
-        #$quality has been moved around. of these files only in the features.csv
-        #$which is constant currently.  conveniently we're not using that currently
+        # quality has been moved around. of these files only in the features.csv
+        # which is constant currently.  conveniently we're not using that currently
         keep_cols = [
             'Peptide',
             'ppm',
@@ -341,7 +341,7 @@ class PeaksXpro(BaseConverter):
         df['peptide'] = df['peptide'].str.split('.').str[1]
         df = df.drop('ptm', axis=1)
         return df
-    #$prepare the protein file, mostly renaming, trimming and some parsing.
+    # prepare the protein file, mostly renaming, trimming and some parsing.
     def _prepare_proteins(self):
         df = pd.read_csv(self.prot_path)
         keep_cols = ['Accession', '#Peptides', '#Unique', 'Description']
@@ -365,7 +365,7 @@ class PeaksXpro(BaseConverter):
         df['sequence_version'] = description_strings[4]
         return df
 
-    #$turn the amino acids sequences into something we can calculate off of
+    # turn the amino acids sequences into something we can calculate off of
     @staticmethod
     def _interpret_aa_sequences(df):
         df.assign(
@@ -413,7 +413,7 @@ class PeaksXpro(BaseConverter):
             df.at[i, 'literature_n'] = literature_n
         return df
 
-    #$determine the number of isotope peaks to extract
+    # determine the number of isotope peaks to extract
     @staticmethod
     def _set_n_peaks(df):
         for mass_cutoff, n_peaks in settings.mass_cutoffs:
@@ -423,14 +423,14 @@ class PeaksXpro(BaseConverter):
             ] = n_peaks
         return df
 
-    #$ppm calculation
+    # ppm calculation
     @staticmethod
     def _ppm_calculator(target, actual):
         ppm = (target-actual)/target * 1000000
         return abs(ppm)
-    #$since we are extracting based on mz and retention time we need
-    #$to ensure they are unique.  this removes non-unique retention times and m/z pairs
-    #$ based on settings the user provides
+    # since we are extracting based on mz and retention time we need
+    # to ensure they are unique.  this removes non-unique retention times and m/z pairs
+    #  based on settings the user provides
     @staticmethod
     def _proximity_filter(df):
         try:
@@ -453,7 +453,7 @@ class PeaksXpro(BaseConverter):
         too_close = list(set(too_close))
         return df.drop(df.index[too_close])
 
-    #$expand to multiple charge states that may be present but were not identified
+    # expand to multiple charge states that may be present but were not identified
     @staticmethod
     def _expand_to_charge_states(df):
         all_columns = list(df.columns)
@@ -471,7 +471,7 @@ class PeaksXpro(BaseConverter):
                 all_data.append(quick_list)
         return pd.DataFrame(all_data, columns = all_columns)
 
-    #$need to sort, rename columns and mark too short peptides.
+    # need to sort, rename columns and mark too short peptides.
     @staticmethod
     def _finalize(df):
         df = df[df['peptide'].str.len() >= 6]

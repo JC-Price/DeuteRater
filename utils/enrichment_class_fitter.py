@@ -46,14 +46,14 @@ import scipy.interpolate as si
 
 from utils.graphing_tools import enrichment_graph
 
-#$the spline equation will be separate for easier calling in other modules
+# the spline equation will be separate for easier calling in other modules
 def spline_interp(t, d):
     std_d = np.std(d)
     w_y = [3/std_d for i in range(len(t))]
     spl = si.splrep(t, d, w=w_y)
     return lambda x: si.splev(x, spl)
 
-#$this just holds some data for ease
+# this just holds some data for ease
 class subject_data(object):
     def __init__(self, subject_name, x, y):
         self.subject_name = subject_name
@@ -67,22 +67,22 @@ class subject_data(object):
         self.theory_y = self.spline(self.theory_x)
 
 old_header =["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-#$we'll use a class for consistency with other parts
+# we'll use a class for consistency with other parts
 class PerformEnrichmentClass(object):
     def __init__(self, input_filename, graph_folder_name, graph_type):
         temp_df = pd.read_csv(input_filename, sep = "\t")
         self.subject_ids = list(temp_df[old_header[0]].unique())
-        #$if the number of enrichment measurments is less than the number of subject samples we can end with nans in the subject list
-        #$we'll remove that.
+        # if the number of enrichment measurments is less than the number of subject samples we can end with nans in the subject list
+        # we'll remove that.
         self.subject_ids = [s for s in self.subject_ids if pd.notnull(s)]
         self.load_previous_data(input_filename)
         self.graph_folder_name = graph_folder_name
         self.graph_type = graph_type
         
     def perform_calculations(self):
-        #$sometimes a fit fails.  instead of raising a warning or error, the spline just returns nans
-        #$fortunately the spline can extrapolate and should start at or near 0.  so to prevent errors in rate calculation, we'll try it,
-        #$track it, and then return it later
+        # sometimes a fit fails.  instead of raising a warning or error, the spline just returns nans
+        # fortunately the spline can extrapolate and should start at or near 0.  so to prevent errors in rate calculation, we'll try it,
+        # track it, and then return it later
         self.error_list = []
         for subject_key in self.subject_dictionary.keys():
             temp_subject_class = self.subject_dictionary[subject_key]
@@ -92,7 +92,7 @@ class PerformEnrichmentClass(object):
             enrichment_graph(temp_subject_class.x, temp_subject_class.y, 
                              temp_subject_class.theory_x, temp_subject_class.theory_y,
                              temp_subject_class.subject_name, temp_graph_name, self.graph_type)
-            #$ report error might as well graph it anyway.  
+            #  report error might as well graph it anyway.  
             if any(np.isnan(temp_subject_class.theory_y)):
                 self.error_list.append(subject_key)
 
@@ -102,16 +102,16 @@ class PerformEnrichmentClass(object):
         error_message = "The following Subjects failed to fit: \n{}\nlikely because of errors in entering data in the enrichment table. Analysis has stopped. Please try again.".format("\n".join(self.error_list))
         return error_message
     
-    #$need to load the file and prepare for fitting
+    # need to load the file and prepare for fitting
     def load_previous_data(self, input_filename):
         self.subject_dictionary = {}
         df = pd.read_csv(input_filename, delimiter=("\t"))
         df = df[old_header]
         for subject in self.subject_ids:   
             temp_df = df[df[old_header[0]] == subject]
-            #$ the spline needs to be in order. this is faster and easier than trying to do it when making the output
+            #  the spline needs to be in order. this is faster and easier than trying to do it when making the output
             temp_df = temp_df.sort_values(old_header[1])
-            #$need to pass numpy array values for the fits
+            # need to pass numpy array values for the fits
             self.subject_dictionary[subject] = subject_data(
                 subject,
                 temp_df[old_header[1]].to_numpy(),

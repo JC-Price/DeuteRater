@@ -37,9 +37,9 @@ maybe one or two basic functions
 import os
 import csv
 
-#$similar to deuterater step the goal is to force the the correct headers.
-#$useful for peaks only. could adjust this and deuterater step to inherit from a common parent class
-#$or merge into one class, but not worth it right now
+# similar to deuterater step the goal is to force the the correct headers.
+# useful for peaks only. could adjust this and deuterater step to inherit from a common parent class
+# or merge into one class, but not worth it right now
 class deuteconvert_peaks_required_headers(object):
     def __init__(self,protein_header, protein_peptide_header, features_header):
         self.protein_header = protein_header
@@ -67,9 +67,9 @@ class deuteconvert_peaks_required_headers(object):
         return set(header).issubset(firstrow)
 
 
-#$this class holds data for each deuterater step
-#$allows easier calls in the main and one large batch of declarations
-#$limits hard coding issues
+# this class holds data for each deuterater step
+# allows easier calls in the main and one large batch of declarations
+# limits hard coding issues
 class deuterater_step(object):
     def __init__(self, output_filename, required_columns):
         self.output_filename = output_filename
@@ -95,9 +95,9 @@ the next two classes are specific for the settings menu. they allow for strings 
 which side of the or is determined by a boolean argument
 """
 class setting_numerical_info(object):
-    #$data_object is the object from the menu, starting value is the initial 
-    #$value, setting_name is tha name in the settings menu, integer is a 
-    #$boolean to determine if it is an integer (True) or a float (False)
+    # data_object is the object from the menu, starting value is the initial 
+    # value, setting_name is tha name in the settings menu, integer is a 
+    # boolean to determine if it is an integer (True) or a float (False)
     def __init__(self, data_object, setting_name, starting_value, integer):
         self.data_object = data_object
         self.current_value = starting_value
@@ -113,8 +113,8 @@ class setting_numerical_info(object):
         else:
             self.current_value = float(self.data_object.value())
         return self.setting_name, self.current_value
-    #$the purpose of this is just to compare if the values match without
-    #$saving so we can compare things when closing
+    # the purpose of this is just to compare if the values match without
+    # saving so we can compare things when closing
     def compare_value(self):
         if self.integer:
             return self.current_value == int(self.data_object.value())
@@ -122,8 +122,8 @@ class setting_numerical_info(object):
             return self.current_value == float(self.data_object.value())
 
 class setting_string_info(object):
-    #$arguments are the same as setting_numerical_info except true_false
-    #$true_false determines if it is a yes no(True) or just a string
+    # arguments are the same as setting_numerical_info except true_false
+    # true_false determines if it is a yes no(True) or just a string
     def __init__(self, data_object, setting_name, starting_value, true_false):
         self.data_object = data_object
         self.current_value = starting_value
@@ -152,8 +152,8 @@ class setting_string_info(object):
             self.current_value = value
         return self.setting_name, self.current_value
     
-    #$the purpose of this is just to compare if the values match without
-    #$saving so we can compare things when closing
+    # the purpose of this is just to compare if the values match without
+    # saving so we can compare things when closing
     def compare_value(self):
         value = str(self.data_object.currentText())
         if self.true_false:

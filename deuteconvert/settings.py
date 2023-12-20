@@ -46,7 +46,7 @@ the third is the freeze function which allows saving the variables
 """
 
 
-#$sets up the settings for the converter as global variables and has a save (freeze) function for them
+# sets up the settings for the converter as global variables and has a save (freeze) function for them
 
 mass_cutoffs: object
 rt_proximity_tolerance: int
