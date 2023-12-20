@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2023 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
-    Coleman Nielson, J.C. Price, and Brigham Young University
+Copyright (c) 2021 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -31,15 +30,24 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-import sys
 import yaml
 import traceback
 import os
 
 from pathlib import Path
 
-development: bool
+
+"""
+this is to load the settings as global variables.  There are three portions
+the first defines the variable type
+the second is the load function which loads the variables
+the third is the freeze function which allows saving the variables
+
+"""
+
+
+#$sets up the settings for the converter as global variables and has a save (freeze) function for them
+
 mass_cutoffs: object
 rt_proximity_tolerance: int
 mz_proximity_tolerance: int
@@ -52,35 +60,9 @@ elems_path: str
 ptms_path: str
 min_charge_state: int
 max_charge_state: int
-remove_duplicates: bool
 
-# Positive Mode Adducts:
-H_adduct: bool
-Na_adduct: bool
-H_H2O_adduct: bool
-Na_H2O_adduct: bool
-NH4_adduct: bool
-NH4_H2O_adduct: bool
-
-# Negative Mode Adducts:
-formate_adduct: bool
-acetate_adduct: bool
-e_adduct: bool
-H_loss: bool
-H2O_loss: bool
-
-expand_to_adducts: bool
-
-# when compiling/building for an executable, set all of these to True, otherwise leave as False
-# copy "exe_mode = False" and search using ctrl+shift+f to find each instance
-exe_mode = False
-if exe_mode:
-    location = os.path.dirname(os.path.abspath(sys.executable))
-else:
-    location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# location = os.path.dirname(os.path.abspath(sys.executable))
-# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#location = os.path.dirname(os.path.abspath(sys.executable))
+location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -91,9 +73,6 @@ def load(settings_path):
         settings_path = Path(settings_path)
         with settings_path.open('r') as f:
             s = yaml.load(f, Loader=yaml.FullLoader)
-
-        global development
-        development = s["development"]
 
         global mass_cutoffs
         mass_cutoffs = sorted(s['mass_cutoffs'])
@@ -131,72 +110,23 @@ def load(settings_path):
         global max_charge_state
         max_charge_state = s['max_charge_state']
 
-        global remove_duplicates
-        remove_duplicates = s['remove_duplicates']
-
-        # Positive Mode Adducts:
-        global H_adduct
-        H_adduct = s["H_adduct"]
-        global Na_adduct
-        Na_adduct = s["Na_adduct"]
-        global H_H2O_adduct
-        H_H2O_adduct = s["H_H2O_adduct"]
-        global Na_H2O_adduct
-        Na_H2O_adduct = s["Na_H2O_adduct"]
-        global NH4_adduct
-        NH4_adduct = s["NH4_adduct"]
-        global NH4_H2O_adduct
-        NH4_H2O_adduct = s["NH4_H2O_adduct"]
-
-        # Negative Mode Adducts:
-        global formate_adduct
-        formate_adduct = s["formate_adduct"]
-        global acetate_adduct
-        acetate_adduct = s["acetate_adduct"]
-        global e_adduct
-        e_adduct = s["e_adduct"]
-        global H_loss
-        H_loss = s["H_loss"]
-        global H2O_loss
-        H2O_loss = s["H2O_loss"]
-        
-        global expand_to_adducts
-        expand_to_adducts = s["expand_to_adducts"]
-
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
 
 
-def freeze(path=None, settings_dict=None):
-    if not settings_dict:
-        settings_dict = {
-            'development': development,
-            'mass_cutoffs': mass_cutoffs,
-            'rt_proximity_tolerance': rt_proximity_tolerance,
-            'mz_proximity_tolerance': mz_proximity_tolerance,
-            'start_time': start_time,
-            'study_type': study_type,
-            'aa_elemental_composition_path': aa_elem_comp_path,
-            'aa_labeling_sites_path': aa_label_path,
-            'elements_path': elems_path,
-            'post_translational_modifications_path': ptms_path,
-            'min_charge_state': min_charge_state,
-            'max_charge_state': max_charge_state,
-            'remove_duplicates': remove_duplicates,
-            "H_adduct": H_adduct,
-            "Na_adduct": Na_adduct,
-            "H_H2O_adduct": H_H2O_adduct,
-            "Na_H2O_adduct": Na_H2O_adduct,
-            "NH4_adduct": NH4_adduct,
-            "NH4_H2O_adduct": NH4_H2O_adduct,
-            "formate_adduct": formate_adduct,
-            'acetate_adduct': acetate_adduct,
-            'e_adduct': e_adduct,
-            'H_loss': H_loss,
-            'H2O_loss': H2O_loss,
-            'expand_to_adducts': expand_to_adducts,
-        }
+def freeze(path=None):
+    settings_dict = {
+        'mass_cutoffs': mass_cutoffs,
+        'rt_proximity_tolerance': rt_proximity_tolerance,
+        'mz_proximity_tolerance': mz_proximity_tolerance,
+        'start_time': start_time,
+        'study_type': study_type,
+        'aa_elemental_composition_path': aa_elem_comp_path,
+        'aa_labeling_sites_path': aa_label_path,
+        'elements_path': elems_path,
+        'post_translational_modifications_path': ptms_path
+    }
     if path:
         with open(path, 'w') as frozen_settings_file:
             yaml.dump(

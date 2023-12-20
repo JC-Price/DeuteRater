@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2021 Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -31,7 +31,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-
+#$template for other templates
 from abc import ABC, abstractmethod
 
 # TODO: determine which columns are required
@@ -40,16 +40,6 @@ from abc import ABC, abstractmethod
 class BaseConverter(ABC):
     def __init__(self):
         super().__init__()
-
-    @property
-    @abstractmethod
-    def converted_data(self):
-        raise NotImplementedError
-
-    @classmethod
-    @abstractmethod
-    def load_files(cls, *args):
-        return NotImplementedError
 
     @classmethod
     @abstractmethod

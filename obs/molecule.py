@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2016-2021 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -30,13 +30,17 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
+"""
+class and functions for supporting the extractor
+"""
 import numpy as np
 import warnings
 try:
     import deuterater.settings as settings
 except:
     import DeuteRater.deuterater.settings as settings
-
+from .id import ID
 
 class Molecule(object):
     __slots__ = (
@@ -102,8 +106,8 @@ class Molecule(object):
         distance_between_scans = whole_rt_range / len(rt_list)
         allowed_scan_variance = int(allowed_peak_variance_min / distance_between_scans)
 
-        # Grab peaks from all the ids for comparison. Also, remove any peaks
-        #   that are at the beginning or ending scan of the 3-minute window.
+        # Grab peaks from all of the ids for comparison. Also, remove any peaks
+        #   that are at the beginning or ending scan of the 3 minute window.
         from copy import deepcopy, copy
         available_chrom_peaks = list()
         id_neutromer_peak_indexes = list()
@@ -118,7 +122,7 @@ class Molecule(object):
             available_chrom_peaks[-1].insert(0, rep)
             chrom_peak_indexes[-1].insert(0, rep)
 
-            # Remove any peaks that has its center at the end or beginning of 3-minute window.
+            # Remove any peaks that has it's center at the end or beginning of 3 minute window.
             if len(id.rt_peak_index) > 1:
                 end_range = None
                 start_range = None
@@ -347,7 +351,7 @@ class Molecule(object):
         # Grab the earliest peak (default)
         chosen_peak = 0
         
-        # num_reps_with_peak = np.array([-len(peak) for peak in self.reps_with_peak])
+        num_reps_with_peak = np.array([-len(peak) for peak in self.reps_with_peak])
         most_peaks = max([len(peak) for peak in self.reps_with_peak])
         num_reps_percentage = np.array([len(peak)/most_peaks for peak in self.reps_with_peak])
         with warnings.catch_warnings():
@@ -355,11 +359,11 @@ class Molecule(object):
             #   There is no other reason for a RuntimeWarning here, so I will suppress it
             #   because the warning is telling me something I already know and am handling correctly.
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            # def stat_range(a):
-            #     return max(a) - min(a)
+            def stat_range(a):
+                return max(a) - min(a)
             def stat_range_percent(a):
-                return 1 - (max(a) - min(a))/ settings.allowed_neutromer_peak_variance
-            # variance_totals = np.array([np.nanmean([stat_range(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
+                return 1 - (max(a) - min(a))/settings.allowed_neutromer_peak_variance
+            variance_totals = np.array([np.nanmean([stat_range(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
             variance_percentages = np.array([np.nanmean([stat_range_percent(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
         dist_from_center = np.array([abs(((peak[0] + peak[1])/2) - self.center_scan) for peak in self.unique_chrom_peaks])
         dist_from_center_percentage = np.array([1 - abs(((peak[0] + peak[1])/2) - self.center_scan)/self.center_scan for peak in self.unique_chrom_peaks])
@@ -370,11 +374,12 @@ class Molecule(object):
 
         try:
             combined_percentages = settings.adduct_weight * num_reps_percentage + \
-                                   settings.variance_weight * variance_percentages + \
+                                   settings.variance_weight * variance_percentages +\
                                    settings.ID_weight * dist_from_center_percentage + \
                                    settings.intensity_weight * intensity_percentage
         except:
             print("percentage error")
+        import scipy.stats as ss
         # rep_rank = ss.rankdata(num_reps_with_peak, method="dense")
         # variance_rank = ss.rankdata(variance_totals, method="dense")
         # rt_rank = ss.rankdata(dist_from_center, method="dense")
@@ -423,61 +428,53 @@ class Molecule(object):
                 self.error[rep] = "Chromatographic Peak does not exist for this rep."
 
     def update_output_file(self, df):
+        # df_w_index = df.reset_index(drop=True)
         df["row_num"] = np.arange(0, df.shape[0])
         df.set_index("row_num", drop=False, inplace=True)
-        df['signal_2_noise'] = ''
-        df['signal_2_noise'].astype(str)
-        # df['scan_noise'] = ''
-        # df['scan_noise'].astype(str)
-        # 'm-1_mz'] = str(lb_mzs)
-        # df.at[row_index, 'm-1_abundance'] = str(lb_abundances)
-        # df.at[row_index, 'm_end+1_mz'] = str(la_mzs)
-        # df.at[row_index, 'm_end+1_abundance'] = str(la_abundances)
-        # df.at[row_index, 'mads'
-        to_string = ['m-1_mz', 'm-1_abundance', 'm_end+1_mz', 'm_end+1_mz', 'm_end+1_abundance', 'mads', 'mzs', 'abundances']
-        df = df.astype({a: str for a in to_string})
         for rep, id in self.ids.items():
-            name_column = list(set(df.columns).intersection({"Lipid Unique Identifier", "Sequence"}))
+            name_column = list(set(df.columns).intersection(set(["Lipid Name", "Sequence"])))
             row = df[df[name_column[0]] == self.name]
             row = row.loc[row["name_check"] == rep]
-            for row_index in row["row_num"]:
-                if id.condensed_envelope:
-                    mzs, abundances = id.condensed_envelope.to_obs()
-                    signal_2_noise = [float(a) / float(id.condensed_envelope.baseline) for a in abundances]
-                    lb_mzs, lb_abundances = id.condensed_envelope.lb_obs()
-                    la_mzs, la_abundances = id.condensed_envelope.la_obs()
-                    df.at[row_index, 'mzs'] = str(mzs)
-                    df.at[row_index, 'abundances'] = str(abundances)
-                    df.at[row_index, 'rt_min'] = id.rt_min
-                    df.at[row_index, 'rt_max'] = id.rt_max
-                    df.at[row_index, "Extraction_Updated"] = self.why_chosen
-                    df.at[row_index, 'baseline_signal'] = id.condensed_envelope.baseline
-                    df.at[row_index, 'signal_2_noise'] = str(signal_2_noise)
-                    # df.at[row_index, 'scan_noise'] = str(id.scan_noise)
-                    df.at[row_index, 'm-1_mz'] = str(lb_mzs)
-                    df.at[row_index, 'm-1_abundance'] = str(lb_abundances)
-                    df.at[row_index, 'm_end+1_mz'] = str(la_mzs)
-                    df.at[row_index, 'm_end+1_abundance'] = str(la_abundances)
-                    df.at[row_index, 'mads'] = str(id.mads)
-                    df.at[row_index, 'num_scans_combined'] = len(id._envelopes)
-                else:
-                    try:
-                        df.at[row_index, 'mzs'] = np.nan
-                    except:
-                        print("There is an errror in the else")
-                        continue
-                    df.at[row_index, 'abundances'] = np.nan
-                    df.at[row_index, 'rt_min'] = np.nan
-                    df.at[row_index, 'rt_max'] = np.nan
-                    df.at[row_index, 'baseline_signal'] = np.nan
-                    df.at[row_index, 'signal_2_noise'] = np.nan
-                    # df.at[row_index, 'scan_noise'] = np.nan
-                    df.at[row_index, 'm-1_mz'] = np.nan
-                    df.at[row_index, 'm-1_abundance'] = np.nan
-                    df.at[row_index, 'm_end+1_mz'] = np.nan
-                    df.at[row_index, 'm_end+1_abundance'] = np.nan
-                    df.at[row_index, 'mads'] = np.nan
-                    df.at[row_index, 'num_scans_combined'] = 0
-                    df.at[row_index, "Extraction_Updated"] = "no peak used"
-                    df.at[row_index, "Extraction_Error"] = self.error[rep]
+            try:
+                row_index = row.iloc[0]['row_num']
+            except:
+                print("There is an errror")
+                continue
+            if id.condensed_envelope:
+                mzs, abundances = id.condensed_envelope.to_obs()
+                lb_mzs, lb_abundances = id.condensed_envelope.lb_obs()
+                la_mzs, la_abundances = id.condensed_envelope.la_obs()
+                df.at[row_index, 'mzs'] = mzs
+                df.at[row_index, 'abundances'] = abundances
+                df.at[row_index, 'rt_min'] = id.rt_min
+                df.at[row_index, 'rt_max'] = id.rt_max
+                df.at[row_index, "Extraction_Updated"] = self.why_chosen
+                df.at[row_index, 'baseline_signal'] = id.condensed_envelope.baseline
+                # df.at[row_index, 'signal_noise'] = ""
+                df.at[row_index, 'signal_noise'] = str(id.signal_noise)
+                df.at[row_index, 'lookback_mzs'] = lb_mzs
+                df.at[row_index, 'lookback_abundances'] = lb_abundances
+                df.at[row_index, 'lookahead_mzs'] = la_mzs
+                df.at[row_index, 'lookahead_abundances'] = la_abundances
+                df.at[row_index, 'mads'] = str(id.mads)
+                df.at[row_index, 'num_scans_combined'] = len(id._envelopes)
+            else:
+                try:
+                    df.at[row_index, 'mzs'] = np.nan
+                except:
+                    print("There is an errror in the else")
+                    continue
+                df.at[row_index, 'abundances'] = np.nan
+                df.at[row_index, 'rt_min'] = np.nan
+                df.at[row_index, 'rt_max'] = np.nan
+                df.at[row_index, 'baseline_signal'] = np.nan
+                df.at[row_index, 'signal_noise'] = np.nan
+                df.at[row_index, 'lookback_mzs'] = np.nan
+                df.at[row_index, 'lookback_abundances'] = np.nan
+                df.at[row_index, 'lookahead_mzs'] = np.nan
+                df.at[row_index, 'lookahead_abundances'] = np.nan
+                df.at[row_index, 'mads'] = np.nan
+                df.at[row_index, 'num_scans_combined'] = 0
+                df.at[row_index, "Extraction_Updated"] = "no peak used"
+                df.at[row_index, "Extraction_Error"] = self.error[rep]
         return df

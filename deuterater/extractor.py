@@ -42,7 +42,7 @@ import multiprocessing as mp
 from pathlib import Path  # noqa: 401
 import os
 import traceback
-import warnings  # noqa: 401
+import warnings   # noqa: 401
 
 from math import ceil
 from operator import mul
@@ -50,31 +50,14 @@ from operator import mul
 import deuterater.settings as settings
 import utils.mzml as dml
 import utils.extract as due
-from utils.exc import InvalidHeaderError  # noqa: 401
+from utils.exc import InvalidHeaderError   # noqa: 401
 
 
-# TODO: Code for Validating headers
-# TODO: n_isos to look for should be supplied in the ID file
-# NOTE: this includes consideration of peaks_included_under_mass_cutoff
-# TODO: chunk on lines not number of partitions
-# TODO: we achieve best efficiency if the number of chunks is a multiple
-#       of the number of processors. Does this need to be implemented?
+PROTON = 1.007276467
 
-# TODO: if we trim the IDs, what to do with obs trimmed off?
-# TODO: change the logic to be based off of pandas chunking?
-# TODO: let the extractor handle gzipped mzml files
-# TODO: Speedup with cython
-# TODO: add check to see if file is writeable
-# TODO: only compose dictionary once instead of twice?
-# TODO: How to deal with killing only one instance of extractor
-#       in a batch processing scenario?
-# TODO: pause execution to close file, don't terminate
-
-# NOTE: not all mzmls have contiguous native IDs
-
-
+#$as with all the calculation steps this is a class for consistent calls in the main
 class Extractor:  # TODO name change
-    """Class that handles extracting the relevant data from an mzml file.
+    '''Class that handles extracting the relevant data from an mzml file.
 
     TODO: Add more info on what this does/how it differs from extract
 
@@ -94,18 +77,25 @@ class Extractor:  # TODO name change
     model : :obj:`pandas.Dataframe`
         The aggregation of the data extracted from `ids` and `mzml`
 
-    """
-
+    '''
     def __init__(self, settings_path, id_path, mzml_path, out_path):
-        """
+        '''
         Parameters
         ----------
         ids : str
             The name of the file containing the identifications. This data
-            will likely have been taken from an unlabele-
+            will likely have been taken from an unlabeled run.
+        mzml : str
+            The name of the file containing mass spectrometry data in the
+            mzml format, labeled or not.
+        settings : str
+            The name of the file containing the settings for this instance
+            of the exctractor, which may contain the settings for the rest
+            of Deuterater as well. This file *should* be in ``.yaml`` format.
+
             For addition information, see the settings file's documentation
 
-        """
+        '''
         self.settings_path = settings_path
         settings.load(self.settings_path)
 
@@ -118,19 +108,20 @@ class Extractor:  # TODO name change
         self._mzml_native_id_bounds = []
         self.model = pd.DataFrame()
 
+        #$the try except is mostly to catch programming errors in the setup.
+        #$ there isn't a reasonable erro (except the final raise permissionerror but
+        #$ that doesn't need the try except)
         try:
             if settings.recognize_available_cores is True:
-                # BD: Issue with mp.cpu_count() finding too many cores available
-                self._n_processors = round(mp.cpu_count() * 0.75)
-                # self._n_processors = mp.cpu_count()
+                self._n_processors = mp.cpu_count()
             else:
                 self._n_processors = settings.n_processors
-            # $breaks windows/python interactions if too many cores are used. very niche application but still relevant
-            if self._n_processors > 60:  # changed from 60 back to 60, -Coleman
+            #$breaks windows/python interactions if too many cores are used. very niche application but still relevant
+            if self._n_processors > 60:
                 self.n_processors = 60
             self._chunk_size = settings.chunk_size
             self._chunking_threshold = mul(
-                self._n_processors,
+                settings.chunking_method_threshold,
                 settings.chunk_size
             )
             self._id_rt_unit = settings.id_file_rt_unit
@@ -150,12 +141,12 @@ class Extractor:  # TODO name change
             raise
 
     def load(self):
-        """Loads the associated files into memory
+        '''Loads the associated files into memory
 
-        This is called separately from the initialization of the Extractor
+        This is called seperately from the initializtion of the Extractor
         class so that if many files are given, we only have one Extractor
         fully loaded into memory at a time
-        """
+        '''
         try:
             self._load_ids(self.id_path)
             self._get_mzml_bounds(self.mzml_path)
@@ -173,7 +164,7 @@ class Extractor:  # TODO name change
         )
 
     def _load_ids(self, filename):
-        """Loads the id file into memory
+        '''Loads the id file into memory
 
         Parameters
         ----------
@@ -192,7 +183,7 @@ class Extractor:  # TODO name change
         InvalidHeaderError
             If the file does not contain the appropriate information.
 
-        """
+        '''
         self.ids = pd.read_csv(self.id_path)
         if self._id_rt_unit == 'sec':
             self.ids['rt'] = self.ids['Precursor Retention Time (sec)'].apply(lambda x: x / 60.0)
@@ -201,7 +192,7 @@ class Extractor:  # TODO name change
         self.ids.sort_values(by=['rt'], inplace=True)
         self.ids.reset_index(inplace=True, drop=True)
 
-        # self.ids['n_isos'] = 5  # TODO: Temp value, see note at top of files
+        #$determines the mass cutoffs for the number of isotopes to extract
         def num_peaks_by_mass(mass):
             if mass < 1500:
                 return 3
@@ -209,24 +200,32 @@ class Extractor:  # TODO name change
                 return 4
             else:
                 return 5
-
+        
+        #$there are some things the input we need to autofill if the user does not have them
+        #$we'll do this with neutromers_to_extract only.  we'll deal with the rest elsewhere
+        def autofill(row):
+            if np.isnan(row['neutromers_to_extract']) or row['neutromers_to_extract'] == "":
+                row['neutromers_to_extract'] = num_peaks_by_mass(row["Peptide Theoretical Mass"])
+            return row
+        
+        self.ids = self.ids.apply(autofill, axis = 1)
         self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(
             np.int8)  # TODO: Temp value, see note at top of files
         # self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
 
     def _partition_ids(self, trim):
-        """splits the id file
+        '''splits the id file
 
         Returns
         -------
         :obj:`list` of :obj:`pandas.Dataframe`
 
-        """
+        '''
         # NOTE: there is not really a reason to chunk the read operation
         # until the ID files are gigabytes in size
         if trim:
             mask = (self._mzml_rt_min - self._rt_window < self.ids['rt']) \
-                   & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
+                & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
             self.ids = self.ids[mask]
             self.ids.reset_index(inplace=True, drop=True)
 
@@ -235,7 +234,7 @@ class Extractor:  # TODO name change
 
         try:
             self._id_chunks = [
-                self.ids.loc[i:i + self._chunk_size - 1, :].copy() for i in range(
+                self.ids.loc[i:i+self._chunk_size-1, :].copy() for i in range(
                     0, len(self.ids.index), self._chunk_size
                 )
             ]
@@ -243,14 +242,14 @@ class Extractor:  # TODO name change
             print("Supplied ID File has no ID's that can be extracted with the current settings.")
             print("Please loosen the settings and/or include more ID's in the supplied file.")
             exit(2)
-
+        
         for chunk in self._id_chunks:
             keep_cols = [
                 'Precursor m/z',
                 'Identification Charge',
                 'rt',
                 'n_isos',
-                # 'cf'
+                #'cf'
             ]
             chunk.drop(
                 chunk.columns.difference(keep_cols),
@@ -266,7 +265,7 @@ class Extractor:  # TODO name change
             )
 
     def _get_mzml_bounds(self, filename):
-        """Loads the mzml file (or at least a reader)
+        '''Loads the mzml file (or at least a reader)
 
         Parameters
         ----------
@@ -283,7 +282,7 @@ class Extractor:  # TODO name change
         FileNotFoundError
             If the file does not exist
 
-        """
+        '''
         # Open a pointer to the specified mzml file
         mzml_fp = pymzml.run.Reader(
             path_or_file=self.mzml_path,
@@ -302,19 +301,19 @@ class Extractor:  # TODO name change
         mzml_fp.close()
 
     def run(self):
-        """Performs data extraction data from the mzml according to id file
+        '''Performs data extraction data from the mzml according to id file
 
         TODO: add a much longer explanation of why we needed special functions
               to chunk the data with overlap in the windows
-        """
+        '''
         # These partial function applications (from python's 'functools'
         #   library) allow us to pass the same information to each of the
         #   chunks.
         func = partial(due.extract, self.settings_path)  # pass the settings
         func = partial(func, str(self.mzml_path))  # pass the mzml
-        func = partial(func, str(self.id_path))  # pass the id path
         func = partial(func, self._index_ID_map)  # pass the index mapping
 
+        #$set up and run the multiprocessing
         if settings.debug_level == 0:
             try:
                 results = list(
@@ -330,8 +329,7 @@ class Extractor:  # TODO name change
                     )
                 )
             except Exception as e:
-                print(
-                    "The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
+                print("The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
 
         if settings.debug_level >= 1:
             print('Beginning single-processor extraction.')
@@ -360,10 +358,10 @@ class Extractor:  # TODO name change
                 left_index=True,
                 right_on='id_index'
             )
-
+            
         self._mp_pool.close()
         self._mp_pool.join()
-
+    
 
 def main():
     print('please use the main program interface')

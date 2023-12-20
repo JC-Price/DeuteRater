@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2023 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
-    Coleman Nielson, J.C. Price, and Brigham Young University
+Copyright (c) 2021 Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
 that the following conditions are met:
@@ -31,7 +31,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-
+#$determine the chemical formula from an amino acid sequence
 def calc_cf(aa_counts, aa_composition_df):
     elem_dict = {elem: 0 for elem in aa_composition_df.loc[:, 'C':].columns}
     for aa, count in aa_counts.items():
@@ -55,14 +55,14 @@ def positive_cf_change(elemental_dict):
     elemental_dict["H"] += 2# + z
     return elemental_dict
 
-
+#$get mass from elemental dict
 def calc_theory_mass(cf, elements_df):
     mass = 0
     for elem, count in cf.items():
         mass += count * elements_df.at[elem, 'relative_atomic_mass']
     return mass
 
-
+#$get n value from elemental dict
 def calc_add_n(aa_counts, aa_labeling_dict):
     add_n = 0
     for aa, count in aa_counts.items():

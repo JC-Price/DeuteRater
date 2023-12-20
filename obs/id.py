@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2016-2021 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -31,6 +31,10 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+"""
+class and functions for supporting the extractor
+"""
+
 try:
     from obs.envelope import Envelope  # noqa: 401
     from obs.peak import Peak
@@ -42,12 +46,11 @@ except:
     from DeuteRater.utils.math import angle_between  # noqa: 401
     import DeuteRater.deuterater.settings as settings
 
-from numpy import mean, median, argsort
+from numpy import mean, median, std, argsort
 
 class ID(object):
     '''Contains isotoptic envelope data
 
-    TODO: we need to discuss how technical we want this definition to be
 
     Attributes
     ----------
@@ -95,7 +98,7 @@ class ID(object):
         "rt_peak_index",
         "neutromer_peak_maximums",
         "is_valid",
-        "scan_noise"
+        "signal_noise"
     )
 
     def __init__(self, rt, mz, mass, z, n_isos):#, cf):
@@ -117,7 +120,7 @@ class ID(object):
         self.rt_windows = []
         self.neutromer_peak_maximums = []
         self.rt_peak_index = []
-        # self.scan_noise = []
+        self.signal_noise = []
 
     # Defining the __repr__ function allows python to call repr()
     # on this object. This is usually much less formatted than the related
@@ -293,29 +296,29 @@ class ID(object):
         self.rt_min = min(rt_list)
         self.rt_max = max(rt_list)
         
-        # # Calculate Signal Noise:
-        # from scipy.signal import savgol_filter
-        #
-        # smoothing_width = settings.smoothing_width
-        # smoothing_order = settings.smoothing_order
-        #
-        # from numpy import array, sqrt, std
-        #
-        # def mad(values):
-        #     m = median(values)
-        #     return median([abs(a - m) for a in values])
-        #
-        # temp = smoothing_width
-        # for a in self._get_peak_list():
-        #     if len(a) < smoothing_width:
-        #         smoothing_width = (int((len(a) - 1)/2) * 2) + 1
-        #     smoothed_curves = savgol_filter(a, smoothing_width, smoothing_order)
-        #     smoothing_width = temp
-        #     smoothed_curves[smoothed_curves < 0] = 0
-        #     diff = [b for b in array(a) - smoothed_curves]
-        #     # abs_diff = [abs(b) for b in diff]
-        #     normal_distribution_scale_factor = 1.4826
-        #     self.scan_noise.append(mad(diff) * normal_distribution_scale_factor * 3)
+        # Calculate Signal Noise:
+        from scipy.signal import savgol_filter
+
+        smoothing_width = settings.smoothing_width
+        smoothing_order = settings.smoothing_order
+
+        from numpy import array, sqrt, std
+
+        def mad(values):
+            m = median(values)
+            return median([abs(a - m) for a in values])
+        
+        temp = smoothing_width
+        for a in self._get_peak_list():
+            if len(a) < smoothing_width:
+                smoothing_width = (int((len(a) - 1)/2) * 2) + 1
+            smoothed_curves = savgol_filter(a, smoothing_width, smoothing_order)
+            smoothing_width = temp
+            smoothed_curves[smoothed_curves < 0] = 0
+            diff = [b for b in array(a) - smoothed_curves]
+            # abs_diff = [abs(b) for b in diff]
+            normal_distribution_scale_factor = 1.4826
+            self.signal_noise.append(mad(diff) * normal_distribution_scale_factor * 3)
         
         # After performing all of this filtration, aggregate all of the data
         #   in the remaining envelopes in to a 'condensed envelope'
@@ -328,26 +331,17 @@ class ID(object):
 
     def _get_peak_list(self, intensity_filter=0):
         peaks_list = list()
-        s_n_filter = settings.s_n_filter
     
         # Get a 2D list of the intensities
         for i in range(self.n_isos):
             peaks_list.append(list())
     
-        if s_n_filter != 0:
-            for envelope in self._envelopes:
-                for i in range(self.n_isos):
-                    if envelope.get_m(i).ab/float(envelope.baseline) < s_n_filter:
-                        peaks_list[i].append(0)
-                    else:
-                        peaks_list[i].append(envelope.get_m(i).ab)
-        else:
-            for envelope in self._envelopes:
-                for i in range(self.n_isos):
-                    if envelope.get_m(i).ab < intensity_filter:
-                        peaks_list[i].append(0)
-                    else:
-                        peaks_list[i].append(envelope.get_m(i).ab)
+        for envelope in self._envelopes:
+            for i in range(self.n_isos):
+                if envelope.get_m(i).ab < intensity_filter:
+                    peaks_list[i].append(0)
+                else:
+                    peaks_list[i].append(envelope.get_m(i).ab)
         
         return peaks_list
     
@@ -417,9 +411,11 @@ class ID(object):
         smoothing_order = settings.smoothing_order
         intensity_filter = settings.intensity_filter
 
-        peaks_list = self._get_peak_list(intensity_filter=intensity_filter)
+        peaks_list = self._get_peak_list(intensity_filter)
         combined_peaks = np.sum(np.array(peaks_list), axis=0)
 
+        # REMOVE THESE LINES LATER, ONCE WE ACTUALLY NEED TO USE THIS!
+        # print("REMOVE LINE 379-383 (or around there)")
         if max(combined_peaks) < intensity_filter:
             return
         combined_data = [combined_peaks[i] if combined_peaks[i] > intensity_filter else 0 for i in range(combined_peaks.size)]
@@ -477,17 +473,12 @@ class ID(object):
                     left_sides = (np.array([0]), left_peak, np.array([0]), np.array([0]))
                 if int(len(right_peak) / 2) != 0:
                     right_sides = sig.peak_widths(right_peak, [int(len(right_peak) / 2)], rel_height=settings.rel_height)
-                elif right_peak.size == 0:
-                    right_sides = (np.array([0]), np.array([0]), np.array([0]), np.array([0]))
                 else:
                     right_sides = (np.array([0]), right_peak, np.array([0]), np.array([0]))
                 left_points.append(left_sides[2][0])
                 right_points.append(peak_position - int(len(right_peak) / 2) + right_sides[3][0])
                 widths.append(right_sides[0][0] / 2 + left_sides[0][0] / 2)
-                try:
-                    heights.append(max([right_sides[1][0], left_sides[1][0]]))
-                except:
-                    print("what")
+                heights.append(max([right_sides[1][0], left_sides[1][0]]))
             else:
                 point_correction = min_points[i - 1]
                 left_peak = np.concatenate((gaussian_curves[min_points[i - 1]:peaks[i] + 1],
@@ -552,7 +543,7 @@ class ID(object):
         smoothing_width = settings.smoothing_width
         smoothing_order = settings.smoothing_order
 
-        peaks_list = self._get_peak_list(intensity_filter=intensity_filter)
+        peaks_list = self._get_peak_list(intensity_filter)
 
         # if max(peaks_list) < intensity_filter:
         #     return

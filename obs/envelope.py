@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2016-2021 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -31,6 +31,10 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+"""
+class and functions for supporting the extractor
+"""
+
 from collections.abc import MutableSequence
 from copy import deepcopy
 
@@ -41,17 +45,10 @@ except:
     from DeuteRater.obs.peak import Peak
     from DeuteRater.utils.exc import PeakIndexError
 
-# TODO: docstrings KC
-# TODO: is this the best name? KC
-# TODO: are properties appropriate? KC
-# TODO: read in baseline
-# TODO: do i need a len_m function? see how many times it would be used?
-
 
 class Envelope(MutableSequence):
     '''Contains isotoptic envelope data
 
-    TODO: we need to discuss how technical we want this definition to be
 
     Attributes
     ----------
