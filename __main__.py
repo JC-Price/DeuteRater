@@ -43,9 +43,9 @@ from tqdm import tqdm
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile, rmtree
 
-from deuteconvert.peaks85 import Peaks85
-from deuteconvert.peaksXplus import PeaksXplus
-from deuteconvert.peaksXpro import PeaksXpro
+# from deuteconvert.peaks85 import Peaks85
+# from deuteconvert.peaksXplus import PeaksXplus
+# from deuteconvert.peaksXpro import PeaksXpro
 import deuteconvert.peptide_utils as peputils
 from deuterater.extractor import Extractor
 from gui_software.Time_Table import TimeWindow
@@ -56,7 +56,7 @@ from deuterater.initial_intensity_calculator import theoretical_enrichment_calcu
 from deuterater.rate_calculator import RateCalculator
 from deuterater.protein_rate_combiner import Peptides_to_Proteins
 from utils.chromatography_division import ChromatographyDivider
-from utils.useful_classes import deuterater_step, deuteconvert_peaks_required_headers
+from utils.useful_classes import deuterater_step
 import deuterater.settings as settings
 from gui_software.Rate_Settings import Rate_Setting_Menu
 import deuteconvert.settings as converter_settings
@@ -118,33 +118,7 @@ step_object_dict = {
 #  converter only does something other than make a file with a header for 
 # id files made with Peaks.  each version is sligthly different so needs a differnt
 # analysis
-convert_options = {
-    "Peaks 8.5": Peaks85,
-    "Peaks X+": PeaksXplus,
-    "Peaks XPro": PeaksXpro,
-    "Template": ""
-}
-
-# need 3 different output files from peaks, make sure the needed headers are there 
-convert_needed_headers = {
-    "Peaks 8.5": deuteconvert_peaks_required_headers(
-        ['Accession', '#Peptides', '#Unique', 'Description'],
-        ['Peptide', 'Quality', 'Avg. ppm', 'Start', 'End', 'PTM'],
-        ['Peptide', 'RT range', 'RT mean', 'm/z', 'z', 'Accession', 'PTM']
-    ),
-    "Peaks X+": deuteconvert_peaks_required_headers(
-        ['Accession', '#Peptides', '#Unique', 'Description'],
-        ['Peptide', 'ppm', 'Start', 'End', 'PTM'],
-        ['DB Peptide', 'Denovo Peptide', 'RT Begin', 'RT End',
-         'RT', 'm/z', 'z', 'Accession']
-    ),
-    "Peaks XPro": deuteconvert_peaks_required_headers(
-        ['Accession', '#Peptides', '#Unique', 'Description'],
-        ['Peptide', 'ppm', 'Start', 'End', 'PTM'],
-        ['DB Peptide', 'Denovo Peptide', 'RT Begin', 'RT End',
-         'RT', 'm/z', 'z', 'Accession']
-    )
-}
+convert_options = ["Peptide Template", "Lipid Template"]
 
 # columns for the extractor that absolutely need data (others can autofill or are just for user information)
 # most of the columns actually aren't necessary to get a result but will either prevent any extraction from happening (no data output file)
@@ -156,9 +130,22 @@ autofill_columns = ["Peptide Theoretical Mass", "cf", "literature_n"]
 
 
 # default converter option
-default_converter = "Template"
-#  get the header we want if using Peaks
-template_header = [PeaksXpro.correct_header_names[x] for x in PeaksXpro.correct_header_order]
+default_converter = "Peptide Template"
+# TODO: may need to adjust the header or shove in the n-value calculator
+protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start', 'rt_end', 'rt_width', 'Precursor m/z',
+                            'theoretical_mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides',
+                            'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version', 'cf',
+                            'neutromers_to_extract', 'literature_n']
+protein_template_example = ['EGIVALR', 'P80317', 'T-complex protein 1 subunit zeta', '1210.8', '1194.6', '1255.8', '61.2', '152.297375',
+                            '756.4493882', '5', '', '-0.8', '308', '314', '24', '17', '[\'P80317\']', 'Mus musculus OX=10090',
+                            'Cct6a ', '1', '3', 'C33H60N10O10', '3', '15.66']
+lipid_converter_header = ['Lipid Name', 'Lipid Unique Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
+                          "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'literature_n',
+                          'Adduct', 'Adduct_cf', 'Matched_Results_Analysis', 'Matched_Details_Replicates_Used']
+lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
+                          '1', '', '', 'C7H16NO2', '3', '', 'M+H', 'C7H17NO2', '', '']
+
+
 
 # prepare the gui
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
@@ -168,18 +155,21 @@ loaded_ui = uic.loadUiType(main_file_ui_location)[0]
 class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
-        # allows a maximize button
+
+        # $allows a maximize button
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint |
                             QtCore.Qt.WindowMaximizeButtonHint)
 
         self.setupUi(self)
-        make_temp_file(default_rate_settings, rate_settings_file)
-        make_temp_file(default_guide_settings, guide_settings_file)
+
+        settings.load(default_rate_settings)
+        settings.freeze(rate_settings_file)
+        # make_temp_file(default_rate_settings, rate_settings_file)
         self.file_loc = location
 
-        # set up the guide file options
-        self.guide_file_options.addItems(convert_options.keys())
-        # set the default value for the converter
+        # $set up the id file options
+        self.guide_file_options.addItems(convert_options)
+        # $set the default value for the converter
         index = self.guide_file_options.findText(default_converter)
         self.guide_file_options.setCurrentIndex(index)
 
@@ -187,9 +177,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.RateCalculationButton.clicked.connect(self._calc_rates)
         self.actionSettings.triggered.connect(self.change_settings)
 
-        # make the logo show up
-        # use of command from http://stackoverflow.com/questions/8687723/pyqthow-do-i-display-a-image-properly 
-        # first answer accesed 5/27/2016
+        # $make the logo show up
+        # $use of command from http://stackoverflow.com/questions/8687723/pyqthow-do-i-display-a-image-properly
+        # $first answer accessed 5/27/2016
         myPixmap = QtGui.QPixmap(os.path.join(location, "resources", "Logo.PNG"))
         self.Logo.setPixmap(myPixmap)
         self.Logo.setScaledContents(True)
@@ -250,20 +240,21 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
     # this is to govern the different guide file functions
     def create_guide_file(self):
+        # guide_file_type = str(self.guide_file_options.currentText())
         guide_file_type = str(self.guide_file_options.currentText())
         # collect any guide files needed
         # template doesn't need one since it just needs one output
-        if guide_file_type in ["Peaks 8.5", "Peaks X+", "Peaks XPro"]:
-            input_files = self.Peaks_File_Collection(convert_needed_headers[guide_file_type])
+        # if guide_file_type in ["Peaks 8.5", "Peaks X+", "Peaks XPro"]:
+        #     input_files = self.Peaks_File_Collection(convert_needed_headers[guide_file_type])
 
         # guide_file_type has to be first or input_files may not be defined
-        if guide_file_type != "Template" and input_files == "":
-            return
-        if guide_file_type != "Template":
-            # do the actual calculations
-            converter = convert_options[guide_file_type](input_files,
-                                                         guide_settings_file)
-            converter.convert()
+        # if guide_file_type != "Template" and input_files == "":
+        #     return
+        # if guide_file_type != "Template":
+        #     # do the actual calculations
+        #     converter = convert_options[guide_file_type](input_files,
+        #                                                  guide_settings_file)
+        #     converter.convert()
 
             # get output file
         QtWidgets.QMessageBox.information(self, "Info", ("Your guide file was "
@@ -274,11 +265,18 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                                                                         "CSV (*.csv)")
             if save_file == "": return
             try:
-                if guide_file_type != "Template":
-                    converter.write(save_file)
+                # if guide_file_type != "Template":
+                #     converter.write(save_file)
+                # else:
+                if guide_file_type == "Lipid Template":
+                    # Create lipid ID file template
+                    df = pd.DataFrame(columns=lipid_converter_header)
+                    df.loc[0] = lipid_template_example
                 else:
-                    df = pd.DataFrame(columns=template_header)
-                    df.to_csv(save_file, sep=',', index=False)
+                    # Otherwise, use the protein template
+                    df = pd.DataFrame(columns=protein_converter_header)
+                    df.loc[0] = protein_template_example
+                df.to_csv(save_file, sep=',', index=False)
                 break
             except IOError:
                 QtWidgets.QMessageBox.information(self, "Error",
