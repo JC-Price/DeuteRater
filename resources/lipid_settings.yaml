@@ -1,0 +1,187 @@
+%YAML 1.2
+---
+# TODO: group these according to their logical steps
+# TODO: consider the best names for each setting and review settings
+#   that we haven't used in the program yet
+# TODO: should this be broken into seperate files?
+# TODO: Specify Deuterater working directory and program directory
+# TODO: Organize settings into 
+
+
+# Debugging level, using the level keys listed below
+# Level 0: Runs normally (multiprocessing and all)
+# Level 1: Runs non-distributed on a single processor
+debug_level: !!int 0
+
+# Whether or not to automate the partitioning logic
+recognize_available_cores: !!bool False
+
+# This will be used if automation fails or is set to false
+n_processors: !!int 2
+
+# ID file retention time unit
+#   Set to "sec" for seconds or "min" for minutes
+id_file_rt_unit: !!str "sec"
+
+# Whether ID's that are at the beginning and end of an mzML's RT should be excluded.
+#   An ID is removed if its time_window results in looking outside of the mzML's bounds.
+#   i.e. An ID with a rt of 1 would be trimmed when the time_window is 1.5
+trim_ids_to_mzml_bounds: !!bool false
+
+# chunk size, given in observations
+chunk_size: !!int 600
+
+# If a file is less than "chunking_method_threshold" times
+#   "max_chunk_size" lines long, then split the identification
+#   file evenlu among the processors
+chunking_method_threshold: 2
+
+# NOTE: antilog(angle) was used previously. Possibly for control 
+# Maximum valid angle for condensing scans together
+max_valid_angle: !!float 1.2
+
+
+# this is the denominator for the ratio for accepting envelopes
+peak_ratio_denominator: !!int 10
+
+# Time to look in each direction when extracting mzml data
+time_window: !!float 1.5
+
+# Tolerance for differences in parts per million measurements
+# DEBUG: set back to 30 when done
+ppm_window: !!int 30
+
+# Labeling schema key
+label_key:  !!str "tissue"
+
+# labeling sites key needs to be here and in the other id in case usere isn't using peaks
+aa_labeling_sites_path: "aa_labeling_sites.tsv"
+
+# Peak lookback
+peak_lookback: !!int 1
+
+peak_lookahead: !!int 1
+
+baseline_lookback: !!int 100
+
+min_envelopes_to_combine: !!int 10
+
+zscore_cutoff: !!float 1
+
+# given in minutes
+rt_proximity_tolerance: !!float 1
+
+# given in parts per million
+mz_proximity_tolerance: !!int 100
+
+# min sequence allowed for peptides
+min_aa_sequence_length: !!int 6
+
+# minimum allowed n value. if smaller, the maximum theoretical delta will be
+# too small
+min_allowed_n_values: !!int 10
+
+starting_enrichment_table_timepoints: !!int 5
+
+max_enrichment_allowed: !!float .3
+
+#options are "none", "approximate" or "exact"
+error_estimation: !!str "none" #add
+
+min_non_zero_timepoints_rate: !!int 1
+
+# don't allow less than 4 or it will prevent spline fitting
+min_allowed_timepoints_enrichment: !!int 4
+
+minimum_allowed_sequence_rate: !!float 0.0
+
+maximum_allowed_sequence_rate: !!float 1.5
+
+minimum_sequences_to_combine_for_protein_rate: !!int 3
+
+# if need to turn off just make it negative
+lowest_allowed_norm_isotope: !!float .8
+
+# if need to turn off make it 5 or higher
+highest_allowed_norm_isotope: !!float 1.2
+
+m0_decreasing_allowed_noise: !!float .15
+
+median_absolute_residuals_cutoff_single_point: !!float .01
+
+median_absolute_residuals_cutoff_two_points: !!float .015
+
+median_absolute_residuals_cutoff_general: !!float .02
+
+desired_points_for_optimization_graph: !!int 25
+
+
+# A filter used in many areas for scan combining. If a neutromer peak is below the
+# a intensity filter, it is not considered to gaussian fitting and is not considered
+# a valid scan. Default = 20k
+intensity_filter: !!int 20000
+
+ms_level: !!int 1
+
+#The file output the rate groups should be
+# Default = png. Available: png, pdf, svg
+graph_output_format: !!str "pdf"
+
+# add ability to Median or Average roll up
+# allowed settings are Average and Median
+protein_combination_method: !!str "Average"
+
+
+#  whether or not to include some summary columns in the final output
+# mostly used for troubleshooting.
+verbose_output: !!bool false
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
+
+# How many scans should be looked at when performing a gaussian filter
+# on the scan intensities. Must be an odd number. Default is 9
+sampling_rate: !!int 9
+
+# How many scans should be looked at when using a simple smoothing width. Default = 49 for peptides
+smoothing_width: !!int 49
+
+# What order the simple smoothing algorithm should be used. Default = 3.
+smoothing_order: !!int 3
+
+# The amount of time in minutes that peaks can vary by between charges/adducts to be
+# considered the same. Default = 0.1 for intrafile .2 for interfile
+allowed_peak_variance_min: !!float 0.1
+
+# THe amount of scans allowed between neutromer peaks to be considered a valid peak.
+# Default = 64 for Orbi (proteins)
+allowed_neutromer_peak_variance: !!int 64
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
+
+# A value used to determine how close to baseline the gaussian fitting algorithm
+# peak widths will be chosen from. Default is .9 (90%)
+rel_height: !!float .9
+
+# THe weight that should be used for adduct reproducibility when calculating the score for
+# chromatography peak picking. Default = 1.0
+adduct_weight: !!float 1.0
+
+# The weight that should be used for neutromer peak variance when calculating the score for
+# chromatography peak picking. Default = 1.0
+variance_weight: !!float 1.0
+
+# The weight that should be used for distance from the ID File's RT when calculating the score for
+# chromatography peak picking. Default = 0.7
+ID_weight: !!float 0.7
+
+# The weight that should be used for the intensity when calculating the score for
+# chromatography peak picking. Default = 0.6
+intensity_weight: !!float 0.6
+
+# What created EIC should chromatography be divided on. default = "combined"
+# Other options, "m0", "m1", "m2"
+how_divided: !!str "combined"
+
+# If Chromatography Division should be used in the extractor. If so, if interfile or
+# intrafile comparison should be completed.
+use_chromatography_division: !!str "No"

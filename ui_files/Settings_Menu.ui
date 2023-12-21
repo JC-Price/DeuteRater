@@ -279,6 +279,20 @@
     </widget>
    </item>
    <item row="2" column="4">
+    <widget class="QPushButton" name="LoadPeptideButton">
+     <property name="text">
+      <string>Load Peptide Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="4">
+    <widget class="QPushButton" name="LoadLipidButton">
+     <property name="text">
+      <string>Load Lipid Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="4">
     <widget class="QPushButton" name="LoadButton">
      <property name="text">
       <string>Load Settings</string>
@@ -297,7 +311,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="4">
+   <item row="5" column="4">
     <widget class="QPushButton" name="ExitButton">
      <property name="text">
       <string>Exit</string>

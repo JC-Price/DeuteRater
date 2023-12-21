@@ -49,6 +49,8 @@ from utils.useful_classes import setting_numerical_info, setting_string_info
 
 #location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+default_peptide_rate_settings = os.path.join(location, "resources", "peptide_settings.yaml")
+default_lipid_rate_settings = os.path.join(location, "resources", "lipid_settings.yaml")
 
 # paired settings are settings where it makes no sense if the 2nd value is lower than the first
 # the maximum rate shouldn't be lowered below the minimum rate for example
@@ -147,6 +149,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
             setting_object.set_object_value()
+
+        self.LoadPeptideButton.clicked.connect(self.load_peptide_default_settings)
+        self.LoadLipidButton.clicked.connect(self.load_lipid_default_settings)
         self.LoadButton.clicked.connect(self.load_settings)
         self.SaveButton.clicked.connect(self.save_settings)
         self.ExitButton.clicked.connect(self.close)
@@ -285,7 +290,174 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                 setting_object.set_object_value()
             QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
             return
-            
+
+    # load the default peptide settings file
+    def load_peptide_default_settings(self):
+        settings.load(default_peptide_rate_settings)
+        settings.freeze(self.current_setting_file)
+        self.all_settings = [
+            setting_string_info(self.recognize_available_cores, "recognize_available_cores",
+                                settings.recognize_available_cores, True),
+            setting_numerical_info(self.default_cores, "n_processors",
+                                   settings.n_processors, True),
+            setting_numerical_info(self.min_allowed_timepoints_enrichment, "min_allowed_timepoints_enrichment",
+                                   settings.min_allowed_timepoints_enrichment, True),
+            setting_numerical_info(self.starting_enrichment_table_timepoints, "starting_enrichment_table_timepoints",
+                                   settings.starting_enrichment_table_timepoints, True),
+            setting_string_info(self.rt_unit, "id_file_rt_unit",
+                                settings.id_file_rt_unit, False),
+            setting_numerical_info(self.time_window, "time_window",
+                                   settings.time_window, False),
+            setting_numerical_info(self.ppm_error, "ppm_window",
+                                   settings.ppm_window, True),
+            setting_string_info(self.use_chromatography_division,
+                                "use_chromatography_division",
+                                settings.use_chromatography_division,
+                                False),
+            setting_numerical_info(self.mz_prox_filter,
+                                   "mz_proximity_tolerance",
+                                   settings.mz_proximity_tolerance,
+                                   True),
+            setting_numerical_info(self.rt_prox_filter,
+                                   "rt_proximity_tolerance",
+                                   settings.rt_proximity_tolerance,
+                                   False),
+            setting_string_info(self.label_key, "label_key",
+                                settings.label_key, False),
+            setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
+                                   settings.min_aa_sequence_length, True),
+            setting_numerical_info(self.min_allowed_n_value, "min_allowed_n_values",
+                                   settings.min_allowed_n_values, True),
+            setting_numerical_info(self.minimum_nonzero_points_rate, "min_non_zero_timepoints_rate",
+                                   settings.min_non_zero_timepoints_rate, True),
+            setting_numerical_info(self.min_allowed_rate, "minimum_allowed_sequence_rate",
+                                   settings.minimum_allowed_sequence_rate, False),
+            setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
+                                   settings.maximum_allowed_sequence_rate, False),
+            setting_string_info(self.error_graph_option, "error_estimation",
+                                settings.error_estimation, False),
+            setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
+                                   "minimum_sequences_to_combine_for_protein_rate",
+                                   settings.minimum_sequences_to_combine_for_protein_rate,
+                                   True),
+            setting_numerical_info(self.lowest_allowed_norm_isotope, "lowest_allowed_norm_isotope",
+                                   settings.lowest_allowed_norm_isotope, False),
+            setting_numerical_info(self.highest_allowed_norm_isotope, "highest_allowed_norm_isotope",
+                                   settings.highest_allowed_norm_isotope, False),
+            setting_numerical_info(self.m0_decreasing_allowed_noise, "m0_decreasing_allowed_noise",
+                                   settings.m0_decreasing_allowed_noise, False),
+            setting_numerical_info(self.median_absolute_residuals_cutoff_value_single_point,
+                                   "median_absolute_residuals_cutoff_single_point",
+                                   settings.median_absolute_residuals_cutoff_single_point,
+                                   False),
+            setting_numerical_info(self.median_absolute_residuals_cutoff_value_two_points,
+                                   "median_absolute_residuals_cutoff_two_points",
+                                   settings.median_absolute_residuals_cutoff_two_points,
+                                   False),
+            setting_numerical_info(self.median_absolute_residuals_cutoff_value_general,
+                                   "median_absolute_residuals_cutoff_general",
+                                   settings.median_absolute_residuals_cutoff_general,
+                                   False),
+            setting_string_info(self.graph_file_type,
+                                "graph_output_format",
+                                settings.graph_output_format,
+                                False),
+            setting_string_info(self.protein_roll_up_type,
+                                "protein_combination_method",
+                                settings.protein_combination_method,
+                                False),
+            setting_string_info(self.verbose_output, "verbose_output",
+                                settings.verbose_output, True)
+
+        ]
+        for setting_object in self.all_settings:
+            setting_object.set_object_value()
+        QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
+        return
+
+    # load the default lipid settings file
+    def load_lipid_default_settings(self):
+        settings.load(default_lipid_rate_settings)
+        settings.freeze(self.current_setting_file)
+        self.all_settings = [
+            setting_string_info(self.recognize_available_cores, "recognize_available_cores",
+                                settings.recognize_available_cores, True),
+            setting_numerical_info(self.default_cores, "n_processors",
+                                   settings.n_processors, True),
+            setting_numerical_info(self.min_allowed_timepoints_enrichment, "min_allowed_timepoints_enrichment",
+                                   settings.min_allowed_timepoints_enrichment, True),
+            setting_numerical_info(self.starting_enrichment_table_timepoints, "starting_enrichment_table_timepoints",
+                                   settings.starting_enrichment_table_timepoints, True),
+            setting_string_info(self.rt_unit, "id_file_rt_unit",
+                                settings.id_file_rt_unit, False),
+            setting_numerical_info(self.time_window, "time_window",
+                                   settings.time_window, False),
+            setting_numerical_info(self.ppm_error, "ppm_window",
+                                   settings.ppm_window, True),
+            setting_string_info(self.use_chromatography_division,
+                                "use_chromatography_division",
+                                settings.use_chromatography_division,
+                                False),
+            setting_numerical_info(self.mz_prox_filter,
+                                   "mz_proximity_tolerance",
+                                   settings.mz_proximity_tolerance,
+                                   True),
+            setting_numerical_info(self.rt_prox_filter,
+                                   "rt_proximity_tolerance",
+                                   settings.rt_proximity_tolerance,
+                                   False),
+            setting_string_info(self.label_key, "label_key",
+                                settings.label_key, False),
+            setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
+                                   settings.min_aa_sequence_length, True),
+            setting_numerical_info(self.min_allowed_n_value, "min_allowed_n_values",
+                                   settings.min_allowed_n_values, True),
+            setting_numerical_info(self.minimum_nonzero_points_rate, "min_non_zero_timepoints_rate",
+                                   settings.min_non_zero_timepoints_rate, True),
+            setting_numerical_info(self.min_allowed_rate, "minimum_allowed_sequence_rate",
+                                   settings.minimum_allowed_sequence_rate, False),
+            setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
+                                   settings.maximum_allowed_sequence_rate, False),
+            setting_string_info(self.error_graph_option, "error_estimation",
+                                settings.error_estimation, False),
+            setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
+                                   "minimum_sequences_to_combine_for_protein_rate",
+                                   settings.minimum_sequences_to_combine_for_protein_rate,
+                                   True),
+            setting_numerical_info(self.lowest_allowed_norm_isotope, "lowest_allowed_norm_isotope",
+                                   settings.lowest_allowed_norm_isotope, False),
+            setting_numerical_info(self.highest_allowed_norm_isotope, "highest_allowed_norm_isotope",
+                                   settings.highest_allowed_norm_isotope, False),
+            setting_numerical_info(self.m0_decreasing_allowed_noise, "m0_decreasing_allowed_noise",
+                                   settings.m0_decreasing_allowed_noise, False),
+            setting_numerical_info(self.median_absolute_residuals_cutoff_value_single_point,
+                                   "median_absolute_residuals_cutoff_single_point",
+                                   settings.median_absolute_residuals_cutoff_single_point,
+                                   False),
+            setting_numerical_info(self.median_absolute_residuals_cutoff_value_two_points,
+                                   "median_absolute_residuals_cutoff_two_points",
+                                   settings.median_absolute_residuals_cutoff_two_points,
+                                   False),
+            setting_numerical_info(self.median_absolute_residuals_cutoff_value_general,
+                                   "median_absolute_residuals_cutoff_general",
+                                   settings.median_absolute_residuals_cutoff_general,
+                                   False),
+            setting_string_info(self.graph_file_type,
+                                "graph_output_format",
+                                settings.graph_output_format,
+                                False),
+            setting_string_info(self.protein_roll_up_type,
+                                "protein_combination_method",
+                                settings.protein_combination_method,
+                                False),
+            setting_string_info(self.verbose_output, "verbose_output",
+                                settings.verbose_output, True)
+
+        ]
+        for setting_object in self.all_settings:
+            setting_object.set_object_value()
+        QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
+        return
     
     # should overwrite the close of the exit button and the red x in the corner  
     def closeEvent(self, event):

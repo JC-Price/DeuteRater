@@ -66,7 +66,7 @@ location = os.path.dirname(os.path.abspath(__file__))
 
 # set locations for the various settings files
 rate_settings_file = os.path.join(location, "resources", "temp_settings.yaml")
-default_rate_settings = os.path.join(location, "resources", "settings.yaml")
+default_rate_settings = os.path.join(location, "resources", "peptide_settings.yaml")
 guide_settings_file = os.path.join(location, "resources",
                                    "temp_guide_settings.yaml")
 default_guide_settings = os.path.join(location, "resources",
