@@ -50,6 +50,7 @@ import deuteconvert.peptide_utils as peputils
 from deuterater.extractor import Extractor
 from gui_software.Time_Table import TimeWindow
 from gui_software.Enrichment_Table import EnrichmentWindow
+from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from utils.enrichment_class_fitter import PerformEnrichmentClass
 from deuterater.combine_extracted_files import CombineExtractedFiles
 from deuterater.initial_intensity_calculator import theoretical_enrichment_calculator
@@ -423,8 +424,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 if "Provide Time and Enrichment" in worklist:
                     previous_output_file = step_object_dict[
                         "Provide Time and Enrichment"].full_filename
-                    self.get_data_table = TimeWindow(self,
-                                                     extracted_files, previous_output_file)
+
+                    self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
                     self.get_data_table.exec_()
 
                     if os.path.isfile(previous_output_file):
@@ -500,7 +501,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 # the talbe will handle the output
                 previous_output_file = step_object_dict[
                     analysis_step].full_filename
-                self.get_data_table = TimeWindow(self,
+                self.get_data_table = TimeEnrichmentWindow(self,
                                                  extracted_files, previous_output_file)
                 self.get_data_table.exec_()
                 # here we can add the call to the next table. since

@@ -39,6 +39,8 @@ governs the settings menu including:
     ensuring settings are valid
 """
 
+# Todo: refactor load settings functions so we don't have duplicated code - Ben D
+
 import os
 
 from PyQt5 import uic, QtWidgets
