@@ -86,11 +86,12 @@ class Peptides_to_Proteins(object):
                 filepath_or_buffer=str(model_path)
                 )
         self.out_path = out_path
+        # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if settings.recognize_available_cores is True:
-            self._n_processors = mp.cpu_count()
+            # BD: Issue with mp.cpu_count() finding too many cores available
+            self._n_processors = round(mp.cpu_count() * 0.80)
         else:
             self._n_processors = settings.n_processors
-        # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if self._n_processors > 60:
             self.n_processors = 60
         

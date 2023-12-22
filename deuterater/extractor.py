@@ -113,10 +113,10 @@ class Extractor:  # TODO name change
         #  that doesn't need the try except)
         try:
             if settings.recognize_available_cores is True:
-                self._n_processors = mp.cpu_count()
+                # BD: Issue with mp.cpu_count() finding too many cores available
+                self._n_processors = round(mp.cpu_count() * 0.80)
             else:
                 self._n_processors = settings.n_processors
-            # breaks windows/python interactions if too many cores are used. very niche application but still relevant
             if self._n_processors > 60:
                 self.n_processors = 60
             self._chunk_size = settings.chunk_size

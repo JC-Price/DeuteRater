@@ -428,26 +428,27 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
                     self.get_data_table.exec_()
 
-                    if os.path.isfile(previous_output_file):
-                        self.get_data_table2 = EnrichmentWindow(self,
-                                                                settings.min_allowed_timepoints_enrichment,
-                                                                settings.starting_enrichment_table_timepoints,
-                                                                previous_output_file, settings.max_enrichment_allowed)
-                        self.get_data_table2.exec_()
-                    else:
-                        return
+                    # if os.path.isfile(previous_output_file):
+                    #     self.get_data_table2 = EnrichmentWindow(self,
+                    #                                             settings.min_allowed_timepoints_enrichment,
+                    #                                             settings.starting_enrichment_table_timepoints,
+                    #                                             previous_output_file, settings.max_enrichment_allowed)
+                    #     self.get_data_table2.exec_()
+                    # else:
+                    #     return
                     if os.path.isfile(previous_output_file):
                         enrichment_graph_folder = os.path.dirname(previous_output_file)
                         enrichment_graph_folder = os.path.join(enrichment_graph_folder,
                                                                "Enrichment_Graphs")
                         self.make_folder(enrichment_graph_folder)
-                        enrichment_class = PerformEnrichmentClass(previous_output_file, enrichment_graph_folder,
-                                                                  settings.graph_output_format)
-                        enrichment_class.perform_calculations()
-                        spline_error = enrichment_class.report_error()
-                        if spline_error != "":
-                            QtWidgets.QMessageBox.information(self, "Error", spline_error)
-                            return
+                        # TODO: Ask JC if this is important to keep
+                        # enrichment_class = PerformEnrichmentClass(previous_output_file, enrichment_graph_folder,
+                        #                                           settings.graph_output_format)
+                        # enrichment_class.perform_calculations()
+                        # spline_error = enrichment_class.report_error()
+                        # if spline_error != "":
+                        #     QtWidgets.QMessageBox.information(self, "Error", spline_error)
+                        #     return
                     else:
                         return
 
@@ -498,7 +499,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 # there are two tables that must be handled in order
 
                 #  now that we have the extracted files we can make a table
-                # the talbe will handle the output
+                # the table will handle the output
                 previous_output_file = step_object_dict[
                     analysis_step].full_filename
                 self.get_data_table = TimeEnrichmentWindow(self,
@@ -507,14 +508,14 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 # here we can add the call to the next table. since
                 #  we are just using the same outfile can just keep checking
                 #  if it exists
-                if os.path.isfile(previous_output_file):
-                    self.get_data_table2 = EnrichmentWindow(self,
-                                                            settings.min_allowed_timepoints_enrichment,
-                                                            settings.starting_enrichment_table_timepoints,
-                                                            previous_output_file, settings.max_enrichment_allowed)
-                    self.get_data_table2.exec_()
-                else:
-                    return
+                # if os.path.isfile(previous_output_file):
+                #     self.get_data_table2 = EnrichmentWindow(self,
+                #                                             settings.min_allowed_timepoints_enrichment,
+                #                                             settings.starting_enrichment_table_timepoints,
+                #                                             previous_output_file, settings.max_enrichment_allowed)
+                #     self.get_data_table2.exec_()
+                # else:
+                #     return
 
                 # now that we have all the data we can graph the results in case the user wishes to view the data
                 if os.path.isfile(previous_output_file):
@@ -522,13 +523,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     enrichment_graph_folder = os.path.join(enrichment_graph_folder,
                                                            "Enrichment_Graphs")
                     self.make_folder(enrichment_graph_folder)
-                    enrichment_class = PerformEnrichmentClass(previous_output_file, enrichment_graph_folder,
-                                                              settings.graph_output_format)
-                    enrichment_class.perform_calculations()
-                    spline_error = enrichment_class.report_error()
-                    if spline_error != "":
-                        QtWidgets.QMessageBox.information(self, "Error", spline_error)
-                        return
+                    # enrichment_class = PerformEnrichmentClass(previous_output_file, enrichment_graph_folder,
+                    #                                           settings.graph_output_format)
+                    # enrichment_class.perform_calculations()
+                    # spline_error = enrichment_class.report_error()
+                    # if spline_error != "":
+                    #     QtWidgets.QMessageBox.information(self, "Error", spline_error)
+                    #     return
 
                 else:
                     return
