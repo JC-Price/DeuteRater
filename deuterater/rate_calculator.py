@@ -47,7 +47,7 @@ from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
 import utils.rate_equations as dur
-from utils.graphing_tools import graph_rate
+# from utils.graphing_tools import graph_rate
 
 group_column = "sample_group"
 

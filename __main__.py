@@ -583,7 +583,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         step_object_dict[analysis_step],
                         previous_output_file)
                     if not infile_is_good: return
-                    # not sure why this would happen but we'll put it here
+                    # not sure why this would happen, but we'll put it here
                 # to avoid future error
                 elif not os.path.exists(previous_output_file):
                     return

@@ -55,6 +55,7 @@ from functools import partial
 
 from utils.emass import emass
 import deuterater.settings as settings
+import utils.NValueCalculator as nvct
 
 
 max_isos = 5 # constant based on the n_isos based on the mass (done in the extractor)
@@ -99,6 +100,7 @@ class theoretical_enrichment_calculator(object):
     # run the analysis.  this function doesn't have any calculation itself (other than merging, transposing, and setting index of the results)
     # it prepares a function for multiprocessing and thne begins the multiprocessing
     def prepare(self):
+        #TODO: is this for peptides only or do we use this same process for lipids?
         unique_sequnces_df = self.data_df.drop_duplicates(subset = ["Sequence"])
     
         new_columns = theoretical_enrichment_calculator._make_new_columns()
@@ -115,6 +117,94 @@ class theoretical_enrichment_calculator(object):
             total = len(df_split),
             desc="Theory Generation: "
             ),axis =1)
+
+        # Brought this over from another DR version. Used to calculate n-values when we aren't using literature ones.
+        # It uses the NValueCalculator.py and n_value_calc_emass.py files in the Util folder - Ben Driggs
+        #TODO: should this be based on molecule type or use_empir_n_value setting?
+        if settings.use_empir_n_value:
+            self.model = self.model.reset_index(drop=True)
+            self.model["row_num"] = np.arange(0, self.model.shape[0])
+            self.model = self.model.loc[self.model["no_fn"] == ""]
+
+            column_list = list(
+                self.model.columns[
+                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
+            column_list.sort()
+            self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
+
+            # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
+            # n_val_df = self.model
+            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
+            calculator.run()
+            self.model = calculator.full_df
+
+            full_df = self.model.copy()
+
+            # Determine what the highest time point is and only look at those rows
+            highest_timepoint = max(full_df['time'].unique())
+            lipid_groups = full_df.groupby(by='adduct_molecule_sg')
+
+            # TODO: make sure we are calculating the median from all timepoints the user put "yes" in calculate_n_value column
+
+            # # Compare reproducibility across reps
+            for group in lipid_groups:
+                group_df = group[1]
+                high_tp_df = group_df.loc[group_df[
+                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
+
+                # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
+                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "yes"]
+
+                if calc_n_value_df.empty:
+                    # $ BN -1 is only for max time had no n-values (or grouping had no max time)
+                    full_df.loc[full_df['adduct_molecule_sg'] == group[
+                        0], 'n_value'] = -1  # If there is no lipids in the highest timepoint, set n_value as -1
+                    continue
+                # Remove reproducibility filter - CQ 15 Sept 2021
+                if settings.remove_filters:
+                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
+                        calc_n_value_df['empir_n'].median())
+                else:
+                    median_n = round(calc_n_value_df['empir_n'].median())  # BN rounding
+                    # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
+                    try:
+                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
+                                                 1.0)  # BN swapped to a range added ", 1.0"
+                    except:
+                        pass
+                    is_in_range_n = calc_n_value_df['empir_n'].apply(lambda x: x in median_range)
+                    if is_in_range_n.all() and calc_n_value_df.shape[0] > 1:
+                        all_n_values = list(calc_n_value_df['empir_n'])
+                        if len(all_n_values) == 2:
+                            all_n_values.append(np.median(all_n_values))
+                        import scipy.stats as s
+                        m, se = np.mean(all_n_values), s.sem(all_n_values)
+                        if se == 0.0:
+                            confidence_interval = (m, m)
+                        else:
+                            confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
+
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'n_value'] = median_n
+                        # .loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = median_n
+                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'low_CI_n_value'] = confidence_interval[
+                        #     0]
+                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'high_CI_n_value'] = confidence_interval[
+                        #     1]
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = confidence_interval[0]
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
+                    elif calc_n_value_df.shape[0] == 1:
+                        # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
+                    else:
+                        # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
+
+            full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
+                                              'n_value': 'empir_n'})
+
+            full_df.loc[full_df.index, "n_val_calc_n"] = full_df["n_val_calc_n"]
+            full_df.loc[full_df.index, "empir_n"] = full_df["empir_n"]
+            self.model = full_df
         
         mp_pools.close()
         mp_pools.join()
