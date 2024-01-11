@@ -75,20 +75,9 @@ mz_proximity_tolerance: int
 rt_proximity_tolerance: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
-starting_enrichment_table_timepoints: int
-error_estimation: str
-min_non_zero_timepoints_rate: int
-min_allowed_timepoints_enrichment: int
 minimum_allowed_sequence_rate: float
 maximum_allowed_sequence_rate: float
 minimum_sequences_to_combine_for_protein_rate: int
-lowest_allowed_norm_isotope: float
-highest_allowed_norm_isotope: float
-m0_decreasing_allowed_noise: float
-median_absolute_residuals_cutoff_single_point: float
-median_absolute_residuals_cutoff_two_points: float
-median_absolute_residuals_cutoff_general: float
-desired_points_for_optimization_graph: int
 intensity_filter: int
 rel_height: float
 protein_combination_method: str
@@ -105,7 +94,6 @@ how_divided: str
 use_chromatography_division: str
 graph_output_format: str
 ms_level: int
-max_enrichment_allowed: float
 verbose_output: bool
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -188,18 +176,6 @@ def load(settings_path):
         global min_allowed_n_values
         min_allowed_n_values = s["min_allowed_n_values"]
         
-        global starting_enrichment_table_timepoints
-        starting_enrichment_table_timepoints = s["starting_enrichment_table_timepoints"]
-        
-        global error_estimation
-        error_estimation = s["error_estimation"]
-        
-        global min_non_zero_timepoints_rate
-        min_non_zero_timepoints_rate = s["min_non_zero_timepoints_rate"]
-        
-        global min_allowed_timepoints_enrichment
-        min_allowed_timepoints_enrichment = s["min_allowed_timepoints_enrichment"]
-        
         global minimum_allowed_sequence_rate
         minimum_allowed_sequence_rate = s["minimum_allowed_sequence_rate"]
         
@@ -208,28 +184,7 @@ def load(settings_path):
         
         global minimum_sequences_to_combine_for_protein_rate
         minimum_sequences_to_combine_for_protein_rate = s["minimum_sequences_to_combine_for_protein_rate"]
-        
-        global lowest_allowed_norm_isotope
-        lowest_allowed_norm_isotope = s["lowest_allowed_norm_isotope"]
-        
-        global highest_allowed_norm_isotope
-        highest_allowed_norm_isotope = s["highest_allowed_norm_isotope"]
-        
-        global m0_decreasing_allowed_noise
-        m0_decreasing_allowed_noise = s["m0_decreasing_allowed_noise"]
-        
-        global median_absolute_residuals_cutoff_single_point
-        median_absolute_residuals_cutoff_single_point = s["median_absolute_residuals_cutoff_single_point"]
-        
-        global median_absolute_residuals_cutoff_two_points
-        median_absolute_residuals_cutoff_two_points = s["median_absolute_residuals_cutoff_two_points"]
-        
-        global median_absolute_residuals_cutoff_general
-        median_absolute_residuals_cutoff_general = s["median_absolute_residuals_cutoff_general"]
-        
-        global desired_points_for_optimization_graph
-        desired_points_for_optimization_graph = s["desired_points_for_optimization_graph"]
-        
+
         global intensity_filter
         intensity_filter = s["intensity_filter"]
         
@@ -278,9 +233,6 @@ def load(settings_path):
         global graph_output_format
         graph_output_format = s["graph_output_format"]
         
-        global max_enrichment_allowed
-        max_enrichment_allowed = s["max_enrichment_allowed"]
-        
         global verbose_output
         verbose_output = s["verbose_output"]
 
@@ -327,25 +279,13 @@ def freeze(path=None, settings_dict = None):
             'min_envelopes_to_combine': min_envelopes_to_combine,
             'peak_ratio_denominator': peak_ratio_denominator,
             'zscore_cutoff': zscore_cutoff,
-            "max_enrichment_allowed": max_enrichment_allowed,
             "min_aa_sequence_length": min_aa_sequence_length,
             "mz_proximity_tolerance":mz_proximity_tolerance,
             "rt_proximity_tolerance":rt_proximity_tolerance,
             "min_allowed_n_values": min_allowed_n_values,
-            "starting_enrichment_table_timepoints": starting_enrichment_table_timepoints,
-            "error_estimation": error_estimation,
-            "min_non_zero_timepoints_rate": min_non_zero_timepoints_rate,
-            "min_allowed_timepoints_enrichment": min_allowed_timepoints_enrichment,
             "minimum_allowed_sequence_rate": minimum_allowed_sequence_rate,
             "maximum_allowed_sequence_rate": maximum_allowed_sequence_rate,
             "minimum_sequences_to_combine_for_protein_rate": minimum_sequences_to_combine_for_protein_rate,
-            "lowest_allowed_norm_isotope": lowest_allowed_norm_isotope,
-            "highest_allowed_norm_isotope": highest_allowed_norm_isotope,
-            "m0_decreasing_allowed_noise": m0_decreasing_allowed_noise,
-            "median_absolute_residuals_cutoff_single_point": median_absolute_residuals_cutoff_single_point,
-            "median_absolute_residuals_cutoff_two_points": median_absolute_residuals_cutoff_two_points,
-            "median_absolute_residuals_cutoff_general": median_absolute_residuals_cutoff_general,
-            "desired_points_for_optimization_graph": desired_points_for_optimization_graph,
             "intensity_filter": intensity_filter,
             "rel_height": rel_height,
             "sampling_rate": sampling_rate,

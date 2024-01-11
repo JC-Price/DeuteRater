@@ -154,19 +154,6 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="3">
-    <widget class="QDoubleSpinBox" name="lowest_allowed_norm_isotope">
-     <property name="minimum">
-      <double>-1.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>1.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.010000000000000</double>
-     </property>
-    </widget>
-   </item>
    <item row="9" column="1">
     <widget class="QSpinBox" name="ppm_error">
      <property name="maximum">
@@ -219,29 +206,6 @@
    </item>
    <item row="8" column="1">
     <widget class="QDoubleSpinBox" name="time_window"/>
-   </item>
-   <item row="9" column="2">
-    <widget class="QLabel" name="label_34">
-     <property name="text">
-      <string>highest allowed isotope value  (fraction of unlabeled)</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="3">
-    <widget class="QDoubleSpinBox" name="highest_allowed_norm_isotope">
-     <property name="minimum">
-      <double>0.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>2.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.010000000000000</double>
-     </property>
-    </widget>
    </item>
    <item row="10" column="0">
     <widget class="QLabel" name="label_22">
@@ -318,19 +282,6 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="3">
-    <widget class="QDoubleSpinBox" name="m0_decreasing_allowed_noise">
-     <property name="minimum">
-      <double>0.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>0.500000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.010000000000000</double>
-     </property>
-    </widget>
-   </item>
    <item row="11" column="2">
     <widget class="QLabel" name="label_36">
      <property name="text">
@@ -383,23 +334,6 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="1">
-    <widget class="QSpinBox" name="min_allowed_timepoints_enrichment">
-     <property name="minimum">
-      <number>4</number>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="2">
-    <widget class="QLabel" name="label_39">
-     <property name="text">
-      <string>median absolute residuals cutoff general</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item row="13" column="0">
     <widget class="QLabel" name="label_37">
      <property name="text">
@@ -409,30 +343,6 @@
       <bool>true</bool>
      </property>
     </widget>
-   </item>
-   <item row="11" column="3">
-    <widget class="QDoubleSpinBox" name="median_absolute_residuals_cutoff_value_single_point">
-     <property name="decimals">
-      <number>3</number>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="3">
-    <widget class="QDoubleSpinBox" name="median_absolute_residuals_cutoff_value_general">
-     <property name="decimals">
-      <number>3</number>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="3">
-    <widget class="QDoubleSpinBox" name="median_absolute_residuals_cutoff_value_two_points">
-     <property name="decimals">
-      <number>3</number>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="1">
-    <widget class="QSpinBox" name="starting_enrichment_table_timepoints"/>
    </item>
    <item row="14" column="0">
     <widget class="QLabel" name="label_10">

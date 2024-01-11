@@ -81,40 +81,11 @@ min_aa_sequence_length: !!int 6
 # too small
 min_allowed_n_values: !!int 10
 
-starting_enrichment_table_timepoints: !!int 5
-
-max_enrichment_allowed: !!float .3
-
-#options are "none", "approximate" or "exact"
-error_estimation: !!str "none" #add
-
-min_non_zero_timepoints_rate: !!int 1
-
-# don't allow less than 4 or it will prevent spline fitting
-min_allowed_timepoints_enrichment: !!int 4
-
 minimum_allowed_sequence_rate: !!float 0.0
 
 maximum_allowed_sequence_rate: !!float 1.5
 
 minimum_sequences_to_combine_for_protein_rate: !!int 3
-
-# if need to turn off just make it negative
-lowest_allowed_norm_isotope: !!float .8
-
-# if need to turn off make it 5 or higher
-highest_allowed_norm_isotope: !!float 1.2
-
-m0_decreasing_allowed_noise: !!float .15
-
-median_absolute_residuals_cutoff_single_point: !!float .01
-
-median_absolute_residuals_cutoff_two_points: !!float .015
-
-median_absolute_residuals_cutoff_general: !!float .02
-
-desired_points_for_optimization_graph: !!int 25
-
 
 # A filter used in many areas for scan combining. If a neutromer peak is below the
 # a intensity filter, it is not considered to gaussian fitting and is not considered

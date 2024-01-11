@@ -428,14 +428,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
                     self.get_data_table.exec_()
 
-                    # if os.path.isfile(previous_output_file):
-                    #     self.get_data_table2 = EnrichmentWindow(self,
-                    #                                             settings.min_allowed_timepoints_enrichment,
-                    #                                             settings.starting_enrichment_table_timepoints,
-                    #                                             previous_output_file, settings.max_enrichment_allowed)
-                    #     self.get_data_table2.exec_()
-                    # else:
-                    #     return
                     if os.path.isfile(previous_output_file):
                         enrichment_graph_folder = os.path.dirname(previous_output_file)
                         enrichment_graph_folder = os.path.join(enrichment_graph_folder,
@@ -505,17 +497,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 self.get_data_table = TimeEnrichmentWindow(self,
                                                  extracted_files, previous_output_file)
                 self.get_data_table.exec_()
-                # here we can add the call to the next table. since
-                #  we are just using the same outfile can just keep checking
-                #  if it exists
-                # if os.path.isfile(previous_output_file):
-                #     self.get_data_table2 = EnrichmentWindow(self,
-                #                                             settings.min_allowed_timepoints_enrichment,
-                #                                             settings.starting_enrichment_table_timepoints,
-                #                                             previous_output_file, settings.max_enrichment_allowed)
-                #     self.get_data_table2.exec_()
-                # else:
-                #     return
 
                 # now that we have all the data we can graph the results in case the user wishes to view the data
                 if os.path.isfile(previous_output_file):
@@ -607,30 +588,28 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         analysis_step,
                         "spreadsheet (*.csv *.tsv)"
                     )
-                    if previous_output_file == "": return
+                    if previous_output_file == "":
+                        return
 
                     infile_is_good = self.check_input(
                         step_object_dict[analysis_step],
                         previous_output_file)
-                    if not infile_is_good: return
+                    if not infile_is_good:
+                        return
 
                 # need to get a graph folders and ensure they exist
                 # don't worry about overwriting files. not deleting all just causes confusion.
-                GraphFolder_isotopes = os.path.join(self.file_loc, "Graph_Folder_Isotopes")
-                self.make_folder(GraphFolder_isotopes)
-                if settings.error_estimation == "none":
-                    GraphFolder_optimization = ""
-                else:
-                    GraphFolder_optimization = os.path.join(self.file_loc, "Graph_Folder_Optimization")
-                    self.make_folder(GraphFolder_optimization)
+                graphfolder = os.path.join(self.file_loc, "Graph_Folder")
+                self.make_folder(graphfolder)
 
                 ratecalc = RateCalculator(
                     model_path=previous_output_file,
-                    out_path=step_object_dict[analysis_step].full_filename,
-                    graph_folder_isotopes=GraphFolder_isotopes,
-                    graph_folder_optimization=GraphFolder_optimization,
-                    settings_path=rate_settings_file
+                    out_path=step_object_dict["Rate Calculation"].full_filename,
+                    graph_folder=graphfolder,
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
                 )
+
                 ratecalc.calculate()
                 ratecalc.write()
                 del ratecalc
