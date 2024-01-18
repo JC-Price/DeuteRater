@@ -49,7 +49,7 @@ import deuterater.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_string_info
 
 
-#location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 default_peptide_rate_settings = os.path.join(location, "resources", "peptide_settings.yaml")
 default_lipid_rate_settings = os.path.join(location, "resources", "lipid_settings.yaml")
@@ -57,11 +57,13 @@ default_lipid_rate_settings = os.path.join(location, "resources", "lipid_setting
 settings_file_ui_location = os.path.join(location, "ui_files", "Settings_Menu.ui")
 loaded_ui = uic.loadUiType(settings_file_ui_location)[0]
 
+
 class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
-    def __init__(self, parent = None, current_setting_file = None):
+
+    def __init__(self, parent=None, current_setting_file=None):
         super(Rate_Setting_Menu, self).__init__(parent)
         settings.load(current_setting_file)
-        self.current_setting_file =current_setting_file
+        self.current_setting_file = current_setting_file
         # this is needed to slim things down a bit
         self.setWindowTitle("Rate Settings Menu")
         self.setupUi(self)
@@ -137,7 +139,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         settings.freeze(self.current_setting_file, save_value_dict)
         return True
        
-    # if the user wants to exit we can check if something has changed so we can give tham a chance to save
+    # if the user wants to exit we can check if something has changed, so we can give them a chance to save
     def check_for_changes(self):
         for setting in self.all_settings:
             if not setting.compare_value():

@@ -1,5 +1,5 @@
 ID_weight: 0.7
-aa_labeling_sites_path: C:\Users\benny\PycharmProjects\DeuteRater_v6\resources\aa_labeling_sites.tsv
+aa_labeling_sites_path: C:\Users\Brigham Young Univ\Desktop\DeuteRater Versions\DeuteRater_v6\resources\aa_labeling_sites.tsv
 adduct_weight: 1.0
 allowed_neutromer_peak_variance: 64
 allowed_peak_variance_min: 0.1

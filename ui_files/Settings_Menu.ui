@@ -14,7 +14,7 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="19" column="1">
+   <item row="18" column="1">
     <widget class="QSpinBox" name="min_allowed_n_value">
      <property name="minimum">
       <number>1</number>
@@ -24,14 +24,14 @@
      </property>
     </widget>
    </item>
-   <item row="19" column="0">
+   <item row="18" column="0">
     <widget class="QLabel" name="label_25">
      <property name="text">
       <string>Minimum Allowed N Value</string>
      </property>
     </widget>
    </item>
-   <item row="18" column="1">
+   <item row="17" column="1">
     <widget class="QSpinBox" name="min_AA_length">
      <property name="minimum">
       <number>1</number>
@@ -51,7 +51,7 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="1">
+   <item row="14" column="1">
     <widget class="QDoubleSpinBox" name="rt_prox_filter"/>
    </item>
    <item row="15" column="2">
@@ -67,7 +67,7 @@
    <item row="15" column="3">
     <widget class="QSpinBox" name="minimum_sequences_to_combine_for_protein_rate"/>
    </item>
-   <item row="17" column="0">
+   <item row="16" column="0">
     <widget class="QLabel" name="label_7">
      <property name="font">
       <font>
@@ -79,7 +79,7 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="0">
+   <item row="14" column="0">
     <widget class="QLabel" name="label_31">
      <property name="text">
       <string>Retention Time proximity filter (min)</string>
@@ -100,7 +100,7 @@
      </item>
     </widget>
    </item>
-   <item row="18" column="0">
+   <item row="17" column="0">
     <widget class="QLabel" name="label_24">
      <property name="text">
       <string>Minimum Peptide Length</string>
@@ -131,7 +131,7 @@
      </item>
     </widget>
    </item>
-   <item row="15" column="1">
+   <item row="13" column="1">
     <widget class="QSpinBox" name="mz_prox_filter">
      <property name="minimum">
       <number>1</number>
@@ -147,21 +147,21 @@
      </property>
     </widget>
    </item>
-   <item row="15" column="0">
+   <item row="13" column="0">
     <widget class="QLabel" name="label_27">
      <property name="text">
       <string>mz proximity filter (ppm)</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
+   <item row="7" column="1">
     <widget class="QSpinBox" name="ppm_error">
      <property name="maximum">
       <number>100</number>
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
+   <item row="8" column="1">
     <widget class="QComboBox" name="use_chromatography_division">
      <item>
       <property name="text">
@@ -180,34 +180,24 @@
      </item>
     </widget>
    </item>
-   <item row="8" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="label_20">
      <property name="text">
       <string>Extraction Time Window (min)</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="2">
-    <widget class="QLabel" name="label_33">
-     <property name="text">
-      <string>lowest allowed isotope value (fraction of unlabeled)</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_21">
      <property name="text">
       <string>Allowed m/z error (ppm)</string>
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="6" column="1">
     <widget class="QDoubleSpinBox" name="time_window"/>
    </item>
-   <item row="10" column="0">
+   <item row="8" column="0">
     <widget class="QLabel" name="label_22">
      <property name="acceptDrops">
       <bool>false</bool>
@@ -282,69 +272,7 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="2">
-    <widget class="QLabel" name="label_36">
-     <property name="text">
-      <string>median absolute residuals cutoff single point</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item row="12" column="0">
-    <widget class="QLabel" name="label_28">
-     <property name="text">
-      <string>Minimum timepoints (enrichment)</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="2">
-    <widget class="QLabel" name="label_38">
-     <property name="text">
-      <string>median absolute residuals cutoff two points</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="2">
-    <widget class="QLabel" name="label_35">
-     <property name="text">
-      <string>M0 decreasing allowed noise  (fraction of unlabeled M0)</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="label_8">
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Enrichment Table</string>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="0">
-    <widget class="QLabel" name="label_37">
-     <property name="text">
-      <string>Default Enrichment Table Times</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="0">
     <widget class="QLabel" name="label_10">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -505,7 +433,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="label_41">
      <property name="text">
       <string>graph file type</string>
@@ -515,7 +443,7 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="3" column="1">
     <widget class="QComboBox" name="graph_file_type">
      <item>
       <property name="text">
@@ -534,7 +462,7 @@
      </item>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="4" column="0">
     <widget class="QLabel" name="label_6">
      <property name="font">
       <font>
@@ -546,7 +474,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="5" column="1">
     <widget class="QComboBox" name="rt_unit">
      <item>
       <property name="text">
@@ -560,7 +488,7 @@
      </item>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="label_19">
      <property name="text">
       <string>Retention Time Unit</string>
