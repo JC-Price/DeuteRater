@@ -95,6 +95,32 @@ use_chromatography_division: str
 graph_output_format: str
 ms_level: int
 verbose_output: bool
+abundance_agreement_filter: float
+abundance_manual_bias: float
+asymptote: str
+combined_agreement_filter: float
+combined_manual_bias: float
+error_of_non_replicated_point: float
+error_of_zero: float
+fixed_asymptote_value: float
+lipid_analyte_id_column: str
+lipid_analyte_name_column: str
+minimum_nonzero_points: int
+peptide_analyte_id_column: str
+peptide_analyte_name_column: str
+proliferation_adjustment: float
+remove_filters: bool
+roll_up_rate_calc: bool
+s_n_filter: float
+separate_adducts: bool
+spacing_agreement_filter: float
+spacing_manual_bias: float
+unique_sequence_column: str
+use_empir_n_value: bool
+use_neutromer_spacing: bool
+verbose_rate: bool
+y_intercept_of_fit: float
+
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
@@ -236,6 +262,81 @@ def load(settings_path):
         global verbose_output
         verbose_output = s["verbose_output"]
 
+        global abundance_agreement_filter
+        abundance_agreement_filter = s["abundance_agreement_filter"]
+
+        global abundance_manual_bias
+        abundance_manual_bias = s["abundance_manual_bias"]
+
+        global asymptote
+        asymptote = s['asymptote']
+
+        global combined_agreement_filter
+        combined_agreement_filter = s["combined_agreement_filter"]
+
+        global combined_manual_bias
+        combined_manual_bias = s["combined_manual_bias"]
+
+        global error_of_non_replicated_point
+        error_of_non_replicated_point = s["error_of_non_replicated_point"]
+
+        global error_of_zero
+        error_of_zero = s["error_of_zero"]
+
+        global fixed_asymptote_value
+        fixed_asymptote_value = s["fixed_asymptote_value"]
+
+        global lipid_analyte_id_column
+        lipid_analyte_id_column = s['lipid_analyte_id_column']
+
+        global lipid_analyte_name_column
+        lipid_analyte_name_column = s['lipid_analyte_name_column']
+
+        global minimum_nonzero_points
+        minimum_nonzero_points = s['minimum_nonzero_points']
+
+        global peptide_analyte_id_column
+        peptide_analyte_id_column = s['peptide_analyte_id_column']
+
+        global peptide_analyte_name_column
+        peptide_analyte_name_column = s['peptide_analyte_name_column']
+
+        global proliferation_adjustment
+        proliferation_adjustment = s['proliferation_adjustment']
+
+        global remove_filters
+        remove_filters = s["remove_filters"]
+
+        global roll_up_rate_calc
+        roll_up_rate_calc = s['roll_up_rate_calc']
+
+        global s_n_filter
+        s_n_filter = s["s_n_filter"]
+
+        global separate_adducts
+        separate_adducts = s["separate_adducts"]
+
+        global spacing_agreement_filter
+        spacing_agreement_filter = s["spacing_agreement_filter"]
+
+        global spacing_manual_bias
+        spacing_manual_bias = s["spacing_manual_bias"]
+
+        global unique_sequence_column
+        unique_sequence_column = s["unique_sequence_column"]
+
+        global use_empir_n_value
+        use_empir_n_value = s["use_empir_n_value"]
+
+        global use_neutromer_spacing
+        use_neutromer_spacing = s['use_neutromer_spacing']
+
+        global verbose_rate
+        verbose_rate = s["verbose_rate"]
+
+        global y_intercept_of_fit
+        y_intercept_of_fit = s["y_intercept_of_fit"]
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -257,6 +358,7 @@ def compare(settings_path, compare_path):
         return "MATCH"
     except:
         return "Error"
+
 
 def freeze(path=None, settings_dict = None):
     if not settings_dict:
@@ -302,8 +404,32 @@ def freeze(path=None, settings_dict = None):
             "ms_level": ms_level,
             "use_chromatography_division": use_chromatography_division,
             "graph_output_format": graph_output_format,
-            "verbose_output": verbose_output
-            
+            "verbose_output": verbose_output,
+            "abundance_agreement_filter": abundance_agreement_filter,
+            "abundance_manual_bias": abundance_manual_bias,
+            "asymptote": asymptote,
+            "combined_agreement_filter": combined_agreement_filter,
+            "combined_manual_bias": combined_manual_bias,
+            "error_of_non_replicated_point": error_of_non_replicated_point,
+            "error_of_zero": error_of_zero,
+            "fixed_asymptote_value": fixed_asymptote_value,
+            "lipid_analyte_id_column": lipid_analyte_id_column,
+            "lipid_analyte_name_column": lipid_analyte_name_column,
+            "minimum_nonzero_points": minimum_nonzero_points,
+            "peptide_analyte_id_column": peptide_analyte_id_column,
+            "peptide_analyte_name_column": peptide_analyte_name_column,
+            "proliferation_adjustment": proliferation_adjustment,
+            "remove_filters": remove_filters,
+            "roll_up_rate_calc": roll_up_rate_calc,
+            "s_n_filter": s_n_filter,
+            "separate_adducts": separate_adducts,
+            "spacing_agreement_filter": spacing_agreement_filter,
+            "spacing_manual_bias": spacing_manual_bias,
+            "unique_sequence_column": unique_sequence_column,
+            "use_empir_n_value": use_empir_n_value,
+            "use_neutromer_spacing": use_neutromer_spacing,
+            "verbose_rate": verbose_rate,
+            "y_intercept_of_fit": y_intercept_of_fit
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
