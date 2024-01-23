@@ -73,9 +73,9 @@ guide_settings_file = os.path.join(location, "resources",
 default_guide_settings = os.path.join(location, "resources",
                                       "guide_settings.yaml")
 
-# each analysis step gets a deuterater_step object.  first argument is the output name
+# each analysis step gets a deuterater_step object.  first argument is the output name,
 # so we can check for overwriting (except extract which has dynamic output names)
-# second argument is columns required of the input so we don't have to check
+# second argument is columns required of the input, so we don't have to check
 # when we're actually doing the calculations.
 Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                                       'Precursor m/z', 'Identification Charge', 'Sequence',
