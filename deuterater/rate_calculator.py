@@ -31,10 +31,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-'''Calculation of turnover rates
-
-'''
-
 from functools import partial, reduce
 import pandas as pd
 import numpy as np
@@ -47,7 +43,11 @@ from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
 import utils.rate_equations as dur
-# from utils.graphing_tools import graph_rate
+from utils.graphing_tools import graph_rate
+
+'''
+Calculation of turnover rates
+'''
 
 group_column = "sample_group"
 

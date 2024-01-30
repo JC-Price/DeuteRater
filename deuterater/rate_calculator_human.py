@@ -61,7 +61,7 @@ import multiprocessing as mp
 from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
-from utils.graphing_tools import graph_rate_results, graph_optimization_of_error
+from utils.graphing_tools_human import graph_rate_results, graph_optimization_of_error
 from utils.emass import normalize
 
 # the spline fit used for the deuterium enrichment was previously used as a lambda with a fucntion call

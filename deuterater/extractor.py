@@ -109,7 +109,7 @@ class Extractor:  # TODO name change
         self.model = pd.DataFrame()
 
         # the try except is mostly to catch programming errors in the setup.
-        #  there isn't a reasonable erro (except the final raise permissionerror but
+        #  there isn't a reasonable error (except the final raise permissionerror but
         #  that doesn't need the try except)
         try:
             if settings.recognize_available_cores is True:
@@ -141,12 +141,12 @@ class Extractor:  # TODO name change
             raise
 
     def load(self):
-        '''Loads the associated files into memory
+        """Loads the associated files into memory
 
-        This is called seperately from the initializtion of the Extractor
+        This is called separately from the initialization of the Extractor
         class so that if many files are given, we only have one Extractor
         fully loaded into memory at a time
-        '''
+        """
         try:
             self._load_ids(self.id_path)
             self._get_mzml_bounds(self.mzml_path)
@@ -164,7 +164,7 @@ class Extractor:  # TODO name change
         )
 
     def _load_ids(self, filename):
-        '''Loads the id file into memory
+        """Loads the id file into memory
 
         Parameters
         ----------
@@ -174,7 +174,7 @@ class Extractor:  # TODO name change
         Returns
         -------
         :obj:`bool`
-            True if the file loads successfullly, False otherwise.
+            True if the file loads successfully, False otherwise.
 
         Raises
         ------
@@ -183,7 +183,7 @@ class Extractor:  # TODO name change
         InvalidHeaderError
             If the file does not contain the appropriate information.
 
-        '''
+        """
         self.ids = pd.read_csv(self.id_path)
         if self._id_rt_unit == 'sec':
             self.ids['rt'] = self.ids['Precursor Retention Time (sec)'].apply(lambda x: x / 60.0)
@@ -208,19 +208,19 @@ class Extractor:  # TODO name change
                 row['neutromers_to_extract'] = num_peaks_by_mass(row["Peptide Theoretical Mass"])
             return row
         
-        self.ids = self.ids.apply(autofill, axis = 1)
+        self.ids = self.ids.apply(autofill, axis=1)
         self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(
             np.int8)  # TODO: Temp value, see note at top of files
         # self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
 
     def _partition_ids(self, trim):
-        '''splits the id file
+        """splits the id file
 
         Returns
         -------
         :obj:`list` of :obj:`pandas.Dataframe`
 
-        '''
+        """
         # NOTE: there is not really a reason to chunk the read operation
         # until the ID files are gigabytes in size
         if trim:
@@ -249,7 +249,7 @@ class Extractor:  # TODO name change
                 'Identification Charge',
                 'rt',
                 'n_isos',
-                #'cf'
+                # 'cf'
             ]
             chunk.drop(
                 chunk.columns.difference(keep_cols),
@@ -265,7 +265,7 @@ class Extractor:  # TODO name change
             )
 
     def _get_mzml_bounds(self, filename):
-        '''Loads the mzml file (or at least a reader)
+        """Loads the mzml file (or at least a reader)
 
         Parameters
         ----------
@@ -275,14 +275,14 @@ class Extractor:  # TODO name change
         Returns
         -------
         :obj:`bool`
-            True if the file loads successfullly, False otherwise.
+            True if the file loads successfully, False otherwise.
 
         Raises
         ------
         FileNotFoundError
             If the file does not exist
 
-        '''
+        """
         # Open a pointer to the specified mzml file
         mzml_fp = pymzml.run.Reader(
             path_or_file=self.mzml_path,
@@ -291,7 +291,7 @@ class Extractor:  # TODO name change
         # Create a mapping of the relative index of each scan in the mzml
         #   to the native id given in the file. This allows us to iterate
         #   smoothly through the mzml file no matter how spaced out or
-        #   oddly definied/formatted the given native indices are
+        #   oddly defined/formatted the given native indices are
         self._index_ID_map = {spec.index: spec.ID for spec in mzml_fp}
         mzml_bounds = dml.get_bounds(mzml_fp, self._index_ID_map)
         self._mzml_rt_min = mzml_bounds['rt_min']
@@ -301,11 +301,11 @@ class Extractor:  # TODO name change
         mzml_fp.close()
 
     def run(self):
-        '''Performs data extraction data from the mzml according to id file
+        """Performs data extraction data from the mzml according to id file
 
         TODO: add a much longer explanation of why we needed special functions
               to chunk the data with overlap in the windows
-        '''
+        """
         # These partial function applications (from python's 'functools'
         #   library) allow us to pass the same information to each of the
         #   chunks.

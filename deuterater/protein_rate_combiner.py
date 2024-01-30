@@ -55,7 +55,7 @@ from pathlib import Path
 from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
-from utils.graphing_tools import graph_average_boxplots
+from utils.graphing_tools_human import graph_average_boxplots
 
 # will be grouping by subject and protein id
 group_column1 = "Subject ID"

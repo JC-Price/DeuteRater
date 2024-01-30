@@ -44,7 +44,7 @@ import numpy as np
 import pandas as pd
 import scipy.interpolate as si
 
-from utils.graphing_tools import enrichment_graph
+from utils.graphing_tools_human import enrichment_graph
 
 # the spline equation will be separate for easier calling in other modules
 def spline_interp(t, d):

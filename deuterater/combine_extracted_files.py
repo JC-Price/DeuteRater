@@ -31,19 +31,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-'''
-After the data is extracted form mzmls we need to prepare it for future analysis
-At this point the user has provided information on which files go with which
-experimental subject and the enrichment, as well as which extracted filtes to consider
-
-Therefore this will add the users data on subjects and deuterium enrichment,
-do some basic filtering, calculate a n value based on aa_labeling_sites.tsv
-(in the resources folder) and then merge all into one file
-
-may merge with initial_intensity_calculator, which has a similar basic filtering
-role and occurs immediately afterwards
-'''
-
 import pandas as pd
 import numpy as np  # noqa: 401
 
@@ -58,11 +45,24 @@ import deuterater.settings as settings
 
 import deuteconvert.peptide_utils as peputils
 
+'''
+After the data is extracted form mzmls we need to prepare it for future analysis
+At this point the user has provided information on which files go with which
+experimental subject and the enrichment, as well as which extracted filters to consider
+
+Therefore this will add the users data on subjects and deuterium enrichment,
+do some basic filtering, calculate a literature n value based on aa_labeling_sites.tsv (for peptides) or 
+an empirical n value based on theory using NValueCalculator.py (for lipids) and then merge them all into one file
+
+may merge with initial_intensity_calculator, which has a similar basic filtering
+role and occurs immediately afterwards
+'''
+
 literature_n_name = "literature_n"
 
 
 # as with all the calculation steps this is a class for consistent calls in the main
-class CombineExtractedFiles():
+class CombineExtractedFiles:
     def __init__(self, enrichment_path, out_path, settings_path, needed_columns):
         settings.load(settings_path)
         self.settings_path = settings_path
@@ -72,36 +72,35 @@ class CombineExtractedFiles():
         aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
         aa_label_df.set_index('study_type', inplace=True)
         self.aa_labeling_dict = aa_label_df.loc[settings.label_key, ].to_dict()
-        
-        
-        # pull in two sub tables from the output table. posibilities for .tsv and .csv files
+
+        # pull in two sub tables from the output table. possibilities for .tsv and .csv files
         if self.enrichment_path.suffix == '.tsv':
             self._file_data = pd.read_csv(
                 filepath_or_buffer=str(self.enrichment_path),
                 sep='\t',
-                usecols = ["Filename", "Time", "Subject ID"]
+                usecols=["Filename", "Time", "Subject ID"]
             )
             self._enrichment_data = pd.read_csv(
                 filepath_or_buffer=str(self.enrichment_path),
                 sep='\t',
-                usecols = ["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
+                usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
             )
         elif self.enrichment_path.suffix == '.csv':
             self._file_data = pd.read_csv(
                 filepath_or_buffer=str(self.enrichment_path),
                 sep=',',
-                usecols = ["Filename", "Time", "Subject ID"]
+                usecols=["Filename", "Time", "Subject ID"]
             )
             self._enrichment_data = pd.read_csv(
                 filepath_or_buffer=str(self.enrichment_path),
                 sep=',',
-                usecols = ["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
+                usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
             )
             
         # since the multiple sub tables can have different length, get rid
         # of the rows that are empty
-        self._file_data.dropna(inplace = True, how = "all")
-        self._enrichment_data.dropna(inplace = True, how = "all")
+        self._file_data.dropna(inplace=True, how="all")
+        self._enrichment_data.dropna(inplace=True, how="all")
         self._data_dict = self.collect_enrichment_data()
         
         # if multiprocessing need to set that up. more than 60 cores causes problems for windows
@@ -123,6 +122,7 @@ class CombineExtractedFiles():
             sep='\t',
             index=False
         )
+
     # read in data from the user
     def collect_enrichment_data(self):
         data_dict = {}
@@ -133,7 +133,7 @@ class CombineExtractedFiles():
         return data_dict
             
     # run the analysis.  this function doesn't have any calculation itself (other than merging results)
-    # it prepares a function for multiprocessing and thne begins the multiprocessing
+    # it prepares a function for multiprocessing and then begins the multiprocessing
     def prepare(self):
         if settings.debug_level == 0:
             args_list = self._file_data.to_records(index=False).tolist()
@@ -146,8 +146,7 @@ class CombineExtractedFiles():
                 )
             
             )
-            
-            
+
         elif settings.debug_level >= 1:
             print('Beginning single-processor theory preparation.')
             results = []
@@ -158,10 +157,10 @@ class CombineExtractedFiles():
                 df = CombineExtractedFiles._apply_filters(df)
                 if literature_n_name not in df.columns:
                     if self.aa_labeling_dict != "":
-                        df = df.apply(CombineExtractedFiles._calculate_literature_n, axis =1 , args = (self.aa_labeling_dict,))
+                        df = df.apply(CombineExtractedFiles._calculate_literature_n, axis=1, args=(self.aa_labeling_dict,))
                 
                 df['time'] = row.time
-                df["sample_id"]  = row.sample_id
+                df["sample_id"] = row.sample_id
                 df["Time Enrichment"] = self._data_dict[row.sample_id][0]
                 df["Enrichment Values"] = self._data_dict[row.sample_id][1]
                 results.append(df)
@@ -171,7 +170,6 @@ class CombineExtractedFiles():
         # otherwise the carry forward increases file size quite a bit
         # by doing here it should not affect anything.
         self.model = self.model[self.needed_columns]
-        
 
         self._mp_pool.close()
         self._mp_pool.join()
@@ -181,7 +179,7 @@ class CombineExtractedFiles():
     @staticmethod
     def _mp_prepare(settings_path, data_dict,  aa_labeling_dict, args):
         settings.load(settings_path)
-        #file_path, time, enrichment = args
+        # file_path, time, enrichment = args
         file_path, time, sample_id = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         df = CombineExtractedFiles._apply_filters(df)
@@ -189,9 +187,9 @@ class CombineExtractedFiles():
         # needed in the next step so calculate if necessary.
         if literature_n_name not in df.columns:
             if aa_labeling_dict != "":
-                df = df.apply(CombineExtractedFiles._calculate_literature_n, axis =1 , args = (aa_labeling_dict,))
+                df = df.apply(CombineExtractedFiles._calculate_literature_n, axis=1, args=(aa_labeling_dict,))
         df['time'] = time
-        df["sample_id"]  = sample_id
+        df["sample_id"] = sample_id
         df["Time Enrichment"] = data_dict[sample_id][0]
         df["Enrichment Values"] = data_dict[sample_id][1]
             
@@ -214,7 +212,7 @@ class CombineExtractedFiles():
     # remove both as we can't be sure of the id without ms/ms which we aren't dealing with
     @staticmethod
     def _apply_filters(df):
-        '''filters the internal dataframe
+        """filters the internal dataframe
 
         This function does not modify the dataframe in place.
 
@@ -227,7 +225,7 @@ class CombineExtractedFiles():
         -------
         :obj:`pandas.Dataframe`
             The filtered dataframe. Does not modify in place.
-        '''
+        """
         # get rid of lines that are missing mzs and abundances
         df = df.dropna(
             axis='index',
@@ -249,7 +247,7 @@ class CombineExtractedFiles():
                     break
                 if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance and \
                         list_of_lists[i][seq_index] != list_of_lists[j][seq_index]:
-                    too_close.extend([i,j])
+                    too_close.extend([i, j])
         too_close = list(set(too_close))
         return df.drop(df.index[too_close])
     
@@ -258,7 +256,8 @@ class CombineExtractedFiles():
     def _ppm_calculator(target, actual):
         ppm = (target-actual)/target * 1000000
         return abs(ppm)
-    
+
+
 # can't really use as a main 
 def main():
     print('please use the main program interface')

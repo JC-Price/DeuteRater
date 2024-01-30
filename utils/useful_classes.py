@@ -41,7 +41,7 @@ import csv
 # useful for peaks only. could adjust this and deuterater step to inherit from a common parent class
 # or merge into one class, but not worth it right now
 class deuteconvert_peaks_required_headers(object):
-    def __init__(self,protein_header, protein_peptide_header, features_header):
+    def __init__(self, protein_header, protein_peptide_header, features_header):
         self.protein_header = protein_header
         self.protein_peptide_header = protein_peptide_header
         self.features_header = features_header
@@ -71,23 +71,27 @@ class deuteconvert_peaks_required_headers(object):
 # allows easier calls in the main and one large batch of declarations
 # limits hard coding issues
 class deuterater_step(object):
-    def __init__(self, output_filename, required_columns):
+    def __init__(self, output_filename, peptide_required_columns, lipid_required_columns):
         self.output_filename = output_filename
-        self.required_columns = required_columns
+        self.peptide_required_columns = peptide_required_columns
+        self.lipid_required_columns = lipid_required_columns
         
     def complete_filename(self, folder):
         self.full_filename = os.path.join(folder, self.output_filename)
         
-    def check_input_file(self, input_file):
-        with open (input_file, 'r') as infile:
+    def check_input_file(self, input_file, biomolecule_type):
+        with open(input_file, 'r') as infile:
             if input_file[-4:] == ".tsv":
-                reader = csv.reader(infile, delimiter = "\t")
+                reader = csv.reader(infile, delimiter="\t")
             elif input_file[-4:] == ".csv":
                 reader = csv.reader(infile)
             else:
                 raise ValueError("Improper input file")
             firstrow = next(reader)
-        return set(self.required_columns).issubset(firstrow)
+        if biomolecule_type == "Peptide":
+            return set(self.peptide_required_columns).issubset(firstrow)
+        elif biomolecule_type == "Lipid":
+            return set(self.lipid_required_columns).issubset(firstrow)
   
     
 """

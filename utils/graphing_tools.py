@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2021 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -30,86 +30,157 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-"""
-functions for making the various graphs
-"""
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
+import deuterater.settings as settings
 
-error_line_symbol = 'k--'
+main_line_symbol = 'k-'
+# error_line_symbol = 'k--'
 data_points_symbol = 'ro'
+MAXIMUM_GRAPH_RATE_ERROR = 5
+MINIMUM_GRAPH_RATE_ERROR = -2
 
-multi_colors=['r','g','b','c','m', 'y']
+# $the colon is not allowed but seems to make an empty file with a partial name.
+# $either way the check is here to prevent problems if it is necessary
+bad_save_file_characters = ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]
 
-# need to graph the results of the binomial fit
-# adapted from code by Christian in the Transtrum lab
-def graph_rate_results(n_isos, save_file_name, time_data, 
-                       normed_isotope_data, mval, theory_times, theory_zero,
-                       subject_sequence, save_format):
-    plt.title(f"Isotope levels {subject_sequence}")
-    plt.xlabel("Time")
-    plt.ylabel("Fraction")
-    for j in range(n_isos):
-        plt.plot(theory_times, mval[:,j], multi_colors[j]+'-', label = "M"+str(j))
-    for j in range(n_isos):
-         plt.plot(time_data,normed_isotope_data[:,j], multi_colors[j]+"o")
-         plt.plot(0, theory_zero[j], multi_colors[j] + "d")
-    plt.legend(loc = "upper right")
-    plt.savefig(save_file_name, format = save_format)
-    plt.clf()
 
-# need to graph the optimization of error for troubleshooting purposes
-# adapted from code by Christian in the Transtrum lab
-def graph_optimization_of_error(k_value, theoretical_k, cost, save_file_name, subject_sequence, legend_name, save_format):
-    plt.title(f"Finding optimal k {subject_sequence}")
-    plt.ylabel("Sum-square Error")
-    plt.xlabel("k")
-    plt.plot(theoretical_k,cost,"bo-", label = legend_name)
-    plt.plot(np.repeat(k_value,2), [min(cost),max(cost)])
-    plt.legend()
-    plt.savefig(save_file_name, format = save_format)
-    plt.clf()
+def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
+               save_folder_name, maximum, asymptote_option, biomolecule, errors=[], full_data=None, title=None):
+    # $start naming things
+    if title is None:
+        title = name
+    plt.title(title)
+    plt.xlabel('Time (Days)')
+    plt.ylabel(f'Fraction New')
+    # plt.xlabel('Time')
+    # plt.ylabel(f'Fraction of Total {biomolecule} that is new')
 
-# graph the enrichment spline
-def enrichment_graph(x_values, y_values, predicted_x, 
-                     predicted_y, subject_name, save_file, save_format):
-    plt.title(subject_name)
-    plt.xlabel("Time")
-    plt.ylabel("Enrichment")
-    plt.plot(x_values, y_values, data_points_symbol)
-    plt.plot(predicted_x, predicted_y, error_line_symbol)
-    
-    plt.savefig(save_file, format = save_format)
-    plt.clf()
+    for time in x_values:
+        plt.axvline(x=time, linewidth=.5, color="k")
 
-# graph the protein roll up
-def graph_average_boxplots(values, save_file_name, subject_protein_name, save_format):
-    # give the values some jitter so they are easily visible from each other
-    # jitter is entirely random.  if we decide to remove, just make all  x_values 1
-    x_values = np.random.normal(1, .035, size = len(values))
-    average = np.mean(values)
+    # $make the values for the line
+    # $make_error_lines is just to remove unoptimal fits for plus and minus
+    # $the main should have triggered the try except in rate_calculator.py if
+    # $it is the issue.
+    make_error_lines = True
+    fit_line_x = np.arange(0, maximum + maximum / 10, .1)
+    if asymptote_option == 'variable' or asymptote_option == "Variable":
+        fit_line_y = rate_equation(fit_line_x, k=rate, a=asymptote)
+        try:
+            fit_line_y_minus_error = rate_equation(fit_line_x,
+                                                   k=rate - ci, a=asymptote)
+            fit_line_y_plus_error = rate_equation(fit_line_x,
+                                                  k=rate + ci, a=asymptote)
+        except:
+            make_error_lines = False
+    else:
+        fit_line_y = rate_equation(fit_line_x, rate)
+        try:
+            fit_line_y_minus_error = rate_equation(fit_line_x, rate - ci)
+            fit_line_y_plus_error = rate_equation(fit_line_x, rate + ci)
+        except:
+            make_error_lines = False
 
-    plt.plot(x_values, values, 'r*', markersize=11, label = "Peptide Rates")
-    # since the linewidth is an argument, is needs a value, but if we try and declare it as a dict,
-    # it will not be defined.  declaring its value and forcing to dict gets around that
-    plt.boxplot(values,
-            whiskerprops = dict(linewidth=1.5), 
-            boxprops= dict(linewidth=3.0), 
-            capprops = dict(linewidth = 2.0), 
-            medianprops = dict(linewidth = 2.0)
-            )
-    plt.plot([1.00], [average], 
-             markerfacecolor = "deepskyblue", 
-             markeredgecolor = "deepskyblue", 
-             markersize=10, 
-             marker = "d", 
-             label = "Mean", 
-             linestyle="None")
-    plt.legend()
-    plt.title(subject_protein_name)
-    plt.xticks([]) # remove x-axis labels to avoid confusion
-    plt.ylabel('Sequence Rate', fontsize=12)
-    plt.savefig(save_file_name, format = save_format)
+    # $ if add multiple conditions put each in parentheses  and use | or &
+    # $ unfortunately nans can cause errors.  only seem to occur if using one time and only error in an .exe but may as well sort this out
+    plt.plot(fit_line_x, fit_line_y, main_line_symbol)
+    if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
+        fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = \
+            MAXIMUM_GRAPH_RATE_ERROR
+        fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = \
+            MINIMUM_GRAPH_RATE_ERROR
+
+        # $plot  lines and points
+    if full_data is None:
+        plt.plot(x_values, y_values, data_points_symbol)
+    else:
+        color_list = {"M+H": 'r',
+                      "-H": 'r',
+                      "M+Na": 'b',
+                      "+C2H3O2-": 'b',
+                      "M+NH4": 'g',
+                      '+COOH-': 'g',
+                      'M+H-[H2O]': 'magenta',
+                      '+e-': 'magenta',
+                      "M+Na-[H2O]": 'gold',
+                      "M+NH4-[H2O]": 'lime',
+                      '-H2O': 'lime'}
+
+        # BD: See https://matplotlib.org/stable/api/markers_api.html for valid shapes/markers
+        _valid_shapes = ['o', 'v', '^', '<', '>', 's', 'p', 'P', '*', 'h', 'H', 'X', 'D']
+        rep_shapes = {}
+        charge_fill = {1: False, 2: True}
+        adduct_groups = full_data.groupby("Adduct")
+        for adduct_group in adduct_groups:
+            adduct = adduct_group[0]
+            color = color_list[adduct]
+            adduct_data = adduct_group[1]
+            rep_groups = adduct_data.groupby("bio_rep")
+
+            # BD: using an index and dictionary to automatically assign symbols instead of hard coding a symbol to a specific bio rep
+            index = 0
+            for rep_group in rep_groups:
+                rep = rep_group[0]
+                # BD: Check to see if bio rep has been assigned a shape. If not, assign one.
+                if rep not in rep_shapes:
+                    rep_shapes[rep] = _valid_shapes[index]
+                shape = rep_shapes[rep]
+                index += 1
+                rep_data = rep_group[1]
+                charge_groups = rep_data.groupby("z")
+                # TODO: Legend labels are being made specifically for lipids, should we add a protein version? - Ben D
+                for charge_group in charge_groups:
+                    charge = charge_group[0]
+                    should_fill = charge_fill[charge]
+                    charge_data = charge_group[1]
+                    n_val = charge_data['n_value'].unique()[0]
+                    x = charge_data['time']
+                    y = charge_data['abund_fn']
+                    label = f'{rep}_z{charge}_{adduct} n={n_val}'
+                    if should_fill:
+                        plt.scatter(x, y, marker=shape,
+                                    facecolor=color, edgecolor='k',
+                                    label=label)
+                    else:
+                        plt.scatter(x, y, marker=shape,
+                                    facecolor='none', edgecolor=color,
+                                    label=label)
+
+    if make_error_lines:
+        plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color='black', alpha=.15)
+    if errors != []:  # $ only if roll up so need error bars
+        plt.errorbar(x_values, y_values, yerr=errors, elinewidth=1,
+                     ecolor='red', linewidth=0)
+    # $save figure and clear it for next time
+    from matplotlib.font_manager import FontProperties
+    font = FontProperties()
+    font.set_size("small")
+    plt.legend(prop=font)
+    # plt.legend(prop={"size": 12})
+    try:
+        filename = os.path.join(save_folder_name, name)
+
+        # font = {'family': 'sans-serif',
+        #         'weight': 'normal',
+        #         'size': 16}
+        #
+        # plt.rc('font', **font)
+        plt.tight_layout()
+        plt.savefig(filename[:-4] + ".png")
+        plt.savefig(filename[:-4] + ".svg")
+
+    # $the following characters are not allowed in windows file names: /\ : * ? " <> |
+    # $replace them with underscores (yes this could erase duplicates, but this is unlikely
+    # $first place, that situation is unlikely problematic enough to bother with)
+    except OSError:
+        for bad_char in bad_save_file_characters:
+            name = name.replace(bad_char, "_")
+        filename = os.path.join(save_folder_name, name) + f".{settings.rate_output_format}"
+        plt.savefig(filename[:-4] + ".png")
+        plt.savefig(filename[:-4] + ".svg")
+
     plt.clf()
