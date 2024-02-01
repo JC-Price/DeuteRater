@@ -43,15 +43,9 @@ from tqdm import tqdm
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile, rmtree
 
-# from deuteconvert.peaks85 import Peaks85
-# from deuteconvert.peaksXplus import PeaksXplus
-# from deuteconvert.peaksXpro import PeaksXpro
 import deuteconvert.peptide_utils as peputils
 from deuterater.extractor import Extractor
-from gui_software.Time_Table import TimeWindow
-from gui_software.Enrichment_Table import EnrichmentWindow
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
-from utils.enrichment_class_fitter import PerformEnrichmentClass
 from deuterater.combine_extracted_files import CombineExtractedFiles
 from deuterater.initial_intensity_calculator import theoretical_enrichment_calculator
 from deuterater.rate_calculator import RateCalculator
@@ -91,10 +85,13 @@ Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
                                       "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
                                       "Lipid Name", "cf", "abundances", "mzs"]
                                      )
-Combine_object = deuterater_step("combined_extracted_files_output.tsv", [
-    "Filename", "Time", "Subject ID", "Spacing Column 1",
-    "Subject ID Enrichment", "Time Enrichment", "Enrichment"],
-                                 ["Filename", "Time", ""])
+Combine_object = deuterater_step("combined_extracted_files_output.tsv",
+                                 ["Filename", "Time", "Enrichment", "Sample_Group"],
+                                 ["Filename", "Time", "Enrichment", "Sample_Group"])
+# Combine_object = deuterater_step("combined_extracted_files_output.tsv", [
+#     "Filename", "Time", "Subject ID", "Spacing Column 1",
+#     "Subject ID Enrichment", "Time Enrichment", "Enrichment"],
+#                                  ["Filename", "Time", ""])
 delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "time", "literature_n",
@@ -340,12 +337,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             "Select an Output Folder",
             self.file_loc,
             QtWidgets.QFileDialog.ShowDirsOnly)
-        if output_folder == "": return
+        if output_folder == "":
+            return
         # change location we start asking for things at
         # don't change after this point since all output is going in here
         self.file_loc = output_folder
 
-        # don't care if overwrite rate_settings.yaml but should check if want to use the settings already in the folder
+        # don't care if overwrite rate_settings.yaml but should check if we want to use the settings already in the folder
         if os.path.exists(os.path.join(output_folder, "rate_settings.yaml")):
             comp_result = settings.compare(rate_settings_file, os.path.join(output_folder, "rate_settings.yaml"))
             if comp_result != "MATCH":
@@ -398,10 +396,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             return
 
         # now we need to get input and do the work. each step can only occur 
-        # once and they occur in order. so we will write them in order
+        # once, and they occur in order. so we will write them in order
         previous_output_file = ""
         extracted_files = []
-        # if the user is doing a full worklist it makes sense to run the 2nd step
+        # if the user is doing a full work list it makes sense to run the 2nd step
         # (requesting their input) first, so we don't bother stall partway through
         # to ask for input.  this boolean governs that
         make_table_in_order = True
@@ -508,7 +506,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         analysis_step,
                         "TSV (*.tsv)"
                     )
-                    if extracted_files == []: return
+                    if extracted_files == []:
+                        return
                     # ensure the input files are good. only need to deal with
                     # if the user just selected instead of extracting fresh
                     for e_file in extracted_files:
@@ -557,30 +556,42 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         return
                     infile_is_good = self.check_input(
                         step_object_dict[analysis_step], previous_output_file, biomolecule_type)
-                    if not infile_is_good: return
+                    if not infile_is_good:
+                        return
                 # else is to deal with a failed write from the previous table
                 #  don't need an error message just return
                 elif not os.path.exists(previous_output_file):
                     return
 
-                # final check to see if all of the files in the input table 
+                # final check to see if all the files in the input table
                 # still exist.  don't want to error out in the middle of 
                 # multiprocessing
                 final_proceed = self.check_files_from_files(
                     previous_output_file, 0)
-                if not final_proceed: return
-                combiner = CombineExtractedFiles(
-                    enrichment_path=previous_output_file,
-                    out_path=step_object_dict[analysis_step].full_filename,
-                    settings_path=rate_settings_file,
-                    needed_columns=step_object_dict["Calculate Baseline Enrichment"].required_columns
-                )
+                if not final_proceed:
+                    return
+                if biomolecule_type == "Peptide":
+                    combiner = CombineExtractedFiles(
+                        enrichment_path=previous_output_file,
+                        out_path=step_object_dict[analysis_step].full_filename,
+                        settings_path=rate_settings_file,
+                        needed_columns=step_object_dict["Combine Extracted Files"].peptide_required_columns,
+                        biomolecule_type=biomolecule_type
+                    )
+                else:
+                    combiner = CombineExtractedFiles(
+                        enrichment_path=previous_output_file,
+                        out_path=step_object_dict[analysis_step].full_filename,
+                        settings_path=rate_settings_file,
+                        needed_columns=step_object_dict["Combine Extracted Files"].lipid_required_columns,
+                        biomolecule_type=biomolecule_type
+                    )
                 combiner.prepare()
                 combiner.write()
                 del combiner
                 previous_output_file = step_object_dict[analysis_step].full_filename
 
-            # this step is to get all the numberical values necessary to do the fitting in the following steps
+            # this step is to get all the numerical values necessary to do the fitting in the following steps
             elif analysis_step == "Calculate Baseline Enrichment":
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(

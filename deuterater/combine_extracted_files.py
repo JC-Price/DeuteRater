@@ -42,6 +42,7 @@ import multiprocessing as mp
 from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
+import utils.NValueCalculator as nvct
 
 import deuteconvert.peptide_utils as peputils
 
@@ -63,45 +64,61 @@ literature_n_name = "literature_n"
 
 # as with all the calculation steps this is a class for consistent calls in the main
 class CombineExtractedFiles:
-    def __init__(self, enrichment_path, out_path, settings_path, needed_columns):
+    def __init__(self, enrichment_path, out_path, settings_path, needed_columns, biomolecule_type):
         settings.load(settings_path)
         self.settings_path = settings_path
         self.enrichment_path = Path(enrichment_path)
         self.needed_columns = needed_columns
+        self.biomolecule_type = biomolecule_type
+
         # collect necessary components to determine n_value from amino acids
-        aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
-        aa_label_df.set_index('study_type', inplace=True)
-        self.aa_labeling_dict = aa_label_df.loc[settings.label_key, ].to_dict()
+        if self.biomolecule_type == "Peptide":
+            aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
+            aa_label_df.set_index('study_type', inplace=True)
+            self.aa_labeling_dict = aa_label_df.loc[settings.label_key,].to_dict()
+            settings.use_empir_n_value = False
 
         # pull in two sub tables from the output table. possibilities for .tsv and .csv files
-        if self.enrichment_path.suffix == '.tsv':
-            self._file_data = pd.read_csv(
-                filepath_or_buffer=str(self.enrichment_path),
-                sep='\t',
-                usecols=["Filename", "Time", "Subject ID"]
-            )
-            self._enrichment_data = pd.read_csv(
-                filepath_or_buffer=str(self.enrichment_path),
-                sep='\t',
-                usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-            )
-        elif self.enrichment_path.suffix == '.csv':
-            self._file_data = pd.read_csv(
-                filepath_or_buffer=str(self.enrichment_path),
-                sep=',',
-                usecols=["Filename", "Time", "Subject ID"]
-            )
-            self._enrichment_data = pd.read_csv(
-                filepath_or_buffer=str(self.enrichment_path),
-                sep=',',
-                usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-            )
+        # if self.enrichment_path.suffix == '.tsv':
+        #     self._file_data = pd.read_csv(
+        #         filepath_or_buffer=str(self.enrichment_path),
+        #         sep='\t',
+        #         usecols=["Filename", "Time", "Subject ID"]
+        #     )
+        #     self._enrichment_data = pd.read_csv(
+        #         filepath_or_buffer=str(self.enrichment_path),
+        #         sep='\t',
+        #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
+        #     )
+        # elif self.enrichment_path.suffix == '.csv':
+        #     self._file_data = pd.read_csv(
+        #         filepath_or_buffer=str(self.enrichment_path),
+        #         sep=',',
+        #         usecols=["Filename", "Time", "Subject ID"]
+        #     )
+        #     self._enrichment_data = pd.read_csv(
+        #         filepath_or_buffer=str(self.enrichment_path),
+        #         sep=',',
+        #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
+        #     )
             
         # since the multiple sub tables can have different length, get rid
         # of the rows that are empty
-        self._file_data.dropna(inplace=True, how="all")
-        self._enrichment_data.dropna(inplace=True, how="all")
-        self._data_dict = self.collect_enrichment_data()
+        # Get data from time and enrichment table
+        if self.enrichment_path.suffix == '.tsv':
+            self._enrichment_df = pd.read_csv(
+                filepath_or_buffer=str(self.enrichment_path),
+                sep='\t'
+            )
+        elif self.enrichment_path.suffix == '.csv':
+            self._enrichment_df = pd.read_csv(
+                filepath_or_buffer=str(self.enrichment_path),
+                sep=','
+            )
+
+        # self._file_data.dropna(inplace=True, how="all")
+        # self._enrichment_data.dropna(inplace=True, how="all")
+        # self._data_dict = self.collect_enrichment_data()
         
         # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if settings.recognize_available_cores is True:
@@ -134,7 +151,139 @@ class CombineExtractedFiles:
             
     # run the analysis.  this function doesn't have any calculation itself (other than merging results)
     # it prepares a function for multiprocessing and then begins the multiprocessing
+
     def prepare(self):
+        results = []
+        if settings.debug_level == 0:
+            args_list = self._enrichment_df.to_records(index=False).tolist()
+            if self.biomolecule_type == "Peptide":
+                func = partial(CombineExtractedFiles._mp_prepare, self.settings_path, aa_labeling_dict=self.aa_labeling_dict)
+            else:
+                func = partial(CombineExtractedFiles._mp_prepare, self.settings_path)
+            results = list(
+                tqdm(
+                    self._mp_pool.imap_unordered(func, args_list),
+                    total=len(self._enrichment_df), desc="Theory Generation: "
+                )
+            )
+
+        elif settings.debug_level >= 1:
+            print('Beginning single-processor theory preparation.')
+            args_list = self._enrichment_df.to_records(index=False).tolist()
+            for row in tqdm(self._enrichment_df.itertuples(),
+                            total=len(self._enrichment_df)):
+                # TODO: how to handle functions. Default I would think
+                df = pd.read_csv(filepath_or_buffer=row.Filename, sep='\t')
+
+                if self.biomolecule_type == "Peptide":
+                    func = partial(CombineExtractedFiles._mp_prepare, self.settings_path,
+                                   aa_labeling_dict=self.aa_labeling_dict)
+                else:
+                    func = partial(CombineExtractedFiles._mp_prepare, self.settings_path)
+                if "mzs_list" in df.columns:
+                    df.drop(inplace=True, columns=["mzs_list", "intensities_list", "rt_list", "baseline_list"])
+
+                df = func(args_list[row.Index])
+                df['timepoint'] = row.Time
+                df['enrichment'] = row.Enrichment
+                df["sample_group"] = row.Sample_Group
+                df["bio_rep"] = row.Biological_Replicate
+                df["Calculate N-Value?"] = row.calculate_n_value
+                results.append(df)
+
+        self.model = pd.concat(results)
+        # if self.biomolecule_type == "Peptide":
+        #    self.model = self.model.drop(columns=['drop'])
+
+        if settings.use_empir_n_value:
+            self.model = self.model.reset_index(drop=True)
+            self.model["row_num"] = np.arange(0, self.model.shape[0])
+            self.model = self.model.loc[self.model["no_fn"] == ""]
+
+            column_list = list(
+                self.model.columns[
+                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
+            column_list.sort()
+            self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
+
+            # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
+            # n_val_df = self.model
+            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
+            calculator.run()
+            self.model = calculator.full_df
+
+            full_df = self.model.copy()
+
+            # Determine what the highest time point is and only look at those rows
+            highest_timepoint = max(full_df['time'].unique())
+            lipid_groups = full_df.groupby(by='adduct_molecule_sg')
+
+            # TODO: make sure we are calculating the median from all timepoints the user put "yes" in calculate_n_value column
+
+            # # Compare reproducibility across reps
+            for group in lipid_groups:
+                group_df = group[1]
+                high_tp_df = group_df.loc[group_df[
+                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
+
+                # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
+                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "yes"]
+
+                if calc_n_value_df.empty:
+                    # $ BN -1 is only for max time had no n-values (or grouping had no max time)
+                    full_df.loc[full_df['adduct_molecule_sg'] == group[
+                        0], 'n_value'] = -1  # If there is no lipids in the highest timepoint, set n_value as -1
+                    continue
+                # Remove reproducibility filter - CQ 15 Sept 2021
+                if settings.remove_filters:
+                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
+                        calc_n_value_df['empir_n'].median())
+                else:
+                    median_n = round(calc_n_value_df['empir_n'].median())  # BN rounding
+                    # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
+                    try:
+                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
+                                                 1.0)  # BN swapped to a range added ", 1.0"
+                    except:
+                        pass
+                    is_in_range_n = calc_n_value_df['empir_n'].apply(lambda x: x in median_range)
+                    if is_in_range_n.all() and calc_n_value_df.shape[0] > 1:
+                        all_n_values = list(calc_n_value_df['empir_n'])
+                        if len(all_n_values) == 2:
+                            all_n_values.append(np.median(all_n_values))
+                        import scipy.stats as s
+                        m, se = np.mean(all_n_values), s.sem(all_n_values)
+                        if se == 0.0:
+                            confidence_interval = (m, m)
+                        else:
+                            confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
+
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'n_value'] = median_n
+                        # .loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = median_n
+                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'low_CI_n_value'] = confidence_interval[
+                        #     0]
+                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'high_CI_n_value'] = confidence_interval[
+                        #     1]
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = confidence_interval[0]
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
+                    elif calc_n_value_df.shape[0] == 1:
+                        # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
+                    else:
+                        # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
+                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
+
+            full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
+                                              'n_value': 'empir_n'})
+
+            full_df.loc[full_df.index, "n_val_calc_n"] = full_df["n_val_calc_n"]
+            full_df.loc[full_df.index, "empir_n"] = full_df["empir_n"]
+            self.model = full_df
+
+        self._mp_pool.close()
+        self._mp_pool.join()
+
+    def prepare_old(self):
         if settings.debug_level == 0:
             args_list = self._file_data.to_records(index=False).tolist()
             func = partial(CombineExtractedFiles._mp_prepare, self.settings_path, self._data_dict, self.aa_labeling_dict)
@@ -177,10 +326,11 @@ class CombineExtractedFiles:
     # actually runs the relevant calculation. Yes reloading the settings is necessary
     # because each process has its own global variables in windows
     @staticmethod
-    def _mp_prepare(settings_path, data_dict,  aa_labeling_dict, args):
+    def _mp_prepare(settings_path, args, aa_labeling_dict=None):
         settings.load(settings_path)
         # file_path, time, enrichment = args
-        file_path, time, sample_id = args
+        # file_path, time, sample_id = args
+        file_path, time, enrichment, sample_group, biological_replicate, calculate_n_values = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         df = CombineExtractedFiles._apply_filters(df)
         #  if the user or a previous process defined n, that's fine.  but it will be
@@ -188,11 +338,15 @@ class CombineExtractedFiles:
         if literature_n_name not in df.columns:
             if aa_labeling_dict != "":
                 df = df.apply(CombineExtractedFiles._calculate_literature_n, axis=1, args=(aa_labeling_dict,))
+        # df['time'] = time
+        # df["sample_id"] = sample_id
+        # df["Time Enrichment"] = data_dict[sample_id][0]
+        # df["Enrichment Values"] = data_dict[sample_id][1]
         df['time'] = time
-        df["sample_id"] = sample_id
-        df["Time Enrichment"] = data_dict[sample_id][0]
-        df["Enrichment Values"] = data_dict[sample_id][1]
-            
+        df['enrichment'] = enrichment
+        df["sample_group"] = sample_group
+        df["bio_rep"] = biological_replicate
+        df['calculate_n_value'] = calculate_n_values
         return df
     
     # calculate the n value based on amino acid sequence
@@ -234,22 +388,23 @@ class CombineExtractedFiles:
         
         #  we are going to drop all sequences that are too close in m/z and rt to other sequences
         # take out of the dataframe for speed
-        df.sort_values(by='mz', inplace=True)
-        mz_index = list(df.columns).index("mz") 
-        rt_index = list(df.columns).index("rt")
-        seq_index = list(df.columns).index("Sequence")
-        list_of_lists = df.values.tolist()
-        too_close = []
-        for i in range(len(list_of_lists)):
-            for j in range(i+1, len(list_of_lists)):
-                current_ppm = CombineExtractedFiles._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
-                if current_ppm > settings.mz_proximity_tolerance: 
-                    break
-                if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance and \
-                        list_of_lists[i][seq_index] != list_of_lists[j][seq_index]:
-                    too_close.extend([i, j])
-        too_close = list(set(too_close))
-        return df.drop(df.index[too_close])
+        # df.sort_values(by='mz', inplace=True)
+        # mz_index = list(df.columns).index("mz")
+        # rt_index = list(df.columns).index("rt")
+        # seq_index = list(df.columns).index("Sequence")
+        # list_of_lists = df.values.tolist()
+        # too_close = []
+        # for i in range(len(list_of_lists)):
+        #     for j in range(i+1, len(list_of_lists)):
+        #         current_ppm = CombineExtractedFiles._ppm_calculator(list_of_lists[i][mz_index], list_of_lists[j][mz_index])
+        #         if current_ppm > settings.mz_proximity_tolerance:
+        #             break
+        #         if abs(list_of_lists[i][rt_index] - list_of_lists[j][rt_index]) < settings.rt_proximity_tolerance and \
+        #                 list_of_lists[i][seq_index] != list_of_lists[j][seq_index]:
+        #             too_close.extend([i, j])
+        # too_close = list(set(too_close))
+        # return df.drop(df.index[too_close])
+        return df
     
     # basic ppm calculator
     @staticmethod
