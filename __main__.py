@@ -657,6 +657,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 previous_output_file = step_object_dict[analysis_step].full_filename
 
             # last thing to do is to roll up the proteins
+            # TODO: Do we need a process to roll up lipids? - Ben Driggs
             elif analysis_step == "Combine Sequence Rates":
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(

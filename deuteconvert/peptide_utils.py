@@ -31,6 +31,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+
 # determine the chemical formula from an amino acid sequence
 def calc_cf(aa_counts, aa_composition_df):
     elem_dict = {elem: 0 for elem in aa_composition_df.loc[:, 'C':].columns}
@@ -40,20 +41,22 @@ def calc_cf(aa_counts, aa_composition_df):
     elem_dict = positive_cf_change(elem_dict)
     return elem_dict
 
-#the calc_cf function calculates elemental composition well
-#however it assumes all AAs have pepitde bonds on both ends  
-#(which is not true of terminal AAs) and does not include the charge values
-#so h2O and one H per charge must be added to get the most accurate cf
-#if we go to negative mode or use different adducts, adjust here
+# the calc_cf function calculates elemental composition well
+# however it assumes all AAs have peptide bonds on both ends
+# (which is not true of terminal AAs) and does not include the charge values
+# so h2O and one H per charge must be added to get the most accurate cf
+# if we go to negative mode or use different adducts, adjust here
 
-#adds 1 O and z+2 H values to the elemental dict.
-#takes elemental_dict (dictionary) and z (an int)
-#returns the updated elemental dictionary
+
+# adds 1 O and z+2 H values to the elemental dict.
+# takes elemental_dict (dictionary) and z (an int)
+# returns the updated elemental dictionary
 def positive_cf_change(elemental_dict):
-    # since we are assuming positve and +H adduct we can just be direct
-    elemental_dict["O"] +=1
-    elemental_dict["H"] += 2# + z
+    # since we are assuming positive and +H adduct we can just be direct
+    elemental_dict["O"] += 1
+    elemental_dict["H"] += 2  # + z
     return elemental_dict
+
 
 # get mass from elemental dict
 def calc_theory_mass(cf, elements_df):
@@ -61,6 +64,7 @@ def calc_theory_mass(cf, elements_df):
     for elem, count in cf.items():
         mass += count * elements_df.at[elem, 'relative_atomic_mass']
     return mass
+
 
 # get n value from elemental dict
 def calc_add_n(aa_counts, aa_labeling_dict):
