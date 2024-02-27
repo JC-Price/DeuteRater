@@ -90,15 +90,15 @@ class theoretical_enrichment_calculator(object):
                 filepath_or_buffer=str(self.prepared_data_path),
                 sep=','
             )
-            # if multiprocessing need to set that up. more than 60 cores causes problems for windows
-            if settings.recognize_available_cores is True:
-                # BD: Issue with mp.cpu_count() finding too many cores available
-                self._n_processors = round(mp.cpu_count() * 0.80)
-            else:
-                self._n_processors = settings.n_processors
-            if self._n_processors > 60:
-                self.n_processors = 60
-            self.model = None
+        # if multiprocessing need to set that up. more than 60 cores causes problems for windows
+        if settings.recognize_available_cores is True:
+            # BD: Issue with mp.cpu_count() finding too many cores available
+            self._n_processors = round(mp.cpu_count() * 0.80)
+        else:
+            self._n_processors = settings.n_processors
+        if self._n_processors > 60:
+            self.n_processors = 60
+        self.model = None
 
     def write(self):
         self.model.to_csv(
@@ -107,393 +107,97 @@ class theoretical_enrichment_calculator(object):
             index=False
         )
 
-        # run the analysis.  this function doesn't have any calculation itself (other than merging, transposing, and setting index of the results)
+        # run the analysis.  this function doesn't have any calculation itself (other than merging, transposing,
+        # and setting index of the results)
 
     # it prepares a function for multiprocessing and then begins the multiprocessing
-    # Ben Driggs - brought over the original prepare() function from the non-human DeuteRater version.
     def prepare(self):
-        results = []
-        mp_pools = mp.Pool(self._n_processors)
-        if settings.debug_level == 0:
-            args_list = self.data_df.to_records(index=False).tolist()
-            if self.biomolecule_type == "Peptide":
-                func = partial(theoretical_enrichment_calculator._mp_prepare, self.settings_path, aa_labeling_dict=self.aa_labeling_dict)
-            else:
-                func = partial(theoretical_enrichment_calculator._mp_prepare, self.settings_path)
-            results = list(
-                tqdm(
-                    mp_pools.imap_unordered(func, args_list),
-                    total=len(self.data_df), desc="Theory Generation: "
-                )
-            )
+        # TODO: Do we need to drop duplicates for lipids? - Ben D
+        if self.biomolecule_type == "Peptide":
+            unique_molecules_df = self.data_df.drop_duplicates(subset=["Sequence"])
+        else:
+            # TODO: Is the Lipid Unique Identifier the right column to use? - Ben D
+            unique_molecules_df = self.data_df.drop_duplicates(subset=["Lipid Unique Identifier"])
 
-        elif settings.debug_level >= 1:
-            print('Beginning single-processor theory preparation.')
-            args_list = self.data_df.to_records(index=False).tolist()
-            for row in tqdm(self.data_df.itertuples(),
-                            total=len(self.data_df)):
-                # TODO: how to handle functions. Default I would think
-                df = pd.read_csv(filepath_or_buffer=row.Filename, sep='\t')
-
-                if self.biomolecule_type == "Peptide":
-                    func = partial(theoretical_enrichment_calculator._mp_prepare, self.settings_path,
-                                   aa_labeling_dict=self.aa_labeling_dict)
-                else:
-                    func = partial(theoretical_enrichment_calculator._mp_prepare, self.settings_path)
-                if "mzs_list" in df.columns:
-                    df.drop(inplace=True, columns=["mzs_list", "intensities_list", "rt_list", "baseline_list"])
-
-                df = func(args_list[row.Index])
-                df['timepoint'] = row.Time
-                df['enrichment'] = row.Enrichment
-                df["sample_group"] = row.Sample_Group
-                df["bio_rep"] = row.Biological_Replicate
-                df["Calculate N-Value?"] = row.calculate_n_value
-                results.append(df)
-
-        self.model = pd.concat(results)
-        # if self.biomolecule_type == "Peptide":
-        #    self.model = self.model.drop(columns=['drop'])
-
-        if settings.use_empir_n_value:
-            self.model = self.model.reset_index(drop=True)
-            self.model["row_num"] = np.arange(0, self.model.shape[0])
-            self.model = self.model.loc[self.model["no_fn"] == ""]
-
-            column_list = list(
-                self.model.columns[
-                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
-            column_list.sort()
-            self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
-
-            # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
-            # n_val_df = self.model
-            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
-            calculator.run()
-            self.model = calculator.full_df
-
-            full_df = self.model.copy()
-
-            # Determine what the highest time point is and only look at those rows
-            highest_timepoint = max(full_df['time'].unique())
-            lipid_groups = full_df.groupby(by='adduct_molecule_sg')
-
-            # TODO: make sure we are calculating the median from all timepoints the user put "yes" in calculate_n_value column
-
-            # # Compare reproducibility across reps
-            for group in lipid_groups:
-                group_df = group[1]
-                high_tp_df = group_df.loc[group_df[
-                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
-
-                # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
-                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "yes"]
-
-                if calc_n_value_df.empty:
-                    # $ BN -1 is only for max time had no n-values (or grouping had no max time)
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[
-                        0], 'n_value'] = -1  # If there is no lipids in the highest timepoint, set n_value as -1
-                    continue
-                # Remove reproducibility filter - CQ 15 Sept 2021
-                if settings.remove_filters:
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
-                        calc_n_value_df['empir_n'].median())
-                else:
-                    median_n = round(calc_n_value_df['empir_n'].median())  # BN rounding
-                    # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
-                    try:
-                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
-                                                 1.0)  # BN swapped to a range added ", 1.0"
-                    except:
-                        pass
-                    is_in_range_n = calc_n_value_df['empir_n'].apply(lambda x: x in median_range)
-                    if is_in_range_n.all() and calc_n_value_df.shape[0] > 1:
-                        all_n_values = list(calc_n_value_df['empir_n'])
-                        if len(all_n_values) == 2:
-                            all_n_values.append(np.median(all_n_values))
-                        import scipy.stats as s
-                        m, se = np.mean(all_n_values), s.sem(all_n_values)
-                        if se == 0.0:
-                            confidence_interval = (m, m)
-                        else:
-                            confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
-
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'n_value'] = median_n
-                        # .loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = median_n
-                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'low_CI_n_value'] = confidence_interval[
-                        #     0]
-                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'high_CI_n_value'] = confidence_interval[
-                        #     1]
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = confidence_interval[0]
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
-                    elif calc_n_value_df.shape[0] == 1:
-                        # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
-                    else:
-                        # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
-
-            full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
-                                              'n_value': 'empir_n'})
-
-            full_df.loc[full_df.index, "n_val_calc_n"] = full_df["n_val_calc_n"]
-            full_df.loc[full_df.index, "empir_n"] = full_df["empir_n"]
-            self.model = full_df
-
-        mp_pools.close()
-        mp_pools.join()
-
-    def old_prepare(self):
-        # TODO: is this for peptides only or do we use this same process for lipids?
-
-        # for peptides, we want to use the amino acid dictionary to sum up n values
-        # for lipids we use the NValueCalculator.py module brought in from the non-human version of DeuteRater
-
-        args_list = self.da
-
-        unique_sequnces_df = self.data_df.drop_duplicates(subset=["Sequence"])
-        new_columns = theoretical_enrichment_calculator._make_new_columns()
+        new_columns = _make_new_columns(self.biomolecule_type)
         func = partial(theoretical_enrichment_calculator._individual_process,
                        new_columns=new_columns,
                        minimum_n_value=settings.min_allowed_n_values,
-                       minimum_sequence_length=settings.min_aa_sequence_length)
-        df_split = np.array_split(unique_sequnces_df, len(unique_sequnces_df))
+                       minimum_sequence_length=settings.min_aa_sequence_length,
+                       biomolecule_type=self.biomolecule_type)
+        df_split = np.array_split(unique_molecules_df, len(unique_molecules_df))
 
         mp_pools = mp.Pool(self._n_processors)
 
         final_df = pd.concat(tqdm(
             mp_pools.imap(func, df_split),
             total=len(df_split),
-            desc="Theory Generation: "
+            desc="Calculating Initial Intensities: "
         ), axis=1)
-
-
-
-
-        # Brought this over from another DR version. Used to calculate n-values when we aren't using literature ones.
-        # It uses the NValueCalculator.py and n_value_calc_emass.py files in the Util folder - Ben Driggs
-        # TODO: should this be based on molecule type or use_empir_n_value setting?
-        if settings.use_empir_n_value:
-            self.model = self.model.reset_index(drop=True)
-            self.model["row_num"] = np.arange(0, self.model.shape[0])
-            self.model = self.model.loc[self.model["no_fn"] == ""]
-
-            column_list = list(
-                self.model.columns[
-                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
-            column_list.sort()
-            self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
-
-            # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
-            # n_val_df = self.model
-            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
-            calculator.run()
-            self.model = calculator.full_df
-
-            full_df = self.model.copy()
-
-            # Determine what the highest time point is and only look at those rows
-            highest_timepoint = max(full_df['time'].unique())
-            lipid_groups = full_df.groupby(by='adduct_molecule_sg')
-
-            # TODO: make sure we are calculating the median from all timepoints the user put "yes" in calculate_n_value column
-
-            # # Compare reproducibility across reps
-            for group in lipid_groups:
-                group_df = group[1]
-                high_tp_df = group_df.loc[group_df[
-                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
-
-                # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
-                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "yes"]
-
-                if calc_n_value_df.empty:
-                    # $ BN -1 is only for max time had no n-values (or grouping had no max time)
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[
-                        0], 'n_value'] = -1  # If there is no lipids in the highest timepoint, set n_value as -1
-                    continue
-                # Remove reproducibility filter - CQ 15 Sept 2021
-                if settings.remove_filters:
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
-                        calc_n_value_df['empir_n'].median())
-                else:
-                    median_n = round(calc_n_value_df['empir_n'].median())  # BN rounding
-                    # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
-                    try:
-                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
-                                                 1.0)  # BN swapped to a range added ", 1.0"
-                    except:
-                        pass
-                    is_in_range_n = calc_n_value_df['empir_n'].apply(lambda x: x in median_range)
-                    if is_in_range_n.all() and calc_n_value_df.shape[0] > 1:
-                        all_n_values = list(calc_n_value_df['empir_n'])
-                        if len(all_n_values) == 2:
-                            all_n_values.append(np.median(all_n_values))
-                        import scipy.stats as s
-                        m, se = np.mean(all_n_values), s.sem(all_n_values)
-                        if se == 0.0:
-                            confidence_interval = (m, m)
-                        else:
-                            confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
-
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'n_value'] = median_n
-                        # .loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = median_n
-                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'low_CI_n_value'] = confidence_interval[
-                        #     0]
-                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'high_CI_n_value'] = confidence_interval[
-                        #     1]
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = \
-                        confidence_interval[0]
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = \
-                        confidence_interval[1]
-                    elif calc_n_value_df.shape[0] == 1:
-                        # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df[
-                                                                                       'calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
-                    else:
-                        # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (
-                                    full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
-
-            full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
-                                              'n_value': 'empir_n'})
-
-            full_df.loc[full_df.index, "n_val_calc_n"] = full_df["n_val_calc_n"]
-            full_df.loc[full_df.index, "empir_n"] = full_df["empir_n"]
-            self.model = full_df
 
         mp_pools.close()
         mp_pools.join()
         final_df = final_df.T
-        final_df = final_df.set_index("Sequence")
-        self.model = pd.merge(self.data_df, final_df, left_on="Sequence", right_index=True)
+        if self.biomolecule_type == "Peptide":
+            final_df = final_df.set_index("Sequence")
+            self.model = pd.merge(self.data_df, final_df, left_on="Sequence", right_index=True)
+        else:
+            final_df = final_df.set_index("Lipid Unique Identifier")
+            self.model = pd.merge(self.data_df, final_df, left_on="Lipid Unique Identifier", right_index=True)
 
     # actually runs the relevant calculation. 
     @staticmethod
     def _individual_process(df, new_columns,
-                            minimum_n_value, minimum_sequence_length):
+                            minimum_n_value, minimum_sequence_length, biomolecule_type):
         variable_list = []
         for row in df.itertuples():
             output_series = pd.Series(index=new_columns, dtype="object")
-            output_series["Sequence"] = row.Sequence
+            if biomolecule_type == "Peptide":
+                output_series["Sequence"] = row.Sequence
+            else:
+                output_series["Lipid Unique Identifier"] = row["Lipid Unique Identifier"]
             # drop rows we will not use before doing any compiles calculations
-            if len(row.Sequence) < minimum_sequence_length:
-                variable_list.append(theoretical_enrichment_calculator._error_message_results(
+            if biomolecule_type == "Peptide" and row.Sequence < minimum_sequence_length:
+                variable_list.append(_error_message_results(
                     f"Sequence is less than {minimum_sequence_length} amino acids",
                     output_series))
                 continue
             if row.literature_n < minimum_n_value:
-                variable_list.append(theoretical_enrichment_calculator._error_message_results(
+                variable_list.append(_error_message_results(
                     f"less than {minimum_n_value} labeling sites",
                     output_series))
                 continue
-            intensity_values = \
-                theoretical_enrichment_calculator._fit_emass(row.cf,
-                                                             row.n_isos
-                                                             )
+            intensity_values = _fit_emass(row.cf, row.n_isos)
 
             output_series["Theoretical Unlabeled Normalized Abundances"] = ", ".join(intensity_values)
             variable_list.append(output_series)
         return pd.concat(variable_list, axis=1)
 
-    # Brought over _mp_prepare, _calculate_literature_n, and _apply_filters from non-human version of DeuteRater to
-    # replace the _individual_process() function
-    @staticmethod
-    def _mp_prepare(settings_path, args, aa_labeling_dict=None):
-        settings.load(settings_path)
-        # file_path, time, enrichment = args
-        file_path, time, enrichment, sample_group, biological_replicate, calculate_n_values = args
-        df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
-        if "mzs_list" in df.columns:
-            df.drop(inplace=True, columns=["mzs_list", "intensities_list", "rt_list", "baseline_list"])
-        df = theoretical_enrichment_calculator._apply_filters(df)
-        if aa_labeling_dict:
-            # $don't include an else for either if statement.  no need to calculate if column exists
-            # $ and we don't want to add the column if we can't calculate it since checking for it is an error check for later steps
-            if literature_n_name not in df.columns:
-                if aa_labeling_dict != "":
-                    df = df.apply(theoretical_enrichment_calculator._calculate_literature_n, axis=1, args=(aa_labeling_dict,))
-        df['time'] = time
-        df['enrichment'] = enrichment
-        df["sample_group"] = sample_group
-        df["bio_rep"] = biological_replicate
-        df['calculate_n_value'] = calculate_n_values
-        return df
 
-    @staticmethod
-    def _calculate_literature_n(row, aa_labeling_dict):
-        aa_counts = {}
-        for aa in row[sequence_column_name]:
-            if aa not in aa_counts.keys():
-                aa_counts[aa] = 0
-            aa_counts[aa] += 1
-        literature_n = peptide_utils.calc_add_n(aa_counts, aa_labeling_dict)
-        row[literature_n_name] = literature_n
-        return row
+# if an error happens it is most efficient to have a function
+def _error_message_results(error_message, output_series):
+    # don't need to know which names are which or how many columns there are, 
+    # just need python to fill all non-Sequence columns
+    # position 0 is the sequence name which we don't wish to overwrite
+    for index_name in output_series.index[1:]:
+        output_series[index_name] = error_message
+    return output_series
 
-    @staticmethod
-    def _apply_filters(df):
-        """filters the internal dataframe
 
-        This function does not modify the dataframe in place.
+# calculate unlabeled intensity, if we need to return  m/z values or
+# adjust for different n_values, do it here or in emass itself.
+def _fit_emass(cf, n_isos):
+    intensity_values = emass(cf, n_isos)
+    return [str(i) for i in intensity_values]
 
-        Parameters
-        ----------
-        df : :obj:`pandas.Dataframe`
-            The internal dataframe of the theory_value_prep function
 
-        Returns
-        -------
-        :obj:`pandas.Dataframe`
-            The filtered dataframe. Does not modify in place.
-        """
-        # This is 'clean_up_data' in the old deuterater
-        df["no_fn"] = ""
-
-        df.loc[df["mzs"].isna(), "no_fn"] = "no spectra extracted"
-
-        data = df.dropna(
-            axis='index',
-            subset=['mzs', 'abundances']
-        ).copy()
-        data['drop'] = "False"
-        # remove any rows that have an m/z that is within the proximity tolerance  row row                                                                                                                      row                                             row                                   row                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         bn ce
-        # Remove proximity Filter - CQ 15 Sept 2021
-        if not settings.remove_filters:
-            for row in data.itertuples():
-                mask = ((data['mz'] - row.mz).abs() <
-                        settings.mz_proximity_tolerance)
-                data.loc[mask, 'drop'] = "True"
-            # data = data[~data['drop']]
-
-            df.loc[data.loc[data["drop"] == "True"].index] = "mz_proximity_tolerance_exceeded"
-
-        # TODO: Check to see if no data went through
-
-        return df
-
-    # if an error happens it is most efficient to have a function
-    def _error_message_results(error_message, output_series):
-        # don't need to know which names are which or how many columns there are, 
-        # just need python to fill all non-Sequence columns
-        # position 0 is the sequence name which we don't wish to overwrite
-        for index_name in output_series.index[1:]:
-            output_series[index_name] = error_message
-        return output_series
-
-    # calculate unlabeled intensity, if we need to return  m/z values or
-    # adjust for different n_values, do it here or in emass itself.
-    def _fit_emass(sequence, n_isos):
-        intensity_values = emass(
-            sequence,
-            n_isos
-        )
-        return [str(i) for i in intensity_values]
-
-    # this creates the header for the variables. is a function in case we need 
-    # to add various columns  (if we want to graph emass output or something)
-    @staticmethod
-    def _make_new_columns():
+# this creates the header for the variables. is a function in case we need 
+# to add various columns  (if we want to graph emass output or something)
+def _make_new_columns(biomolecule_type):
+    if biomolecule_type == "Peptide":
         new_columns = ["Sequence"]
-        new_columns.extend(["Theoretical Unlabeled Normalized Abundances"])
-        return new_columns
+    else:
+        # TODO: What are these columns for and do we need them for lipids? - Ben D
+        new_columns = ["Lipid Unique Identifier"]
+    new_columns.extend(["Theoretical Unlabeled Normalized Abundances"])
+    return new_columns

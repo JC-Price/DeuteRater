@@ -96,7 +96,10 @@ delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "time", "literature_n",
     "Sequence", "cf", "abundances", "mzs", "sample_id", "Time Enrichment", "Enrichment Values"],
-                                      [])
+                                      ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
+                                     "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+                                     "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
+                                     "sample_group"])
 sequence_rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein ID", "Protein Name",
                                                                      "Sequence", "n_isos", "time", "sample_id",
                                                                      "Time Enrichment", "Enrichment Values",
@@ -613,7 +616,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 enrich_delta = theoretical_enrichment_calculator(
                     prepared_data_path=previous_output_file,
                     out_path=step_object_dict[analysis_step].full_filename,
-                    settings_path=rate_settings_file
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
                 )
                 enrich_delta.prepare()
                 enrich_delta.write()
