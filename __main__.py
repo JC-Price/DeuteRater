@@ -98,7 +98,7 @@ delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Sequence", "cf", "abundances", "mzs", "sample_id", "Time Enrichment", "Enrichment Values"],
                                       ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
-                                     "Lipid Name", "cf", "abundances", "mzs", "timepoint", "enrichment",
+                                     "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                      "sample_group"])
 sequence_rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein ID", "Protein Name",
                                                                      "Sequence", "n_isos", "time", "sample_id",

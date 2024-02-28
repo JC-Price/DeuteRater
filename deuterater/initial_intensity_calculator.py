@@ -116,8 +116,8 @@ class theoretical_enrichment_calculator(object):
         if self.biomolecule_type == "Peptide":
             unique_molecules_df = self.data_df.drop_duplicates(subset=["Sequence"])
         else:
-            # TODO: Is the Lipid Unique Identifier the right column to use? - Ben D
-            unique_molecules_df = self.data_df.drop_duplicates(subset=["Lipid Unique Identifier"])
+            # TODO: Do we need to include the adduct cf as well? - Ben D
+            unique_molecules_df = self.data_df.drop_duplicates(subset=["Adduct_cf"])
 
         new_columns = _make_new_columns(self.biomolecule_type)
         func = partial(theoretical_enrichment_calculator._individual_process,
@@ -128,6 +128,8 @@ class theoretical_enrichment_calculator(object):
         df_split = np.array_split(unique_molecules_df, len(unique_molecules_df))
 
         mp_pools = mp.Pool(self._n_processors)
+
+        # TODO: add a debug version of this process. - Ben D
 
         final_df = pd.concat(tqdm(
             mp_pools.imap(func, df_split),
@@ -142,10 +144,10 @@ class theoretical_enrichment_calculator(object):
             final_df = final_df.set_index("Sequence")
             self.model = pd.merge(self.data_df, final_df, left_on="Sequence", right_index=True)
         else:
-            final_df = final_df.set_index("Lipid Unique Identifier")
-            self.model = pd.merge(self.data_df, final_df, left_on="Lipid Unique Identifier", right_index=True)
+            final_df = final_df.set_index("Adduct_cf")
+            self.model = pd.merge(self.data_df, final_df, left_on="Adduct_cf", right_index=True)
 
-    # actually runs the relevant calculation. 
+    # actually runs the relevant calculation.
     @staticmethod
     def _individual_process(df, new_columns,
                             minimum_n_value, minimum_sequence_length, biomolecule_type):
@@ -155,7 +157,7 @@ class theoretical_enrichment_calculator(object):
             if biomolecule_type == "Peptide":
                 output_series["Sequence"] = row.Sequence
             else:
-                output_series["Lipid Unique Identifier"] = row["Lipid Unique Identifier"]
+                output_series["Adduct_cf"] = row.Adduct_cf
             # drop rows we will not use before doing any compiles calculations
             if biomolecule_type == "Peptide" and row.Sequence < minimum_sequence_length:
                 variable_list.append(_error_message_results(
@@ -198,6 +200,6 @@ def _make_new_columns(biomolecule_type):
         new_columns = ["Sequence"]
     else:
         # TODO: What are these columns for and do we need them for lipids? - Ben D
-        new_columns = ["Lipid Unique Identifier"]
+        new_columns = ["Adduct_cf"]
     new_columns.extend(["Theoretical Unlabeled Normalized Abundances"])
     return new_columns
