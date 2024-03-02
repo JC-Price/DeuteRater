@@ -71,6 +71,8 @@ class CombineExtractedFiles:
         self.needed_columns = needed_columns
         self.biomolecule_type = biomolecule_type
 
+        settings.use_empir_n_value = True
+
         # collect necessary components to determine n_value from amino acids
         if self.biomolecule_type == "Peptide":
             aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
@@ -198,9 +200,11 @@ class CombineExtractedFiles:
         if settings.use_empir_n_value:
             self.model = self.model.reset_index(drop=True)
             self.model["row_num"] = np.arange(0, self.model.shape[0])
-            self.model = self.model.loc[self.model["no_fn"] == ""]
+            # TODO: what is the no_fn used for? - Ben D
+            # self.model = self.model.loc[self.model["no_fn"] == ""]
 
             column_list = list(
+
                 self.model.columns[
                     self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
             column_list.sort()
@@ -218,7 +222,7 @@ class CombineExtractedFiles:
             highest_timepoint = max(full_df['time'].unique())
             lipid_groups = full_df.groupby(by='adduct_molecule_sg')
 
-            # TODO: make sure we are calculating the median from all timepoints the user put "yes" in calculate_n_value column
+            # TODO: calculate the median from all timepoints the user put "yes" in calculate_n_value column
 
             # # Compare reproducibility across reps
             for group in lipid_groups:
@@ -227,8 +231,9 @@ class CombineExtractedFiles:
                                               'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
 
                 # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
-                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "yes"]
+                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "Yes"]
 
+                # TODO: why are all n-values coming back as -1? - Ben D
                 if calc_n_value_df.empty:
                     # $ BN -1 is only for max time had no n-values (or grouping had no max time)
                     full_df.loc[full_df['adduct_molecule_sg'] == group[
@@ -273,11 +278,12 @@ class CombineExtractedFiles:
                         # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
                         full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
 
-            full_df = full_df.rename(columns={'empir_n': 'n_val_calc_n',
+            full_df = full_df.rename(columns={'empir_n': 'n_value',
                                               'n_value': 'empir_n'})
 
-            full_df.loc[full_df.index, "n_val_calc_n"] = full_df["n_val_calc_n"]
-            full_df.loc[full_df.index, "empir_n"] = full_df["empir_n"]
+            full_df.drop('empir_n', axis=1, inplace=True)
+
+            full_df.loc[full_df.index, "n_value"] = full_df["n_value"]
             self.model = full_df
 
         self._mp_pool.close()

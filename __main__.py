@@ -97,9 +97,9 @@ delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Identification Charge", "Homologous Proteins", "n_isos", "time", "literature_n",
     "Sequence", "cf", "abundances", "mzs", "sample_id", "Time Enrichment", "Enrichment Values"],
                                       ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
-                                     "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
-                                     "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
-                                     "sample_group"])
+                                       "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+                                       "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
+                                       "sample_group"])
 sequence_rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein ID", "Protein Name",
                                                                      "Sequence", "n_isos", "time", "sample_id",
                                                                      "Time Enrichment", "Enrichment Values",
@@ -135,9 +135,9 @@ convert_options = ["Peptide Template", "Lipid Template"]
 # most of the columns actually aren't necessary to get a result but will either prevent any extraction from happening (no data output file)
 # or will likely cause an error later in the process.
 required_peptide_data_extractor_data = ["Sequence", "Protein ID", "Precursor Retention Time (sec)", "Precursor m/z",
-                                "Identification Charge"]
+                                        "Identification Charge"]
 required_lipid_data_extractor_data = ['Precursor Retention Time (sec)', 'Precursor m/z',
-                                  'Identification Charge', "Lipid Unique Identifier", "Lipid Name"]
+                                      'Identification Charge', "Lipid Unique Identifier", "Lipid Name"]
 autofill_peptide_columns = ["Peptide Theoretical Mass", "cf", "literature_n"]
 autofill_lipid_columns = []  # TODO: are there any columns for lipids that need auto-filling? - Ben D
 # need to autofill: Peptide Theoretical Mass, cf? 	neutromers_to_extract, literature_n
@@ -146,19 +146,23 @@ autofill_lipid_columns = []  # TODO: are there any columns for lipids that need 
 # default converter option
 default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
-protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start', 'rt_end', 'rt_width', 'Precursor m/z',
-                            'theoretical_mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides',
-                            'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version', 'cf',
+protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start',
+                            'rt_end', 'rt_width', 'Precursor m/z',
+                            'theoretical_mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc',
+                            'num_peptides',
+                            'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version',
+                            'cf',
                             'neutromers_to_extract', 'literature_n']
-protein_template_example = ['EGIVALR', 'P80317', 'T-complex protein 1 subunit zeta', '1210.8', '1194.6', '1255.8', '61.2', '152.297375',
-                            '756.4493882', '5', '', '-0.8', '308', '314', '24', '17', '[\'P80317\']', 'Mus musculus OX=10090',
+protein_template_example = ['EGIVALR', 'P80317', 'T-complex protein 1 subunit zeta', '1210.8', '1194.6', '1255.8',
+                            '61.2', '152.297375',
+                            '756.4493882', '5', '', '-0.8', '308', '314', '24', '17', '[\'P80317\']',
+                            'Mus musculus OX=10090',
                             'Cct6a ', '1', '3', 'C33H60N10O10', '3', '15.66']
 lipid_converter_header = ['Lipid Name', 'Lipid Unique Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
                           "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'literature_n',
                           'Adduct', 'Adduct_cf', 'Matched_Results_Analysis', 'Matched_Details_Replicates_Used']
 lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
                           '1', '', '', 'C7H16NO2', '3', '', 'M+H', 'C7H17NO2', '', '']
-
 
 # prepare the gui
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
@@ -270,7 +274,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         #                                                  guide_settings_file)
         #     converter.convert()
 
-            # get output file
+        # get output file
         QtWidgets.QMessageBox.information(self, "Info", ("Your guide file was "
                                                          "created. Please select the output file location"))
         while (True):
@@ -303,7 +307,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
     # adjusts the text for the "Rate Calculation" button
     def _calc_rates(self):
         try:
-
             self.RateCalculationButton.setText("Currently Processing... Please Wait.")
             self.run_rate_workflow()
         finally:
@@ -319,6 +322,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             settings.use_empir_n_value = False
         else:
             biomolecule_type = "Lipid"
+            settings.use_empir_n_value = True
 
         # first we need to check which steps are checked 
         worklist = self.check_table_checklist()
@@ -419,9 +423,11 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     return
                 # infile_is_good is just a check for
                 if biomolecule_type == "Peptide":
-                    data_is_good = self.check_extractor_input(id_file, required_peptide_data_extractor_data, autofill_peptide_columns)
+                    data_is_good = self.check_extractor_input(id_file, required_peptide_data_extractor_data,
+                                                              autofill_peptide_columns)
                 else:
-                    data_is_good = self.check_extractor_input(id_file, required_lipid_data_extractor_data, autofill_lipid_columns)
+                    data_is_good = self.check_extractor_input(id_file, required_lipid_data_extractor_data,
+                                                              autofill_lipid_columns)
                 if not data_is_good:
                     return
 
@@ -477,7 +483,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     # now that the table is done we need to confirm the user
                     # hit the proceed button on the table (same check as in
                     # elif analysis_step == "Theory Generation" )
-                    if not os.path.exists(previous_output_file): return
+                    if not os.path.exists(previous_output_file):
+                        return
                 # actually run the extraction
                 for m in tqdm(range(len(mzml_files)), total=len(mzml_files), desc="Extracting mzml files: "):
                     extractor = Extractor(
@@ -525,7 +532,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 previous_output_file = step_object_dict[
                     analysis_step].full_filename
                 self.get_data_table = TimeEnrichmentWindow(self,
-                                                 extracted_files, previous_output_file)
+                                                           extracted_files, previous_output_file)
                 self.get_data_table.exec_()
 
                 # now that we have all the data we can graph the results in case the user wishes to view the data

@@ -117,10 +117,10 @@ class NValueCalculator:
         results = []
 
         try:
-            # print(f"Started group #" + str(partition[1].index[0]) + f" at: " + str(time.perf_counter() - start) + f" seconds", end='\r')
-            # Each chemical formula has only 1 enrichment value
-            # Because adducts can occur, we need to only look at hydrogens that would be in the actual molecule.
-            # I need to ask Rusty if I should just choose the smaller cf, or which cf we want to use.
+            # print(f"Started group #" + str(partition[1].index[0]) + f" at: " + str(time.perf_counter() - start) +
+            # f" seconds", end='\r') Each chemical formula has only 1 enrichment value Because adducts can occur,
+            # we need to only look at hydrogen that would be in the actual molecule. I need to ask Rusty if I should
+            # just choose the smaller cf, or which cf we want to use.
             num_h_adduct, cf, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
             num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
             if num_h_no_adduct < num_h_adduct:
@@ -134,7 +134,8 @@ class NValueCalculator:
             emass_results_dict = dict()
             for row in partition[1].itertuples(index=False):
                 # Determine if we should calculate n-value for current row
-                if row.calculate_n_value == "yes":
+                calc = row.calculate_n_value.lower()
+                if calc == "yes":
                     calc_n_value = True
                 else:
                     calc_n_value = False
@@ -156,7 +157,7 @@ class NValueCalculator:
                 try:
                     results.append(NValueCalculator.analyze_row(row, emass_results, calc_n_value))
                 except Exception as e:
-                    print("EXCEPTION OCCURED WITH {}!".format(row))
+                    print("EXCEPTION OCCURRED WITH {}!".format(row))
             return pd.concat(
                 [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
                 axis=1
@@ -341,11 +342,12 @@ class NValueCalculator:
 
             return empir_v_emass_angles, angle_n_value, peaks_included
 
+        # TODO: do we need to move this check to somewhere sooner in the process to save processing time? - Ben D
         if calc_n_value:
             # could speed up by forgoing mzs, but mzs will be needed down the line
             emass_unlabeled_data, emass_labeled_data = emass_results
 
-            # Returns 2 tuples of DataFrame with rows representing # of hydrogens that have been deuterated,
+            # Returns 2 tuples of DataFrame with rows representing # of hydrogen that have been deuterated,
             # columns represent the peak #, data is m/z for 1st and intensity for 2nd
             (emass_unlabeled_mz, emass_unlabeled_intensities) = emass_unlabeled_data
             (emass_labeled_mz, emass_labeled_intensities) = emass_labeled_data
