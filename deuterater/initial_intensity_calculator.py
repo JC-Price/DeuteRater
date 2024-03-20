@@ -112,12 +112,12 @@ class theoretical_enrichment_calculator(object):
 
     # it prepares a function for multiprocessing and then begins the multiprocessing
     def prepare(self):
-        # TODO: Do we need to drop duplicates for lipids? - Ben D
+        # TODO: Determined we don't want to drop any from lipid data. Do we need to drop Sequence duplicates for
+        #  peptides?. - Ben D
         if self.biomolecule_type == "Peptide":
             unique_molecules_df = self.data_df.drop_duplicates(subset=["Sequence"])
         else:
-            # TODO: Do we need to include the adduct cf as well? - Ben D
-            unique_molecules_df = self.data_df.drop_duplicates(subset=["Adduct_cf"])
+            unique_molecules_df = self.data_df
 
         new_columns = _make_new_columns(self.biomolecule_type)
         func = partial(theoretical_enrichment_calculator._individual_process,
@@ -164,7 +164,7 @@ class theoretical_enrichment_calculator(object):
                     f"Sequence is less than {minimum_sequence_length} amino acids",
                     output_series))
                 continue
-            if row.literature_n < minimum_n_value:
+            if row.n_value < minimum_n_value:
                 variable_list.append(_error_message_results(
                     f"less than {minimum_n_value} labeling sites",
                     output_series))

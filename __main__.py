@@ -48,6 +48,7 @@ from deuterater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from deuterater.combine_extracted_files import CombineExtractedFiles
 from deuterater.initial_intensity_calculator import theoretical_enrichment_calculator
+from deuterater.fraction_new_calculator import FractionNewCalculator
 from deuterater.rate_calculator import RateCalculator
 from deuterater.protein_rate_combiner import Peptides_to_Proteins
 from utils.chromatography_division import ChromatographyDivider
@@ -71,6 +72,7 @@ default_guide_settings = os.path.join(location, "resources",
 # so we can check for overwriting (except extract which has dynamic output names)
 # second argument is columns required of the input, so we don't have to check
 # when we're actually doing the calculations.
+# TODO: put these columns names in a better order - Ben D
 Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                                       'Precursor m/z', 'Identification Charge', 'Sequence',
                                       'Protein ID', "cf"],
@@ -88,28 +90,33 @@ Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
 Combine_object = deuterater_step("combined_extracted_files_output.tsv",
                                  ["Filename", "Time", "Enrichment", "Sample_Group"],
                                  ["Filename", "Time", "Enrichment", "Sample_Group"])
-# Combine_object = deuterater_step("combined_extracted_files_output.tsv", [
-#     "Filename", "Time", "Subject ID", "Spacing Column 1",
-#     "Subject ID Enrichment", "Time Enrichment", "Enrichment"],
-#                                  ["Filename", "Time", ""])
 delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "time", "literature_n",
     "Sequence", "cf", "abundances", "mzs", "sample_id", "Time Enrichment", "Enrichment Values"],
                                       ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
-                                       "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+                                       "Identification Charge", "LMP", "HMP", "n_isos", "n_value",
                                        "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                        "sample_group"])
-sequence_rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein ID", "Protein Name",
-                                                                     "Sequence", "n_isos", "time", "sample_id",
-                                                                     "Time Enrichment", "Enrichment Values",
-                                                                     "abundances",
-                                                                     "Theoretical Unlabeled Normalized Abundances",
-                                                                     "n_isos", "literature_n"
-                                                                     ],
-                                            [])
-
-protiein_rate_combination = deuterater_step("Final_Protein_Rates.csv", [
+fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
+    "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
+    "Identification Charge", "Homologous Proteins", "n_isos", "literature_n",
+    "Sequence", "cf", "abundances", "mzs", "time", "enrichment", "sample_group"],
+                                           [
+                                               "Precursor Retention Time (sec)", "Lipid Unique Identifier",
+                                               "Precursor m/z",
+                                               "Identification Charge", "LMP", "HMP", "n_isos", "n_value",
+                                               "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
+                                               "sample_group"])
+# TODO: what lipid columns do we need here? - Ben D
+rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein ID", "Protein Name",
+                                                            "Sequence", "n_isos", "time", "sample_id",
+                                                            "Time Enrichment", "Enrichment Values",
+                                                            "abundances",
+                                                            "Theoretical Unlabeled Normalized Abundances",
+                                                            "n_isos", "literature_n"],
+                                   [])
+protein_rate_combination = deuterater_step("Final_Protein_Rates.csv", [
     "Subject ID", "Protein ID", "Protein Name", "Sequence", "Abundance rate",
     "Unique Timepoints", "Number of Measurements", "Approximate Variance",
     "mean of all absolute residuals", "num times",
@@ -123,8 +130,9 @@ step_object_dict = {
     "Provide Time and Enrichment": Time_Enrich_object,
     "Combine Extracted Files": Combine_object,
     "Calculate Baseline Enrichment": delta_by_enrichment,
-    "Rate Calculation": sequence_rate_calculation,
-    "Combine Sequence Rates": protiein_rate_combination
+    "Calculate Fraction New": fraction_new_calculation,
+    "Rate Calculation": rate_calculation,
+    "Combine Sequence Rates": protein_rate_combination
 }
 #  converter only does something other than make a file with a header for 
 # id files made with Peaks.  each version is slightly different so needs a different
@@ -631,12 +639,59 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 del enrich_delta
                 previous_output_file = step_object_dict[analysis_step].full_filename
 
+            elif analysis_step == "Calculate Fraction New":
+                if previous_output_file == "":
+                    previous_output_file = self.collect_single_file(
+                        "delta_by_enrichment",
+                        analysis_step,
+                        "spreadsheet (*.csv *.tsv)"
+                    )
+                    if previous_output_file == "":
+                        return
+                    # if settings.use_empir_n_value:
+                    # We shouldn't be using this option for peptides - Ben D
+                    # if biomolecule_type == "Peptide":
+                    #     step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
+                    # if biomolecule_type == "Lipid":
+                    # step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
+                    # TODO: Doesn't look like we ever use this column. Double check and remove.
+                    # step_object_dict["Calculate Fraction New"].lipid_required_columns.append('n_val_calc_n')
+
+                    # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
+                    try:
+                        if biomolecule_type == "Peptide":
+                            step_object_dict["Calculate Fraction New"].peptide_required_columns.remove('empir_n')
+                    except:
+                        print("oops...")
+                    infile_is_good = self.check_input(
+                        step_object_dict["Calculate Fraction New"],
+                        previous_output_file, biomolecule_type)
+                    if not infile_is_good:
+                        return
+                # $not sure why this would happen, but we'll put it here to avoid future error
+                elif not os.path.exists(previous_output_file):
+                    return
+                fnewcalc = FractionNewCalculator(
+                    model_path=previous_output_file,
+                    out_path=step_object_dict["Calculate Fraction New"].full_filename,
+                    settings_path=rate_settings_file,
+                    biomolecule_type=biomolecule_type
+                )
+                fnewcalc.generate()
+                if fnewcalc.error != "":
+                    QtWidgets.QMessageBox.information(self, "Error", fnewcalc.error)
+                    return
+                fnewcalc.write()
+                del fnewcalc
+                previous_output_file = step_object_dict[
+                    "Calculate Fraction New"].full_filename
+
             # this step calls the fitter and runs it
             elif analysis_step == "Rate Calculation":
 
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(
-                        "Calculate Baseline Enrichment",
+                        "Fraction New Calculation",
                         analysis_step,
                         "spreadsheet (*.csv *.tsv)"
                     )
@@ -676,7 +731,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         analysis_step,
                         "spreadsheet (*.csv *.tsv)"
                     )
-                    if previous_output_file == "": return
+                    if previous_output_file == "":
+                        return
 
                     infile_is_good = self.check_input(
                         step_object_dict[analysis_step],

@@ -157,6 +157,7 @@ class CombineExtractedFiles:
     def prepare(self):
         results = []
         if settings.debug_level == 0:
+            self._enrichment_df['biomolecule_type'] = self.biomolecule_type
             args_list = self._enrichment_df.to_records(index=False).tolist()
             if self.biomolecule_type == "Peptide":
                 func = partial(CombineExtractedFiles._mp_prepare, self.settings_path, aa_labeling_dict=self.aa_labeling_dict)
@@ -200,7 +201,8 @@ class CombineExtractedFiles:
         if settings.use_empir_n_value:
             self.model = self.model.reset_index(drop=True)
             self.model["row_num"] = np.arange(0, self.model.shape[0])
-            # TODO: what is the no_fn used for? - Ben D
+
+            # Used this for the human version to exclude rows that had really low intensities
             # self.model = self.model.loc[self.model["no_fn"] == ""]
 
             column_list = list(
@@ -233,7 +235,6 @@ class CombineExtractedFiles:
                 # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
                 calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "Yes"]
 
-                # TODO: why are all n-values coming back as -1? - Ben D
                 if calc_n_value_df.empty:
                     # $ BN -1 is only for max time had no n-values (or grouping had no max time)
                     full_df.loc[full_df['adduct_molecule_sg'] == group[
@@ -289,46 +290,6 @@ class CombineExtractedFiles:
         self._mp_pool.close()
         self._mp_pool.join()
 
-    def prepare_old(self):
-        if settings.debug_level == 0:
-            args_list = self._file_data.to_records(index=False).tolist()
-            func = partial(CombineExtractedFiles._mp_prepare, self.settings_path, self._data_dict, self.aa_labeling_dict)
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(func, args_list),
-                    total=len(self._file_data),
-                    desc="Combine Extracted Files: "
-                )
-            
-            )
-
-        elif settings.debug_level >= 1:
-            print('Beginning single-processor theory preparation.')
-            results = []
-            for row in tqdm(self._file_data.itertuples(),
-                            total=len(self._enrichment_df)):
-                # TODO: how to handle functions. Default I would think
-                df = pd.read_csv(filepath_or_buffer=row.file, sep='\t')
-                df = CombineExtractedFiles._apply_filters(df)
-                if literature_n_name not in df.columns:
-                    if self.aa_labeling_dict != "":
-                        df = df.apply(CombineExtractedFiles._calculate_literature_n, axis=1, args=(self.aa_labeling_dict,))
-                
-                df['time'] = row.time
-                df["sample_id"] = row.sample_id
-                df["Time Enrichment"] = self._data_dict[row.sample_id][0]
-                df["Enrichment Values"] = self._data_dict[row.sample_id][1]
-                results.append(df)
-
-        self.model = pd.concat(results)
-        # now we need to filter columns
-        # otherwise the carry forward increases file size quite a bit
-        # by doing here it should not affect anything.
-        self.model = self.model[self.needed_columns]
-
-        self._mp_pool.close()
-        self._mp_pool.join()
-
     # actually runs the relevant calculation. Yes reloading the settings is necessary
     # because each process has its own global variables in windows
     @staticmethod
@@ -336,18 +297,15 @@ class CombineExtractedFiles:
         settings.load(settings_path)
         # file_path, time, enrichment = args
         # file_path, time, sample_id = args
-        file_path, time, enrichment, sample_group, biological_replicate, calculate_n_values = args
+        file_path, time, enrichment, sample_group, biological_replicate, calculate_n_values, biomolecule_type = args
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         df = CombineExtractedFiles._apply_filters(df)
         #  if the user or a previous process defined n, that's fine.  but it will be
         # needed in the next step so calculate if necessary.
-        if literature_n_name not in df.columns:
+        if biomolecule_type == "Peptide" and literature_n_name not in df.columns:
             if aa_labeling_dict != "":
                 df = df.apply(CombineExtractedFiles._calculate_literature_n, axis=1, args=(aa_labeling_dict,))
-        # df['time'] = time
-        # df["sample_id"] = sample_id
-        # df["Time Enrichment"] = data_dict[sample_id][0]
-        # df["Enrichment Values"] = data_dict[sample_id][1]
+
         df['time'] = time
         df['enrichment'] = enrichment
         df["sample_group"] = sample_group

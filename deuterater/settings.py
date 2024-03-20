@@ -53,6 +53,7 @@ the third is the freeze function which allows saving the variables
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
+# TODO: go through settings and make sure they can be used for both proteins and lipids. - Ben D
 debug_level: int
 recognize_available_cores: bool
 n_processors: int
@@ -80,6 +81,7 @@ maximum_allowed_sequence_rate: float
 minimum_sequences_to_combine_for_protein_rate: int
 intensity_filter: int
 rel_height: float
+# TODO: make this make sense for both proteins and lipids - Ben D
 protein_combination_method: str
 sampling_rate: int
 smoothing_width: int
@@ -118,6 +120,7 @@ spacing_manual_bias: float
 unique_sequence_column: str
 use_empir_n_value: bool
 use_neutromer_spacing: bool
+use_abundance: str
 verbose_rate: bool
 y_intercept_of_fit: float
 
@@ -331,6 +334,9 @@ def load(settings_path):
         global use_neutromer_spacing
         use_neutromer_spacing = s['use_neutromer_spacing']
 
+        global use_abundance
+        use_abundance = s['use_abundance']
+
         global verbose_rate
         verbose_rate = s["verbose_rate"]
 
@@ -428,6 +434,7 @@ def freeze(path=None, settings_dict = None):
             "unique_sequence_column": unique_sequence_column,
             "use_empir_n_value": use_empir_n_value,
             "use_neutromer_spacing": use_neutromer_spacing,
+            "use_abundance": use_abundance,
             "verbose_rate": verbose_rate,
             "y_intercept_of_fit": y_intercept_of_fit
         }

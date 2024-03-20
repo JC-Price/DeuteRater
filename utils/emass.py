@@ -49,6 +49,8 @@ Russell Denton as of 15 March 2019
 
 from collections import namedtuple
 from copy import deepcopy
+import pandas as pd
+import numpy as np # noqa: 401
 import re
 
 # name comes from Super Atom Data in the original emass program,
@@ -281,6 +283,141 @@ def emass(cf, num_peaks, utfile=None):
     intensity_list = normalize(intensity_list[:trunc_len])
 
     return intensity_list
+
+def fn_emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
+          testing=False, outfile=None):
+    """
+    Parameters
+    ----------
+    parsed_cf : str
+        The chemical formula of the analyte
+    n_list : List of str
+        The n_values to calculate
+    n_H : int
+        The number of Hydrogen in the unlabeled isotope
+    low_pct : float
+        The lower deuterium enrichment value from the LGR
+    high_pct : float
+        The higher deuterium enrichment value from the LGR
+    num_peaks : int
+        The number of expected isotope peaks
+    Returns
+    -------
+    (pd.Dataframe, pd.Dataframe), (pd.Dataframe, pd.Dataframe)
+        These pandas dataframes contain data from the lower and higher water
+        enrichment values, respectively
+    """
+    trunc_len = int(num_peaks)  # This variable is for truncating lists.
+    # TODO: discuss what this means
+    def populate_dataframes(pct, testing=False):
+        mz_lists = []
+        intensity_lists = []
+
+        # Added for testing purposes ~ Chad Quilling
+        M0_intensity_lists = []
+        full_mz_lists = []
+        full_intensity_lists = []
+        full_M0_intensity_lists = []
+        master_isotope['X'] = [
+            isotope(
+                master_isotope['H'][0].mass,
+                master_isotope['H'][0].abundance - pct
+            ),
+            isotope(
+                master_isotope['H'][1].mass,
+                master_isotope['H'][1].abundance + pct
+            )
+        ]
+
+        # TODO: Make sure changes actually work
+        for n in n_list:
+            if n != np.nan:
+                #rounding is needed or the int in emass will do it
+                #which will likely be wrong
+                #at least here we control it
+                rounded_n = round(n)
+
+                # Used to handle n-values that are impossible to actually calculate
+                if rounded_n > n_H:
+                    rounded_n = n_H
+
+                chem_format = new_parser(parsed_cf.format(
+                    (n_H - rounded_n), rounded_n))
+                result = calculate([isotope(0, 1)], chem_format, limit, charge)
+                mz_list, intensity_list = print_pattern(result, digits)
+                # the lengths of these lists are 11+ before truncating
+                mz_lists.append([n] + mz_list[:trunc_len])
+                intensity_lists.append([n] + normalize(intensity_list[:trunc_len]))
+
+            # Added for testing purposes ~ Chad Quilling
+            # M0_intensity_lists.append(
+            #     [n] + normalizeM0(intensity_list[:trunc_len])
+            # )
+            # full_mz_lists.append([n] + mz_list[:])
+            # full_intensity_lists.append([n] + normalize(intensity_list[:]))
+            # full_M0_intensity_lists.append(
+            #     [n] + normalizeM0(intensity_list[:])
+            # ))
+        if not testing:
+            return (
+                pd.DataFrame(
+                    data=mz_lists,
+                    columns=['n_D'] + [f'mz{i}' for i in range(trunc_len)]
+                ),
+
+                # CHOOSE IF YOU WANT TO OUTPUT NORMALIZATION BY SUM OR M0:
+                # SUM
+                pd.DataFrame(
+                    data=intensity_lists,
+                    columns=['n_D'] + [f'I{i}' for i in range(trunc_len)]
+                )
+                # M0 Uncomment from above as well
+                # pd.DataFrame(
+                #     data=M0_intensity_lists,
+                #     columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]  # noqa
+                # )
+            )
+        else:
+            return (
+                pd.DataFrame(
+                    data=mz_lists,
+                    columns=['n_D'] + [f'mz{i}' for i in range(trunc_len)]
+                ),
+                pd.DataFrame(
+                    data=intensity_lists,
+                    columns=['n_D'] + [f'I{i}' for i in range(trunc_len)]
+                ),
+                pd.DataFrame(
+                    data=M0_intensity_lists,
+                    columns=['n_D'] + [f'I{i}' for i in range(trunc_len)]
+                ),
+                pd.DataFrame(
+                    data=full_mz_lists,
+                    columns=['n_D'] + [f'mz{i}' for i in range(trunc_len)]
+                ),
+                pd.DataFrame(
+                    data=full_intensity_lists,
+                    columns=['n_D'] + [f'I{i}' for i in range(trunc_len)]
+                ),
+                pd.DataFrame(
+                    data=full_M0_intensity_lists,
+                    columns=['n_D'] + [f'I{i}' for i in range(trunc_len)]
+                )
+            )
+
+    # print("cf == ", parsed_cf)  # logging purposes
+    unlabeled_dfs = populate_dataframes(low_pct, testing)
+    labeled_dfs = populate_dataframes(high_pct, testing)
+    return unlabeled_dfs, labeled_dfs
+
+def parse_cf(cf):
+    d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
+    num_h = int(d['H'])
+    blank = '{}'
+    # H = # of Hydrogen, X = # labeled sites
+    d.update({'H': blank, 'X': blank})
+    cf_string = ''.join('%s%s' % (k, v) for k, v in d.items())
+    return num_h, cf_string
 
 
 def main():

@@ -143,6 +143,7 @@ class RateCalculator:
 
         # $call the rate for each relevant measurement type
         # $add measurement specific arguments to partial function
+        # TODO: what is the use_abundance setting for? Do we need it? - Ben D
         if settings.use_abundance != "No":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",
@@ -191,7 +192,7 @@ class RateCalculator:
             rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
             datapoint_results.append([i[1] for i in results])  # CQ
 
-        if settings.use_abundance != "No" and settings.use_neutromer_spacing:
+        if use_abundance and settings.use_neutromer_spacing:
             temp_rate_function = partial(rate_function,
                                          calc_type="Combined",
                                          fn_col="cfn",

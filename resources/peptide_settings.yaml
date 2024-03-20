@@ -227,6 +227,13 @@ use_empir_n_value: !!bool false
 # Whether to use neutromer spacing
 use_neutromer_spacing: !!bool false
 
+#$Decides how the abundance fraction new "abund_fn" is calculated.
+#$ No = Not Calculated
+#$ M0 = Use the M0's FN as the abund_fn
+#$ avg = Use the median FN as the abund_fn
+#$ highest = Use the most intense neutromer's FN as the abund_fn
+use_abundance: !!str "M0"
+
 verbose_rate: !!bool True
 
 #$ allows adjustment of y intercept (avoids hard coding)

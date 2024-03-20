@@ -165,7 +165,7 @@
        <set>QAbstractItemView::NoEditTriggers</set>
       </property>
       <property name="rowCount">
-       <number>6</number>
+       <number>7</number>
       </property>
       <attribute name="horizontalHeaderCascadingSectionResizes">
        <bool>false</bool>
@@ -228,13 +228,21 @@
       </item>
       <item row="4" column="0">
        <property name="text">
-        <string>Rate Calculation</string>
+        <string>Calculate Fraction New</string>
        </property>
        <property name="checkState">
         <enum>Checked</enum>
        </property>
       </item>
       <item row="5" column="0">
+       <property name="text">
+        <string>Rate Calculation</string>
+       </property>
+       <property name="checkState">
+        <enum>Checked</enum>
+       </property>
+      </item>
+      <item row="6" column="0">
        <property name="text">
         <string>Combine Sequence Rates</string>
        </property>
