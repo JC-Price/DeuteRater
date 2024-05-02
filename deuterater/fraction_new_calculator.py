@@ -134,14 +134,10 @@ class FractionNewCalculator:
         self.out_path = out_path
 
     def write(self):
-        tqdm(
-            self.model.to_csv(
-                path_or_buf=self.out_path,
-                sep='\t',
-                index=False
-            ),
-            total=len(self.model), desc="Writing Fraction New File: "
-        )
+        self.model.to_csv(
+            path_or_buf=self.out_path,
+            sep='\t',
+            index=False)
 
     def generate(self):
         # $just drop the unneeded columns
@@ -277,6 +273,7 @@ class FractionNewCalculator:
             except:
                 num_h, parsed_cf = parse_cf(row.cf)
 
+            # generate emass information for the row
             _, enriched_results = fn_emass(
                 parsed_cf=parsed_cf,
                 n_list=[0, row.n_value],
@@ -289,23 +286,29 @@ class FractionNewCalculator:
             e_mzs, e_abunds = enriched_results
 
             if settings.use_abundance != "No":
+                # takes the e_abunds values and puts them into a single string value
                 FractionNewCalculator._prepare_row(df, row, "abunds", e_abunds)
-                normalized_empirical_abunds = \
-                    FractionNewCalculator._normalize_abundances(
-                        row.abundances[1:-1].split(", "))
-                df.at[row.Index, 'normalized_empirical_abundances'] = \
-                    normalized_empirical_abunds
 
+                # normalizes the peaks by ratio using the normalize function in emass.py
+                normalized_empirical_abunds = FractionNewCalculator._normalize_abundances(row.abundances[1:-1].split(", "))
+                # stores normalized abundances to dataframe
+                df.at[row.Index, 'normalized_empirical_abundances'] = normalized_empirical_abunds
+
+                # calculate deltas for theory abundances
                 theory_abund_deltas = FractionNewCalculator._calculate_deltas(
                     e_abunds.loc[1][1:], e_abunds.loc[0][1:]
                 )
+                # calculate deltas for empirical abundances
                 empirical_abund_deltas = FractionNewCalculator._calculate_deltas(
                     [float(x) for x in normalized_empirical_abunds.split(", ")],
                     e_abunds.loc[0][1:]
                 )
+
+                # takes the theory and empirical abundance deltas and removes any peaks that are below 0.04
                 theory_abund_deltas, empirical_abund_deltas, removed_peaks = \
                     FractionNewCalculator._trim_abunds(theory_abund_deltas, empirical_abund_deltas)
 
+                # store what peaks were removed in the low_labeling_peaks list
                 df.at[row.Index, "low_labeling_peaks"] = removed_peaks
 
                 # TODO: Should this be included?
@@ -320,9 +323,11 @@ class FractionNewCalculator:
                         f"Insufficient peaks with theory above {minimum_abund_change}"
                     all_frac_new_abunds = []
                 else:
+                    # calculate fraction based off empirical and theory abundance deltas
                     all_frac_new_abunds = FractionNewCalculator._calculate_fractions(
                         empirical_abund_deltas, theory_abund_deltas
                     )
+
                     df = FractionNewCalculator.final_calculations(df, row, "abunds", all_frac_new_abunds,
                                                                   "abund_fn", theory_abund_deltas[0])
 
@@ -368,11 +373,15 @@ class FractionNewCalculator:
     def _calculate_deltas(A, B):
         return [a - b for a, b in zip(A, B)]
 
+    # calculate fraction based off empirical and theory abundance deltas
+    # if fraction new > 1, it means empirical delta is > than 1
+    # if fraction new < 0, it means empirical delta is negative
     @staticmethod
     def _calculate_fractions(empirical_deltas, theory_deltas):
-        #
+        # observed over expected
         return [a / b for a, b in zip(empirical_deltas, theory_deltas)]
 
+    # normalizes the peaks by ratio using the normalize function in emass.py
     @staticmethod
     def _normalize_abundances(abundance_list):
         normalized_list = normalize([float(a) for a in abundance_list])
@@ -384,6 +393,7 @@ class FractionNewCalculator:
     @staticmethod
     def _trim_abunds(theory, empirical):
         drop_list, new_theory, new_empirical = [], [], []
+        # TODO ask JC if this is something we would need changed very often - Ben D
         minimum_abund_change = 0.04
         for t in range(len(theory)):
             if abs(theory[t]) < minimum_abund_change:
@@ -393,8 +403,8 @@ class FractionNewCalculator:
                 new_empirical.append(empirical[t])
         return new_theory, new_empirical, ", ".join(drop_list)
 
-    # $for right now this is not necessary but we may need to expand it later
-    # $ can add a length check or outlier checkto this later
+    # $for right now this is not necessary, but we may need to expand it later
+    # $ can add a length check or outlier check to this later
     @staticmethod
     def _std_dev_calculator(list_to_std_dev):
         return np.std(list_to_std_dev, ddof=1)
@@ -436,10 +446,11 @@ class FractionNewCalculator:
         df.at[row.Index, 'frac_new_{}'.format(keyword)] = \
             ", ".join([str(r) for r in data])
 
+        # data = all_frac_new_abunds
+
         if keyword == "abunds":
             min_allowed_abund_max_delta = 0.04
-            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = \
-                str(FractionNewCalculator._std_dev_calculator(data))
+            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = str(FractionNewCalculator._std_dev_calculator(data))
             if abs(m0_max_delta) < min_allowed_abund_max_delta:
                 df.at[row.Index, final_column] = \
                     "Low Theoretical M0 delta possible. Point rejected"
@@ -459,13 +470,14 @@ class FractionNewCalculator:
                         elif len(abunds_to_drop) == 0:
                             pass
                         else:
+                            # TODO: what does this mean? - Ben D
                             print("Need to implement multiple drops... help!")
 
                         df.at[row.Index, final_column] = str(data[np.argmax(abundances)])
                     except:
                         print("Need to implement multiple drops... help!")
         else:
-            # $ need to do further analysis on outlier check for these
+            # TODO: need to do further analysis on outlier check for these
             data = FractionNewCalculator._mad_outlier_check(data, settings.zscore_cutoff)
             df.at[row.Index, 'frac_new_{}_outlier_checked'.format(
                 keyword)] = ", ".join([str(r) for r in data])

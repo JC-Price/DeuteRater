@@ -79,23 +79,23 @@ class Extractor:  # TODO name change
 
     '''
     def __init__(self, settings_path, id_path, mzml_path, out_path):
-        '''
+        """
         Parameters
         ----------
-        ids : str
+        id_path : str
             The name of the file containing the identifications. This data
             will likely have been taken from an unlabeled run.
-        mzml : str
+        mzml_path : str
             The name of the file containing mass spectrometry data in the
             mzml format, labeled or not.
-        settings : str
+        settings_path : str
             The name of the file containing the settings for this instance
-            of the exctractor, which may contain the settings for the rest
+            of the extractor, which may contain the settings for the rest
             of Deuterater as well. This file *should* be in ``.yaml`` format.
 
-            For addition information, see the settings file's documentation
+            For additional information, see the settings file's documentation
 
-        '''
+        """
         self.settings_path = settings_path
         settings.load(self.settings_path)
 

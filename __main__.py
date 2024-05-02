@@ -691,7 +691,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(
-                        "Fraction New Calculation",
+                        "Calculate Fraction New",
                         analysis_step,
                         "spreadsheet (*.csv *.tsv)"
                     )
@@ -754,6 +754,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         QtWidgets.QMessageBox.information(self, "Success",
                                           "Analysis completed successfully")
+        print("Analysis completed successfully")
 
     # this checks which parts of the worklist table are checked and that there are no blanks    
     def check_table_checklist(self):

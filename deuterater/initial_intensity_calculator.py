@@ -117,7 +117,7 @@ class theoretical_enrichment_calculator(object):
         if self.biomolecule_type == "Peptide":
             unique_molecules_df = self.data_df.drop_duplicates(subset=["Sequence"])
         else:
-            unique_molecules_df = self.data_df
+            unique_molecules_df = self.data_df.drop_duplicates()
 
         new_columns = _make_new_columns(self.biomolecule_type)
         func = partial(theoretical_enrichment_calculator._individual_process,
@@ -135,17 +135,17 @@ class theoretical_enrichment_calculator(object):
             mp_pools.imap(func, df_split),
             total=len(df_split),
             desc="Calculating Initial Intensities: "
-        ), axis=1)
+        ), axis=1).drop_duplicates(keep='first')
 
         mp_pools.close()
         mp_pools.join()
         final_df = final_df.T
         if self.biomolecule_type == "Peptide":
             final_df = final_df.set_index("Sequence")
-            self.model = pd.merge(self.data_df, final_df, left_on="Sequence", right_index=True)
+            self.model = pd.merge(self.data_df, final_df, left_on="Sequence", right_index=True).drop_duplicates()
         else:
             final_df = final_df.set_index("Adduct_cf")
-            self.model = pd.merge(self.data_df, final_df, left_on="Adduct_cf", right_index=True)
+            self.model = pd.merge(self.data_df, final_df, left_on="Adduct_cf", right_index=True).drop_duplicates()
 
     # actually runs the relevant calculation.
     @staticmethod

@@ -57,9 +57,18 @@ class RateCalculator:
     def __init__(self, model_path, out_path, graph_folder, settings_path, biomolecule_type):
         settings.load(settings_path)
         if model_path[-4:] == ".tsv":
-            self.model = pd.read_csv(model_path, sep='\t')
+            #'Theoretical Unlabeled Normalized Abundances': str,
+            self.model = pd.read_csv(model_path, sep='\t', dtype={'theory_unlabeled_abunds': str,
+                                                                  'theory_labeled_abunds': str,
+                                                                  'normalized_empirical_abundances': str,
+                                                                  'low_labeling_peaks': str,
+                                                                  'frac_new_abunds': str})
         elif model_path[-4:] == ".csv":
-            self.model = pd.read_csv(model_path)
+            self.model = pd.read_csv(model_path, dtype={'theory_unlabeled_abunds': str,
+                                                        'theory_labeled_abunds': str,
+                                                        'normalized_empirical_abundances': str,
+                                                        'low_labeling_peaks': str,
+                                                        'frac_new_abunds': str})
         else:  # $should never trigger unless we are fiddling with the gui
             raise ValueError("invalid file extension")
         self.out_path = out_path
@@ -192,7 +201,7 @@ class RateCalculator:
             rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
             datapoint_results.append([i[1] for i in results])  # CQ
 
-        if use_abundance and settings.use_neutromer_spacing:
+        if settings.use_abundance and settings.use_neutromer_spacing:
             temp_rate_function = partial(rate_function,
                                          calc_type="Combined",
                                          fn_col="cfn",
@@ -286,8 +295,8 @@ class RateCalculator:
         elif settings.bias_calculation == "manual":  # $ user designated bias
             group[fn_col] = group[fn_col] - manual_bias
 
+        # set time as the x-axis and fraction new as the y-axis
         xs = np.concatenate(([0], group['time'].to_numpy()))
-
         ys = np.concatenate(([settings.y_intercept_of_fit],
                              group[fn_col].to_numpy()))
 
@@ -449,7 +458,8 @@ class RateCalculator:
     # $function that does a mad outlier check on a numpy array
     @staticmethod
     def _mask_outliers(y_values):
-        if len(y_values == 1): return y_values
+        if len(y_values == 1):
+            return y_values
         med = np.median(y_values)
         differences = abs(y_values - med)
         med_abs_dev = np.median(differences)

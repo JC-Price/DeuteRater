@@ -121,13 +121,14 @@ unique_sequence_column: str
 use_empir_n_value: bool
 use_neutromer_spacing: bool
 use_abundance: str
+bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
 def load(settings_path):
-    # NOTE: Look at the python documentation for the 'global' statement if youf
+    # NOTE: Look at the python documentation for the 'global' statement if you
     #       Want to understand how this module works
     try:
         settings_path = Path(settings_path)
@@ -337,6 +338,9 @@ def load(settings_path):
         global use_abundance
         use_abundance = s['use_abundance']
 
+        global bias_calculation
+        bias_calculation = s['bias_calculation']
+
         global verbose_rate
         verbose_rate = s["verbose_rate"]
 
@@ -435,6 +439,7 @@ def freeze(path=None, settings_dict = None):
             "use_empir_n_value": use_empir_n_value,
             "use_neutromer_spacing": use_neutromer_spacing,
             "use_abundance": use_abundance,
+            "bias_calculation": bias_calculation,
             "verbose_rate": verbose_rate,
             "y_intercept_of_fit": y_intercept_of_fit
         }

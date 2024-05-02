@@ -234,6 +234,8 @@ use_neutromer_spacing: !!bool false
 #$ highest = Use the most intense neutromer's FN as the abund_fn
 use_abundance: !!str "M0"
 
+bias_calculation: !!str "None"
+
 verbose_rate: !!bool True
 
 #$ allows adjustment of y intercept (avoids hard coding)
