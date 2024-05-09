@@ -9,10 +9,11 @@ import multiprocessing as mp
 import numpy as np
 from tqdm import tqdm
 import deuterater.settings as settings
-import logging as lg
+# import logging as lg
 
-lg.basicConfig(level=lg.INFO, filename="C:\\Users\\Brigham Young Univ\\Desktop\\DeuteRater Versions\\DeuteRater_v6\\log.txt",
-               filemode='w')
+# lg.basicConfig(level=lg.INFO,
+#                filename="C:\\Users\\Brigham Young Univ\\Desktop\\DeuteRater Versions\\DeuteRater_v6\\log.txt",
+#                filemode='w')
 
 start = time.perf_counter()
 
@@ -64,8 +65,11 @@ class NValueCalculator:
             df.at[row.Index, 'intensities'] = [float(i) / s for i in temp]
 
         df = df.reset_index(drop=False)
-        df = df[['index', 'chemical_formula', 'adduct_chemical_formula', 'intensities', 'enrichment', 'sample_group', 'bio_rep', 'calculate_n_value']]
-        df.loc[:, "divider"] = df['chemical_formula'] + df['adduct_chemical_formula'] + df['bio_rep']
+        df = df[['index', 'chemical_formula', 'adduct_chemical_formula', 'intensities', 'enrichment', 'sample_group',
+                 'bio_rep', 'calculate_n_value']]
+
+        # TODO: should we divide by genotype (sample_group), not bio_rep? - Ben Driggs
+        df.loc[:, "divider"] = df['chemical_formula'] + df['adduct_chemical_formula'] + df['sample_group']
         df.sort_values(by="divider")
 
         self.prepared_df = df
@@ -139,10 +143,8 @@ class NValueCalculator:
 
             # TODO: calculate and take the average n value for day 32 rows. Then apply n value to other timepoints - Ben D
             # grab the Day 32 rows to calculate n values for
-            calculate_rows = partition[1][partition[1]["calculate_n_value"] == "Yes"]
             nvalues = []
-            for row in calculate_rows:
-                lg.info(str(row))
+            for row in partition[1].itertuples(index=False):
                 # Get/find enrichment value
                 enrichment = row.enrichment
                 if enrichment == 0:
@@ -155,7 +157,6 @@ class NValueCalculator:
                         print("Chemical Formula ", row.cf, " contains unsupported molecules")
                     emass_results_dict[enrichment] = emass_results
                 emass_results = emass_results_dict[enrichment]
-                lg.info(emass_results)
 
                 # Calculate n-value and standard deviation
                 try:
@@ -164,20 +165,26 @@ class NValueCalculator:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
             # calculate standard deviation of n values and exclude any outliers - Ben D
-            lg.info(str(nvalues))
-            nv = [[0] for _ in nvalues]
+            # TODO: use the dIt instead. Skip if dIt is NAN
+            nv = [[n[0]] for n in nvalues]
             nv_std = np.std(nv, dtype=np.float64)
             avg_nv = np.average(nv)
-            lg.info(str(nv_std))
-            lg.info(str(avg_nv))
 
             for i, value in enumerate(nv):
                 # remove any n values that aren't within 1 standard deviation - Ben D
                 if value > avg_nv + nv_std or value < avg_nv - nv_std:
                     nv.pop(i)
+
+            # recalculate average n-value and standard deviation with outliers removed - Ben Driggs
+            avg_nv = np.average(nv)
+            nv_std = np.std(nv, dtype=np.float64)
+
             # apply average n value to each time point - Ben D
-            for _ in range(len(partition[1].itertuples(index=False))):
-                results.append(nvalues[0])
+            for i, row in enumerate(partition[1].itertuples(index=False)):
+                try:
+                    results.append(nvalues[i])
+                except Exception as e:
+                    print("EXCEPTION OCCURRED WITH {}!".format(row))
 
             # for row in partition[1].itertuples(index=False):
             #     # Determine if we should calculate n-value for current row
@@ -233,165 +240,6 @@ class NValueCalculator:
             Tuple: a tuple containing the given n-value and the stddev associated with it (will be empty if n-value was not calculated).
         """
 
-        def calc_stddev(fraction_new, MINIMUM_PEAKS=3):
-            stddev_dataframe = fraction_new.copy()
-
-            # Find how many valid peaks exist
-            stddev_dataframe = stddev_dataframe[
-                ['n_D'] + [col for col in stddev_dataframe.columns if 'I' in col]]
-            stddev_dataframe['num_non_null'] = (stddev_dataframe.count(axis='columns') - 1)
-
-            # rearrange columns to allow for proper std_dev calculation
-            stddev_dataframe = stddev_dataframe[
-                ['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
-
-            # Calculate stddev for valid rows
-            stddev_dataframe['stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
-            stddev_dataframe.loc[:, 'stddev'] = stddev_dataframe['stddev'].where(
-                stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS, np.nan)
-
-            return stddev_dataframe
-
-        def s_n_filter(empirical_intensities, noise, NOISE_FILTER=10.0):
-            empir_series = pd.Series(empirical_intensities)
-            s_n_values = pd.Series([empirical_intensities[i] / noise for i in range(len(empirical_intensities))])
-            filtered_empirical_intensities = empir_series.where(s_n_values >= NOISE_FILTER, np.nan)
-            return filtered_empirical_intensities
-
-        def dIt_filter(unfiltered_dataframe, dIt_data):
-            return_value = unfiltered_dataframe.where(dIt_data > 0.05, np.nan)
-            return_value['n_D'][0] = 0.0
-            return return_value
-
-        def dIe_filter(unfiltered_dataframe, dIe_data):
-            filtered_dataframe = unfiltered_dataframe.where(dIe_data < 0.05, np.nan)
-            filtered_dataframe['n_D'] = unfiltered_dataframe['n_D']
-            return filtered_dataframe
-
-        def n_value_by_stddev(fraction_new, MINIMUM_PEAKS=3):
-            stddev_dataframe = calc_stddev(fraction_new, MINIMUM_PEAKS)
-
-            # Find n-value and stddev of filtered data
-            if stddev_dataframe['stddev'].isna().all():
-                filtered_nValue_min = np.nan
-                filtered_stddev_min = np.nan
-
-                truth_values = ~np.isnan(stddev_dataframe.iloc[:, 2:-1])
-                truth_count = [np.sum(truth_values.iloc[:, x]) for x in range(truth_values.shape[1])]
-                peaks_included = ' '.join(str(x) for x in truth_count)
-            else:
-                min_index = stddev_dataframe['stddev'].idxmin()
-                filtered_nValue_min = stddev_dataframe.loc[min_index, 'n_D']
-                filtered_stddev_min = stddev_dataframe['stddev'].min()
-
-                data_mask = stddev_dataframe.iloc[min_index].notna().reset_index(drop=True)[2:-1]
-                peaks_included = pd.Series(stddev_dataframe.columns)[2:-1][data_mask] \
-                    .to_string(header=False, index=False).replace('I', 'M').replace('\n', ' ')
-                if peaks_included == 'Series([], )':
-                    peaks_included = ''
-            return (stddev_dataframe, filtered_nValue_min, filtered_stddev_min, peaks_included)
-
-        def n_value_dIt_filter(unfiltered_fraction_new, dIt_data, MINIMUM_PEAKS=3):
-            ###
-            ### Generate dIt filtered fraction_new DataFrame
-            ###
-            filtered_fraction_new = dIt_filter(unfiltered_fraction_new, dIt_data)
-            try:
-                filtered_fraction_new.drop('stddev', axis=1, inplace=True)
-                filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
-            except:
-                pass
-            return n_value_by_stddev(filtered_fraction_new)
-
-        def n_value_dIe_filter(unfiltered_fraction_new, dIe_data, MINIMUM_PEAKS=3):
-            ###
-            ### Generate dIt filtered fraction_new DataFrame
-            ###
-            filtered_fraction_new = dIe_filter(unfiltered_fraction_new, dIe_data)
-            filtered_fraction_new['n_D'] = unfiltered_fraction_new['n_D']
-            filtered_fraction_new.drop('stddev', axis=1, inplace=True)
-            filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
-
-            return n_value_by_stddev(filtered_fraction_new)
-
-        def n_value_s_n_filter(empirical_intensities, noise, fraction_new_values, NOISE_FILTER=100.0):
-            valid_intensities = s_n_filter(empirical_intensities, noise, NOISE_FILTER)
-            filtered_fraction_new = fraction_new_values.copy()
-            for peak, ie in enumerate(valid_intensities):
-                if (np.isnan(ie)):
-                    filtered_fraction_new['I' + str(peak)] = np.nan
-            return n_value_by_stddev(filtered_fraction_new)
-
-        def n_value_using_angles(empirical_intensities, emass_labeled_intensities, MIN_DIMENSION=2):
-            def angle_between(v1, v2):
-                '''Calculates the unit vector of a given vector
-                Parameters
-                ----------
-                v1 : :obj:`list` of :obj:`float`
-                    The first vector to compare
-                v2 : :obj:`list` of :obj:`float`
-                    The second vector to compare
-                Returns
-                ----------
-                :obj:`float`
-                    Angle between the two vectors, given in radians
-                '''
-
-                def unit_vector(vector):
-                    '''Calculates the unit vector of a given vector
-                    Parameters
-                    ----------
-                    vector : :obj:`list` of :obj:`float`
-                    Returns
-                    ----------
-                    vector : :obj:`list` of :obj:`float`
-                    '''
-                    return vector / np.linalg.norm(vector)
-
-                if len(v1) <= MIN_DIMENSION:
-                    return np.nan
-
-                uv1 = unit_vector(v1)
-                uv2 = unit_vector(v2)
-                angle = np.arccos(np.dot(uv1, uv2))
-                if np.isnan(angle):
-                    if (uv1 == uv2).all():
-                        return 0.0
-                    else:
-                        return np.pi
-                return angle
-
-            # Turn empirical intensities into a vector to compare angles.
-            empirical_vector = np.array(empirical_intensities)
-
-            # Turn emass outputs into vectors to use to compare angles
-            emass_labeled_vectors = emass_labeled_intensities.drop(columns="n_D")
-            emass_labeled_vectors['combined_intensities'] = emass_labeled_vectors.values.tolist()
-            emass_labeled_vectors['combined_intensities'] = emass_labeled_vectors['combined_intensities'].apply(
-                lambda x: np.array(x))
-            emass_labeled_vectors = emass_labeled_vectors['combined_intensities']
-
-            empir_truths = ~np.isnan(empirical_vector)
-            total_truths = np.array([~np.isnan(emass_labeled_vectors[i]) & empir_truths for i in
-                                     np.array(range(len(emass_labeled_vectors)))])
-
-            # Compute angle between emass intensity data and empirical intensity data
-            empir_v_emass_angles = pd.Series(
-                [angle_between(empirical_vector[total_truths[i]], emass_labeled_vectors[i][total_truths[i]]) for i in
-                 range(len(emass_labeled_vectors))])
-
-            # Determine n-value (the #D associated with the smallest angle)
-            angle_n_value = empir_v_emass_angles.to_numpy().argmin()
-
-            column_names = emass_labeled_intensities.columns[1:]
-            peaks_included = pd.Series(column_names[total_truths[angle_n_value]]) \
-                .to_string(header=False, index=False).replace('I', 'M').replace('\n', ' ')
-            if peaks_included == 'Series([], )':
-                truth_count = [np.sum(total_truths[:, x]) for x in range(len(total_truths[0]))]
-                peaks_included = ' '.join(str(x) for x in truth_count)
-
-            return empir_v_emass_angles, angle_n_value, peaks_included
-
         # could speed up by forgoing mzs, but mzs will be needed down the line
         emass_unlabeled_data, emass_labeled_data = emass_results
 
@@ -435,21 +283,185 @@ class NValueCalculator:
 
         return n_value, stddev, dIt_n_value, dIt_stddev
 
-    @staticmethod
-    def parse_cf(cf):
-        d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
-        num_h = int(d['H'])
 
-        num_d = 0
-        # Makes the cf not distinguish between Deuterium and Hydrogen
-        # if d['D']:
-        # 	num_h += int(d['D'])
-        # 	del d['D']
+def parse_cf(cf):
+    d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
+    num_h = int(d['H'])
 
-        blank = '{}'
-        d.update({'H': blank, 'X': blank})  # H = # of Hydrogen, X = # labeled sites
-        cf_string = ''.join('%s%s' % (k, v) for k, v in d.items())
-        return num_h, cf_string, num_d
+    num_d = 0
+    # Makes the cf not distinguish between Deuterium and Hydrogen
+    # if d['D']:
+    # 	num_h += int(d['D'])
+    # 	del d['D']
+
+    blank = '{}'
+    d.update({'H': blank, 'X': blank})  # H = # of Hydrogen, X = # labeled sites
+    cf_string = ''.join('%s%s' % (k, v) for k, v in d.items())
+    return num_h, cf_string, num_d
+
+
+def dIt_filter(unfiltered_dataframe, dIt_data):
+    return_value = unfiltered_dataframe.where(dIt_data > 0.05, np.nan)
+    return_value['n_D'][0] = 0.0
+    return return_value
+
+
+def n_value_by_stddev(fraction_new, MINIMUM_PEAKS=3):
+    stddev_dataframe = calc_stddev(fraction_new, MINIMUM_PEAKS)
+
+    # Find n-value and stddev of filtered data
+    if stddev_dataframe['stddev'].isna().all():
+        filtered_nValue_min = np.nan
+        filtered_stddev_min = np.nan
+
+        truth_values = ~np.isnan(stddev_dataframe.iloc[:, 2:-1])
+        truth_count = [np.sum(truth_values.iloc[:, x]) for x in range(truth_values.shape[1])]
+        peaks_included = ' '.join(str(x) for x in truth_count)
+    else:
+        min_index = stddev_dataframe['stddev'].idxmin()
+        filtered_nValue_min = stddev_dataframe.loc[min_index, 'n_D']
+        filtered_stddev_min = stddev_dataframe['stddev'].min()
+
+        data_mask = stddev_dataframe.iloc[min_index].notna().reset_index(drop=True)[2:-1]
+        peaks_included = pd.Series(stddev_dataframe.columns)[2:-1][data_mask] \
+            .to_string(header=False, index=False).replace('I', 'M').replace('\n', ' ')
+        if peaks_included == 'Series([], )':
+            peaks_included = ''
+    return stddev_dataframe, filtered_nValue_min, filtered_stddev_min, peaks_included
+
+
+def n_value_dIt_filter(unfiltered_fraction_new, dIt_data, MINIMUM_PEAKS=3):
+    # Generate dIt filtered fraction_new DataFrame
+    filtered_fraction_new = dIt_filter(unfiltered_fraction_new, dIt_data)
+    try:
+        filtered_fraction_new.drop('stddev', axis=1, inplace=True)
+        filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
+    except:
+        pass
+    return n_value_by_stddev(filtered_fraction_new)
+
+
+def calc_stddev(fraction_new, MINIMUM_PEAKS=3):
+    stddev_dataframe = fraction_new.copy()
+
+    # Find how many valid peaks exist
+    stddev_dataframe = stddev_dataframe[
+        ['n_D'] + [col for col in stddev_dataframe.columns if 'I' in col]]
+    stddev_dataframe['num_non_null'] = (stddev_dataframe.count(axis='columns') - 1)
+
+    # rearrange columns to allow for proper std_dev calculation
+    stddev_dataframe = stddev_dataframe[
+        ['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
+
+    # Calculate stddev for valid rows
+    stddev_dataframe['stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
+    stddev_dataframe.loc[:, 'stddev'] = stddev_dataframe['stddev'].where(
+        stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS, np.nan)
+
+    return stddev_dataframe
+
+
+def s_n_filter(empirical_intensities, noise, NOISE_FILTER=10.0):
+    empir_series = pd.Series(empirical_intensities)
+    s_n_values = pd.Series([empirical_intensities[i] / noise for i in range(len(empirical_intensities))])
+    filtered_empirical_intensities = empir_series.where(s_n_values >= NOISE_FILTER, np.nan)
+    return filtered_empirical_intensities
+
+
+def dIe_filter(unfiltered_dataframe, dIe_data):
+    filtered_dataframe = unfiltered_dataframe.where(dIe_data < 0.05, np.nan)
+    filtered_dataframe['n_D'] = unfiltered_dataframe['n_D']
+    return filtered_dataframe
+
+
+def n_value_dIe_filter(unfiltered_fraction_new, dIe_data, MINIMUM_PEAKS=3):
+    # Generate dIt filtered fraction_new DataFrame
+    filtered_fraction_new = dIe_filter(unfiltered_fraction_new, dIe_data)
+    filtered_fraction_new['n_D'] = unfiltered_fraction_new['n_D']
+    filtered_fraction_new.drop('stddev', axis=1, inplace=True)
+    filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
+
+    return n_value_by_stddev(filtered_fraction_new)
+
+
+def n_value_s_n_filter(empirical_intensities, noise, fraction_new_values, NOISE_FILTER=100.0):
+    valid_intensities = s_n_filter(empirical_intensities, noise, NOISE_FILTER)
+    filtered_fraction_new = fraction_new_values.copy()
+    for peak, ie in enumerate(valid_intensities):
+        if (np.isnan(ie)):
+            filtered_fraction_new['I' + str(peak)] = np.nan
+    return n_value_by_stddev(filtered_fraction_new)
+
+
+def n_value_using_angles(empirical_intensities, emass_labeled_intensities, MIN_DIMENSION=2):
+    def angle_between(v1, v2):
+        '''Calculates the unit vector of a given vector
+        Parameters
+        ----------
+        v1 : :obj:`list` of :obj:`float`
+            The first vector to compare
+        v2 : :obj:`list` of :obj:`float`
+            The second vector to compare
+        Returns
+        ----------
+        :obj:`float`
+            Angle between the two vectors, given in radians
+        '''
+
+        def unit_vector(vector):
+            '''Calculates the unit vector of a given vector
+            Parameters
+            ----------
+            vector : :obj:`list` of :obj:`float`
+            Returns
+            ----------
+            vector : :obj:`list` of :obj:`float`
+            '''
+            return vector / np.linalg.norm(vector)
+
+        if len(v1) <= MIN_DIMENSION:
+            return np.nan
+
+        uv1 = unit_vector(v1)
+        uv2 = unit_vector(v2)
+        angle = np.arccos(np.dot(uv1, uv2))
+        if np.isnan(angle):
+            if (uv1 == uv2).all():
+                return 0.0
+            else:
+                return np.pi
+        return angle
+
+    # Turn empirical intensities into a vector to compare angles.
+    empirical_vector = np.array(empirical_intensities)
+
+    # Turn emass outputs into vectors to use to compare angles
+    emass_labeled_vectors = emass_labeled_intensities.drop(columns="n_D")
+    emass_labeled_vectors['combined_intensities'] = emass_labeled_vectors.values.tolist()
+    emass_labeled_vectors['combined_intensities'] = emass_labeled_vectors['combined_intensities'].apply(
+        lambda x: np.array(x))
+    emass_labeled_vectors = emass_labeled_vectors['combined_intensities']
+
+    empir_truths = ~np.isnan(empirical_vector)
+    total_truths = np.array([~np.isnan(emass_labeled_vectors[i]) & empir_truths for i in
+                             np.array(range(len(emass_labeled_vectors)))])
+
+    # Compute angle between emass intensity data and empirical intensity data
+    empir_v_emass_angles = pd.Series(
+        [angle_between(empirical_vector[total_truths[i]], emass_labeled_vectors[i][total_truths[i]]) for i in
+         range(len(emass_labeled_vectors))])
+
+    # Determine n-value (the #D associated with the smallest angle)
+    angle_n_value = empir_v_emass_angles.to_numpy().argmin()
+
+    column_names = emass_labeled_intensities.columns[1:]
+    peaks_included = pd.Series(column_names[total_truths[angle_n_value]]) \
+        .to_string(header=False, index=False).replace('I', 'M').replace('\n', ' ')
+    if peaks_included == 'Series([], )':
+        truth_count = [np.sum(total_truths[:, x]) for x in range(len(total_truths[0]))]
+        peaks_included = ' '.join(str(x) for x in truth_count)
+
+    return empir_v_emass_angles, angle_n_value, peaks_included
 
 
 def main():

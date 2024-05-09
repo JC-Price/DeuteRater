@@ -84,9 +84,11 @@ Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
     "Identification Charge", "Homologous Proteins", "n_isos",
     "Sequence", "cf", "abundances", "mzs"],
                                      ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
-                                      "Identification Charge", "LMP", "HMP", "n_isos", "literature_n",
+                                      "Identification Charge", "LMP", "HMP", "n_isos",
                                       "Lipid Name", "cf", "abundances", "mzs"]
                                      )
+# , "literature_n"
+
 Combine_object = deuterater_step("combined_extracted_files_output.tsv",
                                  ["Filename", "Time", "Enrichment", "Sample_Group"],
                                  ["Filename", "Time", "Enrichment", "Sample_Group"])
@@ -995,8 +997,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             return True
         except IOError:
             QtWidgets.QMessageBox.information(self, "Error",
-                                              ("Column \"{}\" in file \"{}\" needed to be filled in by DeuteRater-H."
-                                               " This file is open in another program or DeuteRater-H does not have "
+                                              ("Column \"{}\" in file \"{}\" needed to be filled in by DeuteRater."
+                                               " This file is open in another program or DeuteRater does not have "
                                                "write permission to this location. Please either fill in the column or close "
                                                "the file and try again.".format(bad_column, guide_file_location)))
             return False
@@ -1015,8 +1017,8 @@ if __name__ == '__main__':
 
     mp.freeze_support()
     app = QtWidgets.QApplication(sys.argv)
-    app.setApplicationDisplayName("DeuteRater-H")
-    app.setApplicationName("DeuteRater-H")
+    app.setApplicationDisplayName("DeuteRater")
+    app.setApplicationName("DeuteRater")
     app.setWindowIcon(QtGui.QIcon(os.path.join(location, "resources", "Logo_64_clean.PNG")))
     gui_object = MainGuiObject(None)
     gui_object.show()

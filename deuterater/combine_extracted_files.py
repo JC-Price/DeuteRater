@@ -172,6 +172,7 @@ class CombineExtractedFiles:
 
         elif settings.debug_level >= 1:
             print('Beginning single-processor theory preparation.')
+            self._enrichment_df['biomolecule_type'] = self.biomolecule_type
             args_list = self._enrichment_df.to_records(index=False).tolist()
             for row in tqdm(self._enrichment_df.itertuples(),
                             total=len(self._enrichment_df)):
@@ -191,7 +192,7 @@ class CombineExtractedFiles:
                 df['enrichment'] = row.Enrichment
                 df["sample_group"] = row.Sample_Group
                 df["bio_rep"] = row.Biological_Replicate
-                df["Calculate N-Value?"] = row.calculate_n_value
+                df["calculate_n_value"] = row.Calculate_N_Value
                 results.append(df)
 
         self.model = pd.concat(results)
