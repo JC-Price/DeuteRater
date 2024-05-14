@@ -225,37 +225,25 @@ class CombineExtractedFiles:
             highest_timepoint = max(full_df['time'].unique())
             lipid_groups = full_df.groupby(by='adduct_molecule_sg')
 
-            # TODO: calculate the median from all timepoints the user put "yes" in calculate_n_value column
-
             # # Compare reproducibility across reps
             for group in lipid_groups:
                 group_df = group[1]
-                high_tp_df = group_df.loc[group_df[
-                                              'time'] == highest_timepoint]  # Only look at lipids that occur at the highest time point overall in the dataset. ie. D16 if timepoints are 0, 1, 4, 16
 
-                # Find median n-value from all timepoints where the user put "yes" in calculate_n_value column
-                calc_n_value_df = group_df.loc[group_df['calculate_n_value'] == "Yes"]
-
-                if calc_n_value_df.empty:
-                    # $ BN -1 is only for max time had no n-values (or grouping had no max time)
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[
-                        0], 'n_value'] = -1  # If there is no lipids in the highest timepoint, set n_value as -1
-                    continue
                 # Remove reproducibility filter - CQ 15 Sept 2021
                 if settings.remove_filters:
                     full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
-                        calc_n_value_df['empir_n'].median())
+                        group_df['empir_n'].median())
                 else:
-                    median_n = round(calc_n_value_df['empir_n'].median())  # BN rounding
+                    median_n = round(group_df['empir_n'].median())  # BN rounding
                     # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
                     try:
                         median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
                                                  1.0)  # BN swapped to a range added ", 1.0"
                     except:
                         pass
-                    is_in_range_n = calc_n_value_df['empir_n'].apply(lambda x: x in median_range)
-                    if is_in_range_n.all() and calc_n_value_df.shape[0] > 1:
-                        all_n_values = list(calc_n_value_df['empir_n'])
+                    is_in_range_n = group_df['empir_n'].apply(lambda x: x in median_range)
+                    if is_in_range_n.all() and group_df.shape[0] > 1:
+                        all_n_values = list(group_df['empir_n'])
                         if len(all_n_values) == 2:
                             all_n_values.append(np.median(all_n_values))
                         import scipy.stats as s
@@ -273,7 +261,7 @@ class CombineExtractedFiles:
                         #     1]
                         full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = confidence_interval[0]
                         full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
-                    elif calc_n_value_df.shape[0] == 1:
+                    elif group_df.shape[0] == 1:
                         # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
                         full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
                     else:

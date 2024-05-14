@@ -9,6 +9,7 @@ import multiprocessing as mp
 import numpy as np
 from tqdm import tqdm
 import deuterater.settings as settings
+
 # import logging as lg
 
 # lg.basicConfig(level=lg.INFO,
@@ -17,7 +18,8 @@ import deuterater.settings as settings
 
 start = time.perf_counter()
 
-output_columns = ['empir_n', 'stddev', 'dIt_n', 'dIt_stddev']
+# output_columns = ['empir_n', 'stddev', 'dIt_n', 'dIt_stddev']
+output_columns = ['empir_n', 'stddev']
 
 
 class NValueCalculator:
@@ -80,6 +82,7 @@ class NValueCalculator:
         groups = self.prepared_df.groupby('divider', sort=False)
 
         results = list()
+        settings.debug_level = 1
         if settings.debug_level == 0:
             from itertools import product
             results = list(
@@ -91,20 +94,18 @@ class NValueCalculator:
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values:", total=len(groups)):
-                results.append(NValueCalculator.analyze_group(group))
+                data = NValueCalculator.analyze_group(group)
+                results.append(data)
 
         prepared_df = pd.concat(results)
 
         prepared_df = prepared_df.set_index('index')
         prepared_df = prepared_df.sort_index()
 
-        testing = self.full_df.merge(right=prepared_df[output_columns],
-                                     how='outer',
-                                     left_index=True,
-                                     right_index=True
-                                     )
-        self.full_df = testing
-
+        self.full_df = self.full_df.merge(right=prepared_df[output_columns],
+                                          how='outer',
+                                          left_index=True,
+                                          right_index=True)
         self._mp_pool.close()
         self._mp_pool.join()
 
@@ -153,9 +154,9 @@ class NValueCalculator:
                     high_pct = enrichment
                     try:
                         emass_results = emass(cf, n_begin, num_h, low_pct, high_pct, num_peaks)
+                        emass_results_dict[enrichment] = emass_results
                     except Exception as e:
                         print("Chemical Formula ", row.cf, " contains unsupported molecules")
-                    emass_results_dict[enrichment] = emass_results
                 emass_results = emass_results_dict[enrichment]
 
                 # Calculate n-value and standard deviation
@@ -166,7 +167,7 @@ class NValueCalculator:
 
             # calculate standard deviation of n values and exclude any outliers - Ben D
             # TODO: use the dIt instead. Skip if dIt is NAN
-            nv = [[n[0]] for n in nvalues]
+            nv = [[n[2]] for n in nvalues]
             nv_std = np.std(nv, dtype=np.float64)
             avg_nv = np.average(nv)
 
@@ -180,9 +181,10 @@ class NValueCalculator:
             nv_std = np.std(nv, dtype=np.float64)
 
             # apply average n value to each time point - Ben D
-            for i, row in enumerate(partition[1].itertuples(index=False)):
+            for row in partition[1].itertuples(index=False):
                 try:
-                    results.append(nvalues[i])
+                    results.append(avg_nv)
+                    results.append(nv_std)
                 except Exception as e:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
@@ -217,14 +219,10 @@ class NValueCalculator:
             #         print("EXCEPTION OCCURRED WITH {}!".format(row))
 
             return pd.concat(
-                [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                axis=1
-            )
+                [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
         except:
             return pd.concat(
-                [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                axis=1
-            )
+                [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
 
     @staticmethod
     def analyze_row(row, emass_results):
