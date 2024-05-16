@@ -225,6 +225,7 @@ class CombineExtractedFiles:
             highest_timepoint = max(full_df['time'].unique())
             lipid_groups = full_df.groupby(by='adduct_molecule_sg')
 
+            # TODO: Since we already have calculated the average n-value, what aspects of this reproducibility code do we need? - Ben D
             # # Compare reproducibility across reps
             for group in lipid_groups:
                 group_df = group[1]
