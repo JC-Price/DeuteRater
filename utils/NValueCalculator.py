@@ -19,7 +19,7 @@ import deuterater.settings as settings
 start = time.perf_counter()
 
 # output_columns = ['empir_n', 'stddev', 'dIt_n', 'dIt_stddev']
-output_columns = ['empir_n', 'stddev']
+output_columns = ['n_value', 'stddev']
 
 
 class NValueCalculator:
@@ -167,7 +167,7 @@ class NValueCalculator:
 
             # calculate standard deviation of n values and exclude any outliers - Ben D
             # TODO: use the dIt instead. Skip if dIt is NAN
-            nv = [[n[0]] if n[0] is not np.nan else -1 for n in nvalues]
+            nv = [n[0] if n[0] is not np.nan else -1 for n in nvalues]
             nv_std = np.std(nv, dtype=np.float64)
             avg_nv = np.average(nv)
 

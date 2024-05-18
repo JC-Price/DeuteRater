@@ -103,7 +103,7 @@ class CombineExtractedFiles:
         #         sep=',',
         #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
         #     )
-            
+        
         # since the multiple sub tables can have different length, get rid
         # of the rows that are empty
         # Get data from time and enrichment table
@@ -150,7 +150,7 @@ class CombineExtractedFiles:
             y_values = ", ".join([str(y) for y in subject_df["Enrichment"]])
             data_dict[subject] = [x_values, y_values]
         return data_dict
-            
+        
     # run the analysis.  this function doesn't have any calculation itself (other than merging results)
     # it prepares a function for multiprocessing and then begins the multiprocessing
 
@@ -227,52 +227,53 @@ class CombineExtractedFiles:
 
             # TODO: Since we already have calculated the average n-value, what aspects of this reproducibility code do we need? - Ben D
             # # Compare reproducibility across reps
-            for group in lipid_groups:
-                group_df = group[1]
+            # for group in lipid_groups:
+            #     group_df = group[1]
+            #
+            #     # TODO: Do we remove reproducibility filter - CQ 15 Sept 2021
+            #     if settings.remove_filters:
+            #         full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
+            #             group_df['empir_n'].median())
+            #     else:
+            #         median_n = round(group_df['empir_n'].median())  # BN rounding
+            #         # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
+            #         try:
+            #             median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
+            #                                      1.0)  # BN swapped to a range added ", 1.0"
+            #         except:
+            #             pass
+            #         is_in_range_n = group_df['empir_n'].apply(lambda x: x in median_range)
+            #         if is_in_range_n.all() and group_df.shape[0] > 1:
+            #             all_n_values = list(group_df['empir_n'])
+            #             if len(all_n_values) == 2:
+            #                 all_n_values.append(np.median(all_n_values))
+            #             import scipy.stats as s
+            #             m, se = np.mean(all_n_values), s.sem(all_n_values)
+            #             if se == 0.0:
+            #                 confidence_interval = (m, m)
+            #             else:
+            #                 confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
+            #
+            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'n_value'] = median_n
+            #             # .loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = median_n
+            #             # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'low_CI_n_value'] = confidence_interval[
+            #             #     0]
+            #             # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'high_CI_n_value'] = confidence_interval[
+            #             #     1]
+            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = confidence_interval[0]
+            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
+            #         elif group_df.shape[0] == 1:
+            #             # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
+            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
+            #         else:
+            #             # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
+            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
 
-                # Remove reproducibility filter - CQ 15 Sept 2021
-                if settings.remove_filters:
-                    full_df.loc[full_df['adduct_molecule_sg'] == group[0], 'n_value'] = round(
-                        group_df['empir_n'].median())
-                else:
-                    median_n = round(group_df['empir_n'].median())  # BN rounding
-                    # CQ Changed arrange so that it has integers in the range. Trying to include as many values as possible within a range.
-                    try:
-                        median_range = np.arange(int(median_n - median_n * .1), round(median_n + median_n * .1) + 1,
-                                                 1.0)  # BN swapped to a range added ", 1.0"
-                    except:
-                        pass
-                    is_in_range_n = group_df['empir_n'].apply(lambda x: x in median_range)
-                    if is_in_range_n.all() and group_df.shape[0] > 1:
-                        all_n_values = list(group_df['empir_n'])
-                        if len(all_n_values) == 2:
-                            all_n_values.append(np.median(all_n_values))
-                        import scipy.stats as s
-                        m, se = np.mean(all_n_values), s.sem(all_n_values)
-                        if se == 0.0:
-                            confidence_interval = (m, m)
-                        else:
-                            confidence_interval = s.t.interval(alpha=.90, df=len(all_n_values) - 1, loc=m, scale=se)
+            # full_df = full_df.rename(columns={'empir_n': 'empir_n_value'})
 
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'n_value'] = median_n
-                        # .loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = median_n
-                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'low_CI_n_value'] = confidence_interval[
-                        #     0]
-                        # full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'high_CI_n_value'] = confidence_interval[
-                        #     1]
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'low_CI_n_value'] = confidence_interval[0]
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
-                    elif group_df.shape[0] == 1:
-                        # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
-                    else:
-                        # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
-                        full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3
+            # full_df = full_df.rename(columns={'empir_n': 'n_value', 'n_value': 'empir_n'})
 
-            full_df = full_df.rename(columns={'empir_n': 'n_value',
-                                              'n_value': 'empir_n'})
-
-            full_df.drop('empir_n', axis=1, inplace=True)
+            # full_df.drop('empir_n', axis=1, inplace=True)
 
             full_df.loc[full_df.index, "n_value"] = full_df["n_value"]
             self.model = full_df
