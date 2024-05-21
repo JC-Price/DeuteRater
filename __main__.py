@@ -87,7 +87,6 @@ Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
                                       "Identification Charge", "LMP", "HMP", "n_isos",
                                       "Lipid Name", "cf", "abundances", "mzs"]
                                      )
-# , "literature_n"
 
 Combine_object = deuterater_step("combined_extracted_files_output.tsv",
                                  ["Filename", "Time", "Enrichment", "Sample_Group"],

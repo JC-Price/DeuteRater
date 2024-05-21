@@ -275,7 +275,9 @@ class CombineExtractedFiles:
 
             # full_df.drop('empir_n', axis=1, inplace=True)
 
-            full_df.loc[full_df.index, "n_value"] = full_df["n_value"]
+            # full_df.loc[full_df.index, "n_value"] = full_df["n_value"]
+            
+            full_df = full_df.rename(columns={'n_value_y': 'n_value'})
             self.model = full_df
 
         self._mp_pool.close()
