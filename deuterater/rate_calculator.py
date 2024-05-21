@@ -153,6 +153,7 @@ class RateCalculator:
         # $call the rate for each relevant measurement type
         # $add measurement specific arguments to partial function
         # TODO: what is the use_abundance setting for? Do we need it? - Ben D
+        # settings.debug_level = 1
         if settings.use_abundance != "No":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",

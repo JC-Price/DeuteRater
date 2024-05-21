@@ -99,16 +99,16 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         plt.plot(x_values, y_values, data_points_symbol)
     else:
         color_list = {"M+H": 'r',
-                      "-H": 'r',
+                      "-H": 'g',
                       "M+Na": 'b',
-                      "+C2H3O2-": 'b',
-                      "M+NH4": 'g',
-                      '+COOH-': 'g',
-                      'M+H-[H2O]': 'magenta',
-                      '+e-': 'magenta',
+                      "+C2H3O2-": 'c',
+                      "M+NH4": 'm',
+                      '+COOH-': 'y',
+                      'M+H-[H2O]': 'coral',
+                      '+e-': 'dodgerblue',
                       "M+Na-[H2O]": 'gold',
                       "M+NH4-[H2O]": 'lime',
-                      '-H2O': 'lime'}
+                      '-H2O': 'slateblue'}
 
         # BD: See https://matplotlib.org/stable/api/markers_api.html for valid shapes/markers
         _valid_shapes = ['o', 'v', '^', '<', '>', 's', 'p', 'P', '*', 'h', 'H', 'X', 'D']
@@ -169,7 +169,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         #         'size': 16}
         #
         # plt.rc('font', **font)
-        plt.tight_layout()
+        # plt.tight_layout()
         plt.savefig(filename[:-4] + ".png")
         plt.savefig(filename[:-4] + ".svg")
 
