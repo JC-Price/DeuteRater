@@ -168,6 +168,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         # font = {'family': 'sans-serif',
         #         'weight': 'normal',
         #         'size': 16}
+
+            # BD: using an index and dictionary to automatically ass
         #
         # plt.rc('font', **font)
         plt.tight_layout()

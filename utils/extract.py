@@ -50,8 +50,9 @@ from obs.peak import Peak
 from obs.envelope import Envelope
 from obs.id import ID
 
+
 # TODO: Any temporary values need to be in settings
-# TODO: abstract some stepts into functions
+# TODO: abstract some steps into functions
 # TODO: Research how to properly handle exceptions when multiprocessing
 # TODO: stress what 'spectrum_index' and 'native_id' mean
 # TODO: should we delete invalid envelopes?
@@ -61,8 +62,8 @@ from obs.id import ID
 
 
 def extract(settings_path, mzml_path, index_to_ID, chunk):
-    '''Extract data from the mzml according to the identification information
-    '''
+    """Extract data from the mzml according to the identification information
+    """
     # A rough outline of how the logic flows.
     # EXTRACT:
     # for each scan in the reader
@@ -95,24 +96,24 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
     lo_rt_bound = chunk.at[0, 'rt'] - settings.time_window
     if lo_rt_bound < 0:
         lo_rt_bound = 0
-    hi_rt_bound = chunk.at[len(chunk)-1, 'rt'] + settings.time_window
+    hi_rt_bound = chunk.at[len(chunk) - 1, 'rt'] + settings.time_window
 
     # Search for the scans at the high and low retention time bounds
     lo_spec_idx = dml.retention_time_search(mzml_fp, index_to_ID, lo_rt_bound)
     hi_spec_idx = dml.retention_time_search(mzml_fp, index_to_ID, hi_rt_bound)
-##    if mzml_fp[index_to_ID[hi_spec_idx]] > hi_rt_bound:
-##        hi_spec_idx = hi_spec_idx - 1
+    # if mzml_fp[index_to_ID[hi_spec_idx]] > hi_rt_bound:
+    #     hi_spec_idx = hi_spec_idx - 1
 
     # Logic block for handling out-of-bounds indices
     if lo_spec_idx != -1 and hi_spec_idx != -1:
         # Do nothing if both indices are in bounds
         pass
     elif lo_spec_idx == -1 and hi_spec_idx != -1:
-        # If the just the higher index is found, assign the lowest index in
+        # If just the higher index is found, assign the lowest index in
         #   the mzml to 'lo_spec_idx'
         lo_spec_idx = mzml_bounds['idx_min']
     elif lo_spec_idx != -1 and hi_spec_idx == -1:
-        # If the just the lower index is found, assign the highest index in
+        # If just the lower index is found, assign the highest index in
         #   the mzml to 'hi_spec_idx'
         hi_spec_idx = mzml_bounds['idx_max']
     elif lo_rt_bound < mzml_bounds['rt_min'] < \
@@ -130,10 +131,10 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
 
     ids = []  # initialize the list of identifications
 
-    # TODO: redefine this column as ionmass?
+    # TODO: redefine this column as ionMass?
     chunk['mass'] = chunk['mz'] * chunk['z']
 
-    # Instantiate all of the identifications in the chunk
+    # Instantiate all the identifications in the chunk
     for row in chunk.itertuples(index=True):
         ids.append(
             ID(
@@ -142,11 +143,11 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
                 mass=row.mass,
                 z=row.z,
                 n_isos=row.n_isos,
-                #cf=row.cf
+                # cf=row.cf
             )
         )
 
-    # Iterate through all of the relevent spectrums in the mzml
+    # Iterate through all the relevant spectra in the mzml
     for spectrum_index in dmt.inclusive_range(lo_spec_idx, hi_spec_idx):
         # apply the index_to_ID map in order to access the correct spectrum
         native_id = index_to_ID[spectrum_index]
@@ -169,9 +170,9 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
         # adding and subtracting the floating point error tolerance allows us
         # to include the extremes of the range
         local_window_min = \
-            spec_rt - (settings.time_window)  # + settings.fpe_tolerance)
+            spec_rt - settings.time_window  # + settings.fpe_tolerance)
         local_window_max = \
-            spec_rt + (settings.time_window)  # + settings.fpe_tolerance)
+            spec_rt + settings.time_window  # + settings.fpe_tolerance)
         try:
             lo_slice_index = \
                 min(chunk[chunk['rt'] > local_window_min].axes[0].tolist())
@@ -221,7 +222,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
                         spec_mzs,
                         id.mz + settings.baseline_lookback
                     )
-                    
+
                 # TODO: Do I need to speed this up by removing typecheck?
                 # TODO: Expand this to only one paren/bracket per line?
                 if abs(spec_mzs[index] - search_mz) < reach:
@@ -248,19 +249,23 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             #   identification (after determining the baseline)
             # NOTE: baseline is defined as the median abundance of the 100
             #   mz units preceding the m0 peak
-            
+
             # CQ: Changing baseline to be the MAD of 100 m/z datapoints ahead and behind m0 peak.
             # Adapted from Marginean, I; Tang, K; Smith, RD.; Kelly, R; Picoelectrospray Ionization Mass Spectrometry
             #   Using Narrow-Bore Chemically Etched Emitters, ASMS, 2013
-            
+
             def mad(values):
                 m = median(values)
-                return median([abs(a-m) for a in values])
-            lookback_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookback, hi_baseline_lookback)] if l != 0][-100:]
-            lookahead_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookahead, hi_baseline_lookahead)] if l != 0][1:101]
-            
+                return median([abs(a - m) for a in values])
+
+            lookback_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookback, hi_baseline_lookback)] if
+                                 l != 0][-100:]
+            lookahead_baseline = [l for l in spec_abs[dmt.inclusive_slice(lo_baseline_lookahead, hi_baseline_lookahead)]
+                                  if l != 0][1:101]
+
             normal_distribution_scale_factor = 1.4826
-            envelope.baseline = normal_distribution_scale_factor * mad(lookback_baseline + lookahead_baseline)  # lookback_baseline + lookahead_baseline  #
+            envelope.baseline = normal_distribution_scale_factor * mad(
+                lookback_baseline + lookahead_baseline)  # lookback_baseline + lookahead_baseline  #
 
             try:
                 id.append_envelope(envelope)
@@ -290,7 +295,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
     for row in peak_out.itertuples():
         i = row.Index
         id = ids[i]
-        
+
         if id.condensed_envelope:
             mzs, abundances = id.condensed_envelope.to_obs()
             lb_mzs, lb_abundances = id.condensed_envelope.lb_obs()
@@ -309,7 +314,8 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             peak_out.at[i, 'num_scans_combined'] = len(id._envelopes)
         if id._unfiltered_envelopes and len([id._unfiltered_envelopes[a] for a in
                                              range(len(id._unfiltered_envelopes))
-                                             if id._unfiltered_envelopes[a].is_valid]) >= settings.min_envelopes_to_combine:
+                                             if id._unfiltered_envelopes[
+                                                 a].is_valid]) >= settings.min_envelopes_to_combine:
             mz = [[id._unfiltered_envelopes[k]._peaks[j].mz
                    for j in
                    range(0, len(id._unfiltered_envelopes[k]._peaks))]
@@ -320,12 +326,12 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
                   for k in range(len(id._unfiltered_envelopes))]
             rt = [id._unfiltered_envelopes[k].rt for k in range(len(id._unfiltered_envelopes))]
             baseline_list = [id._unfiltered_envelopes[k].baseline for k in range(len(id._unfiltered_envelopes))]
-    
+
             peak_out.at[i, 'mzs_list'] = mz
             peak_out.at[i, 'intensities_list'] = ab
             peak_out.at[i, 'rt_list'] = rt
             peak_out.at[i, 'baseline_list'] = baseline_list
-            
+
             # Clear the envelopes to save some space. :)
             id._unfiltered_envelopes = None
         peak_out.at[i, 'mzml_path'] = mzml_path

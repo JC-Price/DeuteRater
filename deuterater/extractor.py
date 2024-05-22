@@ -42,7 +42,7 @@ import multiprocessing as mp
 from pathlib import Path  # noqa: 401
 import os
 import traceback
-import warnings   # noqa: 401
+import warnings  # noqa: 401
 
 from math import ceil
 from operator import mul
@@ -50,14 +50,14 @@ from operator import mul
 import deuterater.settings as settings
 import utils.mzml as dml
 import utils.extract as due
-from utils.exc import InvalidHeaderError   # noqa: 401
-
+from utils.exc import InvalidHeaderError  # noqa: 401
 
 PROTON = 1.007276467
 
+
 # as with all the calculation steps this is a class for consistent calls in the main
 class Extractor:  # TODO name change
-    '''Class that handles extracting the relevant data from an mzml file.
+    """Class that handles extracting the relevant data from an mzml file.
 
     TODO: Add more info on what this does/how it differs from extract
 
@@ -77,7 +77,8 @@ class Extractor:  # TODO name change
     model : :obj:`pandas.Dataframe`
         The aggregation of the data extracted from `ids` and `mzml`
 
-    '''
+    """
+
     def __init__(self, settings_path, id_path, mzml_path, out_path):
         """
         Parameters
@@ -109,7 +110,7 @@ class Extractor:  # TODO name change
         self.model = pd.DataFrame()
 
         # the try except is mostly to catch programming errors in the setup.
-        #  there isn't a reasonable error (except the final raise permissionerror but
+        #  there isn't a reasonable error (except the final raise permission error but
         #  that doesn't need the try except)
         try:
             if settings.recognize_available_cores is True:
@@ -200,14 +201,14 @@ class Extractor:  # TODO name change
                 return 4
             else:
                 return 5
-        
+
         # there are some things the input we need to autofill if the user does not have them
         # we'll do this with neutromers_to_extract only.  we'll deal with the rest elsewhere
         def autofill(row):
             if np.isnan(row['neutromers_to_extract']) or row['neutromers_to_extract'] == "":
                 row['neutromers_to_extract'] = num_peaks_by_mass(row["Peptide Theoretical Mass"])
             return row
-        
+
         self.ids = self.ids.apply(autofill, axis=1)
         self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(
             np.int8)  # TODO: Temp value, see note at top of files
@@ -225,7 +226,7 @@ class Extractor:  # TODO name change
         # until the ID files are gigabytes in size
         if trim:
             mask = (self._mzml_rt_min - self._rt_window < self.ids['rt']) \
-                & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
+                   & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
             self.ids = self.ids[mask]
             self.ids.reset_index(inplace=True, drop=True)
 
@@ -234,7 +235,7 @@ class Extractor:  # TODO name change
 
         try:
             self._id_chunks = [
-                self.ids.loc[i:i+self._chunk_size-1, :].copy() for i in range(
+                self.ids.loc[i:i + self._chunk_size - 1, :].copy() for i in range(
                     0, len(self.ids.index), self._chunk_size
                 )
             ]
@@ -242,7 +243,7 @@ class Extractor:  # TODO name change
             print("Supplied ID File has no ID's that can be extracted with the current settings.")
             print("Please loosen the settings and/or include more ID's in the supplied file.")
             exit(2)
-        
+
         for chunk in self._id_chunks:
             keep_cols = [
                 'Precursor m/z',
@@ -329,7 +330,8 @@ class Extractor:  # TODO name change
                     )
                 )
             except Exception as e:
-                print("The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
+                print(
+                    "The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
 
         if settings.debug_level >= 1:
             print('Beginning single-processor extraction.')
@@ -358,10 +360,10 @@ class Extractor:  # TODO name change
                 left_index=True,
                 right_on='id_index'
             )
-            
+
         self._mp_pool.close()
         self._mp_pool.join()
-    
+
 
 def main():
     print('please use the main program interface')
