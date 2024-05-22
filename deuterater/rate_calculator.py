@@ -441,12 +441,10 @@ class RateCalculator:
         except Exception as c:
             # $"we have a guess but are unsure" warning
             if type(c).__name__ == "OptimizeWarning":
-                current_exception = \
-                    'OptimizeWarning: optimal fit could not be found'
+                current_exception = 'OptimizeWarning: optimal fit could not be found'
             # $couldn't find the minimum
             elif type(c).__name__ == "RuntimeError":
-                current_exception = \
-                    'fit could not be found'
+                current_exception = 'fit could not be found'
             else:
                 raise c  # $will stop here so don't need to consider further
             result = RateCalculator._make_error_message(

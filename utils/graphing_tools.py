@@ -106,7 +106,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                       '+COOH-': 'y',
                       'M+H-[H2O]': 'coral',
                       '+e-': 'dodgerblue',
-                      "M+Na-[H2O]": 'gold',
+                      "M+Na-[H2O]": 'fuchsia',
                       "M+NH4-[H2O]": 'lime',
                       '-H2O': 'slateblue'}
 
@@ -141,6 +141,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                     x = charge_data['time']
                     y = charge_data['abund_fn']
                     label = f'{rep}_z{charge}_{adduct} n={n_val}'
+                    plt.ylim(0, 1)
                     if should_fill:
                         plt.scatter(x, y, marker=shape,
                                     facecolor=color, edgecolor='k',
@@ -169,7 +170,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         #         'size': 16}
         #
         # plt.rc('font', **font)
-        # plt.tight_layout()
+        plt.tight_layout()
         plt.savefig(filename[:-4] + ".png")
         plt.savefig(filename[:-4] + ".svg")
 
