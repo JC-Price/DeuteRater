@@ -110,12 +110,10 @@ fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
                                                "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                                "sample_group"])
 # TODO: what lipid columns do we need here? - Ben D
-rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein ID", "Protein Name",
-                                                            "Sequence", "n_isos", "time", "sample_id",
-                                                            "Time Enrichment", "Enrichment Values",
-                                                            "abundances",
-                                                            "Theoretical Unlabeled Normalized Abundances",
-                                                            "n_isos", "literature_n"],
+rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein_ID", "Protein_Name",
+                                                            "Sequence", "n_isos", "time", "sample_group", "enrichment",
+                                                            "abundances", "Theoretical Unlabeled Normalized Abundances",
+                                                            "n_isos", "n_value"],
                                    [])
 protein_rate_combination = deuterater_step("Final_Protein_Rates.csv", [
     "Subject ID", "Protein ID", "Protein Name", "Sequence", "Abundance rate",
@@ -470,22 +468,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
                     self.get_data_table.exec_()
 
-                    if os.path.isfile(previous_output_file):
-                        enrichment_graph_folder = os.path.dirname(previous_output_file)
-                        enrichment_graph_folder = os.path.join(enrichment_graph_folder,
-                                                               "Enrichment_Graphs")
-                        self.make_folder(enrichment_graph_folder)
-                        # TODO: Ask JC if this is important to keep
-                        # enrichment_class = PerformEnrichmentClass(previous_output_file, enrichment_graph_folder,
-                        #                                           settings.graph_output_format)
-                        # enrichment_class.perform_calculations()
-                        # spline_error = enrichment_class.report_error()
-                        # if spline_error != "":
-                        #     QtWidgets.QMessageBox.information(self, "Error", spline_error)
-                        #     return
-                    else:
-                        return
-
                     # don't make the table twice
                     make_table_in_order = False
                     # now that the table is done we need to confirm the user
@@ -542,23 +524,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 self.get_data_table = TimeEnrichmentWindow(self,
                                                            extracted_files, previous_output_file)
                 self.get_data_table.exec_()
-
-                # now that we have all the data we can graph the results in case the user wishes to view the data
-                if os.path.isfile(previous_output_file):
-                    enrichment_graph_folder = os.path.dirname(previous_output_file)
-                    enrichment_graph_folder = os.path.join(enrichment_graph_folder,
-                                                           "Enrichment_Graphs")
-                    self.make_folder(enrichment_graph_folder)
-                    # enrichment_class = PerformEnrichmentClass(previous_output_file, enrichment_graph_folder,
-                    #                                           settings.graph_output_format)
-                    # enrichment_class.perform_calculations()
-                    # spline_error = enrichment_class.report_error()
-                    # if spline_error != "":
-                    #     QtWidgets.QMessageBox.information(self, "Error", spline_error)
-                    #     return
-
-                else:
-                    return
 
             # now we need to merge the various extracted files into one file
             # for future analysis

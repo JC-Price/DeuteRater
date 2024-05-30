@@ -160,7 +160,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     from matplotlib.font_manager import FontProperties
     font = FontProperties()
     font.set_size("small")
-    plt.legend(prop=font)
+    # plt.legend(prop=font)
     # plt.legend(prop={"size": 12})
     try:
         filename = os.path.join(save_folder_name, name)
