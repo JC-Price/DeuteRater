@@ -49,7 +49,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         self.ProceedButton.clicked.connect(self.check_and_save)
 
         # $make some easy shortcuts. setting up undo and redo are the hardest
-        # $conly do backspace, del, copy and paste for right now
+        # $only do backspace, del, copy and paste for right now
         QtWidgets.QShortcut(QtGui.QKeySequence('Backspace'),
                             self).activated.connect(self.Clear_Contents)
         QtWidgets.QShortcut(QtGui.QKeySequence('Del'),

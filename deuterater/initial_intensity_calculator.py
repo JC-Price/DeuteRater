@@ -159,12 +159,12 @@ class theoretical_enrichment_calculator(object):
             else:
                 output_series["Adduct_cf"] = row.Adduct_cf
             # drop rows we will not use before doing any compiles calculations
-            if biomolecule_type == "Peptide" and row.Sequence < minimum_sequence_length:
+            if biomolecule_type == "Peptide" and len(row.Sequence) < minimum_sequence_length:
                 variable_list.append(_error_message_results(
                     f"Sequence is less than {minimum_sequence_length} amino acids",
                     output_series))
                 continue
-            if row.n_value < minimum_n_value:
+            if biomolecule_type == "Lipid" and row.n_value < minimum_n_value:
                 variable_list.append(_error_message_results(
                     f"less than {minimum_n_value} labeling sites",
                     output_series))

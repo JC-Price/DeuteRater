@@ -97,7 +97,7 @@ class FractionNewCalculator:
         if biomolecule_type == "Peptide":
             itertuple_renamer = copy(protein_itertuple_renamer)
             settings.use_empir_n_value = False
-        elif biomolecule_type == "Lipid":
+        else:
             itertuple_renamer = copy(lipid_itertuple_renamer)
 
         self.biomolecule_type = biomolecule_type
@@ -132,6 +132,7 @@ class FractionNewCalculator:
 
         # self.model.rename(columns=itertuple_renamer, inplace=True)
         self.out_path = out_path
+        self.model = self.model.rename(columns=itertuple_renamer)
 
     def write(self):
         self.model.to_csv(
@@ -148,7 +149,6 @@ class FractionNewCalculator:
         if self.biomolecule_type == "Peptide":
             self.model = self.model.drop(peptide_extra_columns_to_drop, axis=1,
                                          errors="ignore")
-
         if self.model["n_value"].isnull().all().all():
             self.error = ("N value is not present.  "
                           "Please ensure the n value has been provided in the "
@@ -200,7 +200,6 @@ class FractionNewCalculator:
                     self._mp_pool.imap_unordered(func, model_pieces),
                     total=len(self.model), desc="Fraction New Calculation: "
                 )
-
             )
 
         if settings.debug_level >= 1:
@@ -233,9 +232,10 @@ class FractionNewCalculator:
         settings.load(settings_path)
 
         # Remove NaN values for row.n_value and replace with error code -4
+        df.rename(columns={"literature_n": "n_value"})
         df['n_value'] = df['n_value'].fillna(int(-4))
 
-        # $can start with itertuples.  if need be can swap to apply
+        # $can start with itertuples. If need be can swap to apply
         for row in df.itertuples(index=True):
 
             if settings.remove_filters:

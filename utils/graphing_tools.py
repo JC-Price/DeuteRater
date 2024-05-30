@@ -169,7 +169,7 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         #         'weight': 'normal',
         #         'size': 16}
 
-            # BD: using an index and dictionary to automatically ass
+        # BD: using an index and dictionary to automatically assign.
         #
         # plt.rc('font', **font)
         plt.tight_layout()

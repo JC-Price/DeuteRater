@@ -278,6 +278,8 @@ class CombineExtractedFiles:
             # full_df.loc[full_df.index, "n_value"] = full_df["n_value"]
             
             full_df = full_df.rename(columns={'n_value_y': 'n_value'})
+            if self.biomolecule_type == "Peptide":
+                full_df.drop("calculate_n_value", axis=1, inplace=True)
             self.model = full_df
 
         self._mp_pool.close()

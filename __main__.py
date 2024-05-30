@@ -94,7 +94,7 @@ Combine_object = deuterater_step("combined_extracted_files_output.tsv",
 delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos", "time", "literature_n",
-    "Sequence", "cf", "abundances", "mzs", "sample_id", "Time Enrichment", "Enrichment Values"],
+    "Sequence", "cf", "abundances", "mzs", "sample_group", "enrichment"],
                                       ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
                                        "Identification Charge", "LMP", "HMP", "n_isos", "n_value",
                                        "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
@@ -132,8 +132,7 @@ step_object_dict = {
     "Combine Extracted Files": Combine_object,
     "Calculate Baseline Enrichment": delta_by_enrichment,
     "Calculate Fraction New": fraction_new_calculation,
-    "Rate Calculation": rate_calculation,
-    "Combine Sequence Rates": protein_rate_combination
+    "Rate Calculation": rate_calculation
 }
 #  converter only does something other than make a file with a header for 
 # id files made with Peaks.  each version is slightly different so needs a different
@@ -157,7 +156,7 @@ default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
 protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start',
                             'rt_end', 'rt_width', 'Precursor m/z',
-                            'theoretical_mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc',
+                            'Peptide Theoretical Mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc',
                             'num_peptides',
                             'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version',
                             'cf',
@@ -659,11 +658,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     # step_object_dict["Calculate Fraction New"].lipid_required_columns.append('n_val_calc_n')
 
                     # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
-                    try:
-                        if biomolecule_type == "Peptide":
-                            step_object_dict["Calculate Fraction New"].peptide_required_columns.remove('empir_n')
-                    except:
-                        print("oops...")
                     infile_is_good = self.check_input(
                         step_object_dict["Calculate Fraction New"],
                         previous_output_file, biomolecule_type)
@@ -722,36 +716,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 ratecalc.write()
                 del ratecalc
                 previous_output_file = step_object_dict[analysis_step].full_filename
-
-            # last thing to do is to roll up the proteins
-            # TODO: Do we need a process to roll up lipids? - Ben Driggs
-            elif analysis_step == "Combine Sequence Rates":
-                if previous_output_file == "":
-                    previous_output_file = self.collect_single_file(
-                        "Rate Calculation",
-                        analysis_step,
-                        "spreadsheet (*.csv *.tsv)"
-                    )
-                    if previous_output_file == "":
-                        return
-
-                    infile_is_good = self.check_input(
-                        step_object_dict[analysis_step],
-                        previous_output_file, biomolecule_type)
-                    if not infile_is_good:
-                        return
-                GraphFolder_averages = os.path.join(self.file_loc, "Graph_Folder_Protein_Averages")
-                self.make_folder(GraphFolder_averages)
-
-                combine_rate_calc = Peptides_to_Proteins(
-                    model_path=previous_output_file,
-                    out_path=step_object_dict[analysis_step].full_filename,
-                    settings_path=rate_settings_file,
-                    graph_folder_path=GraphFolder_averages
-                )
-                combine_rate_calc.calculate()
-                combine_rate_calc.write()
-                del combine_rate_calc
 
         QtWidgets.QMessageBox.information(self, "Success",
                                           "Analysis completed successfully")
