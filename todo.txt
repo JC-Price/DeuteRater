@@ -1,0 +1,35 @@
+- replace rate_calculator.py DONE
+- bring in n-value calculator DONE
+- simplify time and enrichment input table, add option for calculating n-values DONE
+- remove converters and other templates DONE
+- add option to gui for selecting peptide or lipid default settings DONE
+- add fraction new calculator module DONE
+
+- set default settings for peptides and lipids
+- run full tests for peptides and lipids
+- test running each step individually
+- update ReadMe...
+- update license in each module
+- package and publish on GitHub
+- add Ion Mobility
+
+*** Ask JC about ***
+- Determine default settings for peptides and lipids
+
+
+Settings Changes
+
+1. First, go through the settings for the latest DR version and the Human version
+2. Take note of which settings are exclusive to each and which settings are included in both but have different names
+3. Record where each setting is used in its respective DR version
+4. Determine whether we should keep, remove, or add setting to DR v6
+    - we can probably remove any settings from DR Human if they are only used in the rate_calculator_human or if they are commented out in __main__.py
+    - we probably need to add
+
+ *** Theoretical Unlabeled Normalized Abundances, theory_unlabeled_abunds, theory_labeled_abunds, normalized_empirical_abundances,
+ and low_labeling_peaks have mixed types. Specify dtype option on import or set low_memory=False
+
+Name changes:
+- rate_output_format to graph_output_format
+- study_type to label_key
+- use_abundance to protein_combination_method

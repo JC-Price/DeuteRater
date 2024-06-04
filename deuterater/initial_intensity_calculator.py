@@ -107,13 +107,9 @@ class theoretical_enrichment_calculator(object):
             index=False
         )
 
-        # run the analysis.  this function doesn't have any calculation itself (other than merging, transposing,
-        # and setting index of the results)
-
-    # it prepares a function for multiprocessing and then begins the multiprocessing
+    # Run the analysis. This function doesn't have any calculation itself (other than merging, transposing,
+    # and setting index of the results) it prepares a function for multiprocessing and then begins the multiprocessing
     def prepare(self):
-        # TODO: Determined we don't want to drop any from lipid data. Do we need to drop Sequence duplicates for
-        #  peptides?. - Ben D
         if self.biomolecule_type == "Peptide":
             unique_molecules_df = self.data_df.drop_duplicates(subset=["Sequence"])
         else:

@@ -61,6 +61,10 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
 
         self.setWindowTitle("Time Enrichment Table")
 
+        # resizes columns to fit data
+        self.TimeEnrichmentTable.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.TimeEnrichmentTable.resizeColumnsToContents()
+
     # $ initial table set up
     def set_up_table(self, row_names):
         # $block signals so if we use undo and redo the basic table is unaffected
@@ -69,8 +73,12 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         # self.TimeEnrichmentTable.setHorizontalHeaderLabels(current_columns)
         self.TimeEnrichmentTable.setRowCount(len(row_names))
         for n in range(len(row_names)):
-            # $make an item
-            name_item = QtWidgets.QTableWidgetItem(row_names[n])
+            # only grab the base file name to display on the table. Tried using the following code to make it right justified
+            # to see the file name, but it didn't work. - Ben D
+            # name_item.setTextAlignment(QtCore.Qt.AlignRight)
+            base_name = os.path.basename(row_names[n])
+            # make an item
+            name_item = QtWidgets.QTableWidgetItem(base_name)
             # $ this makes the item uneditable so the user can't mess it up
             # $ from https://stackoverflow.com/questions/17104413/pyqt4-how-to-
             # $ select-table-rows-and-disable-editing-cells anser 2 accessed 9/25/20
@@ -188,6 +196,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         for c in range(needed_columns):
             for r in range(needed_rows):
                 self.TimeEnrichmentTable.item(start_row + r, start_column + c).setText(text_grid[r][c])
+        self.TimeEnrichmentTable.resizeColumnsToContents()
 
     # $ does some basic error checking for numerical data
     @staticmethod

@@ -154,7 +154,8 @@ default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
 protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start',
                             'rt_end', 'rt_width', 'Precursor m/z',
-                            'Peptide Theoretical Mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc', 'end_loc',
+                            'Peptide Theoretical Mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc',
+                            'end_loc',
                             'num_peptides',
                             'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version',
                             'cf',
@@ -500,13 +501,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             #  to 
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 # if coming right after a list
-                if extracted_files == []:
+                if not extracted_files:
                     extracted_files = self.collect_multiple_files(
                         "Extracted Data",
                         analysis_step,
                         "TSV (*.tsv)"
                     )
-                    if extracted_files == []:
+                    if not extracted_files:
                         return
                     # ensure the input files are good. only need to deal with
                     # if the user just selected instead of extracting fresh
@@ -521,8 +522,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 # the table will handle the output
                 previous_output_file = step_object_dict[
                     analysis_step].full_filename
-                self.get_data_table = TimeEnrichmentWindow(self,
-                                                           extracted_files, previous_output_file)
+                self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
                 self.get_data_table.exec_()
 
             # now we need to merge the various extracted files into one file
@@ -769,7 +769,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.set_menu.show()
 
     # checks if a file exists, and if we can actually do so.  if we can't
-    # an error will be triggered later so we'll sort that out here.  
+    # an error will be triggered later, so we'll sort that out here.
     # has the advantage of deleting the files so the user can't open a file between now and when we write it
     # ask the user about this for everything but settings (that is dealt with better in the run_rate_worklist function)
     def check_file_removal(self, list_of_filenames, ask_permission=True):
@@ -780,7 +780,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             if os.path.exists(filename):
                 files_to_remove.append(filename)
         # $let the user decide if we should continue.
-        if files_to_remove != []:
+        if files_to_remove:
             if ask_permission:
                 proceed = self.large_text_question_for_use("Some files already exist and will be overwritten.",
                                                            "Do you still wish to proceed?",
@@ -792,15 +792,15 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     os.remove(filename)
                 except PermissionError:
                     open_files.append(filename)
-            if open_files != []:
+            if open_files:
                 self.large_text_information("Error", "Some files cannot be overwritten.\n\n "
                                                      "They are likely open in another program. Please close "
                                                      "and try again.",
                                             "Files unable to be opened:\n" + ",\n".join(open_files))
 
                 return False
-        # $will return true if no files already exist or the user wants to
-        # $overwrite and they can be removed so we have permission
+        # will return true if no files already exist or the user wants to
+        # overwrite, and they can be removed, so we have permission
         return True
 
     # check a given input file has the headers we need
@@ -808,8 +808,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         has_needed_columns = relevant_object.check_input_file(filename, biomolecule_type)
         if not has_needed_columns:
             QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                              "missing needed columns. Please correct and try again".format(
-                filename)))
+                                                              "missing needed columns. Please correct and try again".format(filename)))
         return has_needed_columns
 
     # there are cases (specifically the enrichment table referencing extracted files) where there
@@ -828,14 +827,13 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 if row[filename_column] != "" and not os.path.exists(row[filename_column]):
                     QtWidgets.QMessageBox.information(self, "Error", (f"File {row[filename_column]} "
                                                                       "could not be found. Please correct input file and try "
-                                                                      "again"
-                                                                      ))
+                                                                      "again"))
                     return False
         return True
 
     # ensures a folder exists by making it if it does not.
     def make_folder(self, folder, non_graph=False):
-        if non_graph:  # don't care aobut overwriting graph folder, that is necessary.   the main output folder might have necessary things in it the user wants to keep
+        if non_graph:  # don't care about overwriting graph folder, that is necessary.   the main output folder might have necessary things in it the user wants to keep
             if not os.path.isdir(folder):
                 os.makedirs(folder)
         else:
@@ -888,7 +886,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         aa_labeling_dict = aa_label_df.loc[converter_settings.study_type,].to_dict()
 
         elem_df = pd.read_csv(converter_settings.elems_path, sep='\t')
-        # This is necessary if we have all of the different isotopes in the tsv
+        # This is necessary if we have all the different isotopes in the tsv
         element_index_mask = [
             0,  # Hydrogen
             10,  # Carbon-12
