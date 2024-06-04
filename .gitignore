@@ -1,9 +1,9 @@
-/log.txt
-/test.py
-/BCM1_NZ1100_ID_file.csv
+/utils/log.txt
+/test_data/*
+/test_data/BCM1_NZ1100_ID_file.csv
 /n_value_debug_data.tsv
 /n_value_debug_data_nvalue.tsv
-/NZ1100_APOE2_Cyto_A2D0M1__HighB_kin_nomr_rep1O1.mzML
+/test_data/NZ1100_APOE2_Cyto_A2D0M1__HighB_kin_nomr_rep1O1.mzML
 utils/__pycache__/
 gui_software/__pycache__/
 deuterater/__pycache__/
