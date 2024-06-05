@@ -44,6 +44,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
 
         self.outfile = outfile
 
+        self.originalFileNames = filenames
         self.set_up_table(filenames)
         self.CancelButton.clicked.connect(self.close)
         self.ProceedButton.clicked.connect(self.check_and_save)
@@ -93,6 +94,10 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
     # $we can just write out a .csv or .tsv with the csv module
     # $first we need to do some checks
     def check_and_save(self):
+        # replace shortened filenames with original full paths - Ben D
+        for i in range(len(self.originalFileNames)):
+            self.TimeEnrichmentTable.setItem(i, 0, QtWidgets.QTableWidgetItem(self.originalFileNames[i]))
+
         results = [current_columns]
         for r in range(self.TimeEnrichmentTable.rowCount()):
             # $filename is not editable so can be ignored
