@@ -55,7 +55,6 @@ from utils.chromatography_division import ChromatographyDivider
 from utils.useful_classes import deuterater_step
 import deuterater.settings as settings
 from gui_software.Rate_Settings import Rate_Setting_Menu
-import deuteconvert.settings as converter_settings
 
 # location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.abspath(__file__))
@@ -166,10 +165,10 @@ protein_template_example = ['EGIVALR', 'P80317', 'T-complex protein 1 subunit ze
                             'Mus musculus OX=10090',
                             'Cct6a ', '1', '3', 'C33H60N10O10', '3', '15.66']
 lipid_converter_header = ['Lipid Name', 'Lipid Unique Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
-                          "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'literature_n',
-                          'Adduct', 'Adduct_cf', 'Matched_Results_Analysis', 'Matched_Details_Replicates_Used']
+                          "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'n_value',
+                          'Matched_Results_Analysis', 'Matched_Details_Replicates_Used', 'Adduct', 'Adduct_cf']
 lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
-                          '1', '', '', 'C7H16NO2', '3', '', 'M+H', 'C7H17NO2', '', '']
+                          '1', '', '', 'C7H16NO2', '3', '', '', '', 'M+H', 'C7H17NO2']
 
 # prepare the gui
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
