@@ -44,7 +44,7 @@ from tqdm import tqdm  # noqa: 401
 import deuterater.settings as settings
 import utils.NValueCalculator as nvct
 
-import deuteconvert.peptide_utils as peputils
+import resources.peptide_utils as peputils
 
 '''
 After the data is extracted form mzmls we need to prepare it for future analysis

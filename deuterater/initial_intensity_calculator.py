@@ -54,7 +54,7 @@ from functools import partial
 from utils.emass import emass
 import deuterater.settings as settings
 import utils.NValueCalculator as nvct
-import deuteconvert.peptide_utils as peptide_utils
+import resources.peptide_utils as peptide_utils
 
 max_isos = 5  # constant based on the n_isos based on the mass (done in the extractor)
 p0_guess = 1  # seems to work for most fits. if it causes problems we can adjust

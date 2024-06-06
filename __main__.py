@@ -43,7 +43,7 @@ from tqdm import tqdm
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile, rmtree
 
-import deuteconvert.peptide_utils as peputils
+import resources.peptide_utils as peputils
 from deuterater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from deuterater.combine_extracted_files import CombineExtractedFiles
