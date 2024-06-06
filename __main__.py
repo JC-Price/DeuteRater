@@ -43,7 +43,6 @@ from tqdm import tqdm
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from shutil import copyfile, rmtree
 
-import deuteconvert.peptide_utils as peputils
 from deuterater.extractor import Extractor
 from gui_software.Time_Enrichment_Table import TimeEnrichmentWindow
 from deuterater.combine_extracted_files import CombineExtractedFiles
@@ -55,10 +54,10 @@ from utils.chromatography_division import ChromatographyDivider
 from utils.useful_classes import deuterater_step
 import deuterater.settings as settings
 from gui_software.Rate_Settings import Rate_Setting_Menu
-import deuteconvert.settings as converter_settings
+import resources.peptide_utils as peputils
 
-# location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.abspath(__file__))
+location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.abspath(__file__))
 
 # set locations for the various settings files
 rate_settings_file = os.path.join(location, "resources", "temp_settings.yaml")

@@ -42,6 +42,7 @@ governs the settings menu including:
 # Todo: refactor load settings functions so we don't have duplicated code - Ben D
 
 import os
+import sys
 
 from PyQt5 import uic, QtWidgets
 
@@ -49,8 +50,8 @@ import deuterater.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_string_info
 
 
-# location = os.path.dirname(os.path.abspath(sys.executable))
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 default_peptide_rate_settings = os.path.join(location, "resources", "peptide_settings.yaml")
 default_lipid_rate_settings = os.path.join(location, "resources", "lipid_settings.yaml")
 

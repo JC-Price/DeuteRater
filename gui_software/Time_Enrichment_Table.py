@@ -16,7 +16,7 @@ from PyQt5 import uic, QtWidgets, QtCore, QtGui
 
 # when compiling/building for an executable, set all of these to True, otherwise leave as False
 # copy "exe_mode = False" and search using ctrl+shift+f to find each instance
-exe_mode = False
+exe_mode = True
 if exe_mode:
     location = os.path.dirname(os.path.abspath(sys.executable))
 else:

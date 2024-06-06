@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import yaml
 import traceback
 import os
+import sys
 
 from pathlib import Path
 
@@ -50,7 +51,8 @@ the third is the freeze function which allows saving the variables
 
 """
 
-location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+location = os.path.dirname(os.path.abspath(sys.executable))
+# location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
 # TODO: go through settings and make sure they can be used for both proteins and lipids. - Ben D
