@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import sys
 import multiprocessing as mp
+mp.freeze_support()
 import numpy as np
 import csv
 import pandas as pd
@@ -486,7 +487,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
-                    # need to delete classes when they're done or they may linger in RAM
+                    # need to delete classes when they're done, or they may linger in RAM
                     del extractor
                 # this takes awhile so only bother with it if necessary
                 if settings.use_chromatography_division != "No":
@@ -863,10 +864,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 break
         else:
             perform_autofill = False
-        if perform_autofill:
-            result = self.autofill(df, filename, bad_column)
-            if not result:
-                return result
+
+        # TODO: Do we need this feature? - Ben D
+        # if perform_autofill:
+        #     result = self.autofill(df, filename, bad_column)
+        #     if not result:
+        #         return result
 
         return True
 

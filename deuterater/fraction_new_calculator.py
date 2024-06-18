@@ -35,6 +35,7 @@ import pandas as pd
 import numpy as np  # noqa
 from copy import copy
 import multiprocessing as mp
+mp.freeze_support()
 
 from functools import partial
 

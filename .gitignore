@@ -13,3 +13,8 @@ deuteconvert/__pycache__/
 .idea/
 __pycache__/
 /utils/frac_new_analysis.py
+/build/*
+/dist/*
+spec.txt
+__main__.spec
+log.txt

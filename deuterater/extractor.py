@@ -50,9 +50,11 @@ from operator import mul
 import deuterater.settings as settings
 import utils.mzml as dml
 import utils.extract as due
-from utils.exc import InvalidHeaderError  # noqa: 401
+from utils.exc import InvalidHeaderError  # noqa: 401mp.freeze_support()
 
 PROTON = 1.007276467
+
+mp.freeze_support()
 
 
 # as with all the calculation steps this is a class for consistent calls in the main
@@ -284,6 +286,7 @@ class Extractor:  # TODO name change
             If the file does not exist
 
         """
+
         # Open a pointer to the specified mzml file
         mzml_fp = pymzml.run.Reader(
             path_or_file=self.mzml_path,

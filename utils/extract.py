@@ -169,15 +169,11 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
         # determine id indices of peaks searches
         # adding and subtracting the floating point error tolerance allows us
         # to include the extremes of the range
-        local_window_min = \
-            spec_rt - settings.time_window  # + settings.fpe_tolerance)
-        local_window_max = \
-            spec_rt + settings.time_window  # + settings.fpe_tolerance)
+        local_window_min = spec_rt - settings.time_window  # + settings.fpe_tolerance)
+        local_window_max = spec_rt + settings.time_window  # + settings.fpe_tolerance)
         try:
-            lo_slice_index = \
-                min(chunk[chunk['rt'] > local_window_min].axes[0].tolist())
-            hi_slice_index = \
-                max(chunk[chunk['rt'] < local_window_max].axes[0].tolist())
+            lo_slice_index = min(chunk[chunk['rt'] > local_window_min].axes[0].tolist())
+            hi_slice_index = max(chunk[chunk['rt'] < local_window_max].axes[0].tolist())
         except:
             continue
 
@@ -200,7 +196,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             peak_range_start = 0 - settings.peak_lookback
             peak_range_end = id.n_isos + settings.peak_lookahead
 
-            # Iterate through all of the peaks we want to look for
+            # Iterate through all the peaks we want to look for
             for peak_num in range(peak_range_start, peak_range_end):
                 # define the mz to search for in the spectrum
                 search_mz = id.mz + (peak_num * NEUTRON / charge)
@@ -294,38 +290,37 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
     # Populate valid rows.
     for row in peak_out.itertuples():
         i = row.Index
-        id = ids[i]
-
-        if id.condensed_envelope:
-            mzs, abundances = id.condensed_envelope.to_obs()
-            lb_mzs, lb_abundances = id.condensed_envelope.lb_obs()
-            la_mzs, la_abundances = id.condensed_envelope.la_obs()
+        idx = ids[i]
+        if idx.condensed_envelope:
+            mzs, abundances = idx.condensed_envelope.to_obs()
+            lb_mzs, lb_abundances = idx.condensed_envelope.lb_obs()
+            la_mzs, la_abundances = idx.condensed_envelope.la_obs()
             peak_out.at[i, 'mzs'] = mzs
             peak_out.at[i, 'abundances'] = abundances
-            peak_out.at[i, 'rt_min'] = id.rt_min
-            peak_out.at[i, 'rt_max'] = id.rt_max
-            peak_out.at[i, 'baseline_signal'] = id.condensed_envelope.baseline
-            peak_out.at[i, 'signal_noise'] = id.signal_noise
+            peak_out.at[i, 'rt_min'] = idx.rt_min
+            peak_out.at[i, 'rt_max'] = idx.rt_max
+            peak_out.at[i, 'baseline_signal'] = idx.condensed_envelope.baseline
+            peak_out.at[i, 'signal_noise'] = idx.signal_noise
             peak_out.at[i, 'lookback_mzs'] = lb_mzs
             peak_out.at[i, 'lookback_abundances'] = lb_abundances
             peak_out.at[i, 'lookahead_mzs'] = la_mzs
             peak_out.at[i, 'lookahead_abundances'] = la_abundances
-            peak_out.at[i, 'mads'] = str(id.mads)
-            peak_out.at[i, 'num_scans_combined'] = len(id._envelopes)
-        if id._unfiltered_envelopes and len([id._unfiltered_envelopes[a] for a in
-                                             range(len(id._unfiltered_envelopes))
-                                             if id._unfiltered_envelopes[
+            peak_out.at[i, 'mads'] = str(idx.mads)
+            peak_out.at[i, 'num_scans_combined'] = len(idx._envelopes)
+        if idx._unfiltered_envelopes and len([idx._unfiltered_envelopes[a] for a in
+                                             range(len(idx._unfiltered_envelopes))
+                                             if idx._unfiltered_envelopes[
                                                  a].is_valid]) >= settings.min_envelopes_to_combine:
-            mz = [[id._unfiltered_envelopes[k]._peaks[j].mz
+            mz = [[idx._unfiltered_envelopes[k]._peaks[j].mz
                    for j in
-                   range(0, len(id._unfiltered_envelopes[k]._peaks))]
-                  for k in range(len(id._unfiltered_envelopes))]
-            ab = [[id._unfiltered_envelopes[k]._peaks[j].ab
+                   range(0, len(idx._unfiltered_envelopes[k]._peaks))]
+                  for k in range(len(idx._unfiltered_envelopes))]
+            ab = [[idx._unfiltered_envelopes[k]._peaks[j].ab
                    for j in
-                   range(0, len(id._unfiltered_envelopes[k]._peaks))]
-                  for k in range(len(id._unfiltered_envelopes))]
-            rt = [id._unfiltered_envelopes[k].rt for k in range(len(id._unfiltered_envelopes))]
-            baseline_list = [id._unfiltered_envelopes[k].baseline for k in range(len(id._unfiltered_envelopes))]
+                   range(0, len(idx._unfiltered_envelopes[k]._peaks))]
+                  for k in range(len(idx._unfiltered_envelopes))]
+            rt = [idx._unfiltered_envelopes[k].rt for k in range(len(idx._unfiltered_envelopes))]
+            baseline_list = [idx._unfiltered_envelopes[k].baseline for k in range(len(idx._unfiltered_envelopes))]
 
             peak_out.at[i, 'mzs_list'] = mz
             peak_out.at[i, 'intensities_list'] = ab
@@ -333,7 +328,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             peak_out.at[i, 'baseline_list'] = baseline_list
 
             # Clear the envelopes to save some space. :)
-            id._unfiltered_envelopes = None
+            idx._unfiltered_envelopes = None
         peak_out.at[i, 'mzml_path'] = mzml_path
 
     results = chunk.join(peak_out)

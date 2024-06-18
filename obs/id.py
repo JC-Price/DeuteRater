@@ -320,7 +320,7 @@ class ID(object):
             normal_distribution_scale_factor = 1.4826
             self.signal_noise.append(mad(diff) * normal_distribution_scale_factor * 3)
         
-        # After performing all of this filtration, aggregate all of the data
+        # After performing all of this filtration, aggregate all the data
         #   in the remaining envelopes in to a 'condensed envelope'
         self.condense_envelopes()
 
@@ -398,8 +398,7 @@ class ID(object):
 
         # TODO: mean or median?
         # NOTE: if we sum the signal then we need to sum the baseline
-        self.condensed_envelope.baseline = \
-            median([float(envelope.baseline) for envelope in self._envelopes])
+        self.condensed_envelope.baseline = median([float(envelope.baseline) for envelope in self._envelopes])
 
     def divide_chromatography(self, should_plot=False):
         import scipy.ndimage as ndi
@@ -501,22 +500,24 @@ class ID(object):
         full_peak_width_list = (np.array(widths), np.array(heights), np.array(left_points).astype("int32"),
                                          np.array(right_points).astype("int32"))
 
-        if should_plot:
-            import matplotlib.pyplot as plt
-    
-            plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
-            gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
-    
-            plt.plot(combined_data, label="Combined", color=plot_colors[0])
-            plt.plot(gaussian_curves, label='Combined Gaussian', zorder=2, color=gaussian_colors[0])
-            plt.vlines(x=full_peak_width_list[2], ymin=0, ymax=max(peak_finding), label="Start of Window", color="r")
-            plt.vlines(x=full_peak_width_list[3], ymin=0, ymax=max(peak_finding), label="End of Window", color="g")
-            plt.vlines(x=peaks, ymin=0, ymax=max(peak_finding), label="Max Intensity in Window", color="lightgrey")
-    
-            plt.title(str(self.mz))
-            plt.legend()
-            # plt.xticks(range(0, len(self._get_rt_list()), 25), [str(i) for i in self._get_rt_list(True)[0::25]])
-            plt.show()
+        # TODO: this was giving us weird matplotlib warning messages - Ben D
+        # if should_plot:
+        #     import matplotlib.pyplot as plt
+        #     plt.set_loglevel("critical")
+        #
+        #     plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
+        #     gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
+        #
+        #     plt.plot(combined_data, label="Combined", color=plot_colors[0])
+        #     plt.plot(gaussian_curves, label='Combined Gaussian', zorder=2, color=gaussian_colors[0])
+        #     plt.vlines(x=full_peak_width_list[2], ymin=0, ymax=max(peak_finding), label="Start of Window", color="r")
+        #     plt.vlines(x=full_peak_width_list[3], ymin=0, ymax=max(peak_finding), label="End of Window", color="g")
+        #     plt.vlines(x=peaks, ymin=0, ymax=max(peak_finding), label="Max Intensity in Window", color="lightgrey")
+        #
+        #     plt.title(str(self.mz))
+        #     plt.legend()
+        #     # plt.xticks(range(0, len(self._get_rt_list()), 25), [str(i) for i in self._get_rt_list(True)[0::25]])
+        #     plt.show()
         
         self._neutromer_peak_variance(should_plot)
 
@@ -566,19 +567,21 @@ class ID(object):
             max_cuts = [item - 1 for item in max_cuts]
             gaussian_curves.append(gaussian_curve)
             neutromer_maximums.append(max_cuts)
-        
-        if should_plot:
-            import matplotlib.pyplot as plt
-    
-            plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
-            gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
-    
-            for i in range(self.n_isos):
-                plt.plot(peaks_list[i], label=f"M{i}", color=plot_colors[i])
-                plt.plot(gaussian_curves[i], label=f'Gaussian M{i}', zorder=2, color=gaussian_colors[i])
-    
-            plt.title(str(self.mz))
-            plt.legend()
-            plt.show()
+
+        # TODO: this was giving us weird matplotlib warning messages - Ben D
+        # if should_plot:
+        #     import matplotlib.pyplot as plt
+        #     plt.set_loglevel("critical")
+        #
+        #     plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
+        #     gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
+        #
+        #     for i in range(self.n_isos):
+        #         plt.plot(peaks_list[i], label=f"M{i}", color=plot_colors[i])
+        #         plt.plot(gaussian_curves[i], label=f'Gaussian M{i}', zorder=2, color=gaussian_colors[i])
+        #
+        #     plt.title(str(self.mz))
+        #     plt.legend()
+        #     plt.show()
         
         self.neutromer_peak_maximums = neutromer_maximums

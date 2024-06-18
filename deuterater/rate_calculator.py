@@ -38,6 +38,7 @@ from scipy.stats import t  # pearsonr?
 from scipy.optimize import curve_fit  # least_sq?
 import warnings as w
 import multiprocessing as mp
+mp.freeze_support()
 
 from tqdm import tqdm  # noqa: 401
 

@@ -46,6 +46,7 @@ may merge into combine_extracted_files.py
 from tqdm import tqdm
 import pandas as pd
 import multiprocessing as mp
+mp.freeze_support()
 import numpy as np
 
 from pathlib import Path

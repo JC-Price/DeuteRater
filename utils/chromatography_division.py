@@ -50,6 +50,7 @@ except:
 	import DeuteRater.deuterater.settings as settings
 from functools import partial
 import multiprocessing as mp
+mp.freeze_support()
 import traceback
 import os
 from tqdm import tqdm

@@ -35,6 +35,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+# TODO: is there a way to fix this issue rather than suppressing it? - Ben D
+# Matplotlib is building the font cache; this may take a moment.
+plt.set_loglevel("critical")
+
 import deuterater.settings as settings
 
 main_line_symbol = 'k-'

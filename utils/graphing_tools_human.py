@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import matplotlib.pyplot as plt
 import numpy as np
 
+plt.set_loglevel("critical")
+
 """
 functions for making the various graphs
 """

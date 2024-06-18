@@ -6,6 +6,7 @@ import pandas as pd
 import re
 import time
 import multiprocessing as mp
+mp.freeze_support()
 import numpy as np
 from tqdm import tqdm
 import deuterater.settings as settings
@@ -80,9 +81,11 @@ class NValueCalculator:
         self.prepare_model()
 
         groups = self.prepared_df.groupby('divider', sort=False)
+        print("Available groups: ")
+        print(len(groups))
 
         results = list()
-        # settings.debug_level = 1
+        settings.debug_level = 1
         if settings.debug_level == 0:
             from itertools import product
             results = list(
@@ -97,15 +100,19 @@ class NValueCalculator:
                 data = NValueCalculator.analyze_group(group)
                 results.append(data)
 
-        prepared_df = pd.concat(results)
+        # TODO: Executable running into a concat error here. Says results is or has empty dataframs. - Ben D
+        try:
+            prepared_df = pd.concat(results)
+            prepared_df = prepared_df.set_index('index')
+            prepared_df = prepared_df.sort_index()
+            self.full_df = self.full_df.merge(right=prepared_df[output_columns],
+                                              how='outer',
+                                              left_index=True,
+                                              right_index=True)
+        except:
+            print("NValueCalculator: attempted to concantenate empty results together (NValueCalculator.run())")
+            self.full_df = self.full_df
 
-        prepared_df = prepared_df.set_index('index')
-        prepared_df = prepared_df.sort_index()
-
-        self.full_df = self.full_df.merge(right=prepared_df[output_columns],
-                                          how='outer',
-                                          left_index=True,
-                                          right_index=True)
         self._mp_pool.close()
         self._mp_pool.join()
 
@@ -216,10 +223,11 @@ class NValueCalculator:
             #         results.append(NValueCalculator.analyze_row(row, emass_results))
             #     except Exception as e:
             #         print("EXCEPTION OCCURRED WITH {}!".format(row))
-
+            print("Returning group results.")
             return pd.concat(
                 [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
         except:
+            print("NValueCalculator: Error occured while analyzing group or row.")
             return pd.concat(
                 [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
 
@@ -236,20 +244,20 @@ class NValueCalculator:
         Returns:
             Tuple: a tuple containing the given n-value and the stddev associated with it (will be empty if n-value was not calculated).
         """
-        
+
         def dIt_filter(unfiltered_dataframe, dIt_data):
             return_value = unfiltered_dataframe.where(dIt_data > 0.05, np.nan)
             return_value['n_D'][0] = 0.0
             return return_value
-        
+
         def n_value_by_stddev(fraction_new, MINIMUM_PEAKS=3):
             stddev_dataframe = calc_stddev(fraction_new, MINIMUM_PEAKS)
-            
+
             # Find n-value and stddev of filtered data
             if stddev_dataframe['stddev'].isna().all():
                 filtered_nValue_min = np.nan
                 filtered_stddev_min = np.nan
-                
+
                 truth_values = ~np.isnan(stddev_dataframe.iloc[:, 2:-1])
                 truth_count = [np.sum(truth_values.iloc[:, x]) for x in range(truth_values.shape[1])]
                 peaks_included = ' '.join(str(x) for x in truth_count)
@@ -257,14 +265,14 @@ class NValueCalculator:
                 min_index = stddev_dataframe['stddev'].idxmin()
                 filtered_nValue_min = stddev_dataframe.loc[min_index, 'n_D']
                 filtered_stddev_min = stddev_dataframe['stddev'].min()
-                
+
                 data_mask = stddev_dataframe.iloc[min_index].notna().reset_index(drop=True)[2:-1]
                 peaks_included = pd.Series(stddev_dataframe.columns)[2:-1][data_mask] \
                     .to_string(header=False, index=False).replace('I', 'M').replace('\n', ' ')
                 if peaks_included == 'Series([], )':
                     peaks_included = ''
             return stddev_dataframe, filtered_nValue_min, filtered_stddev_min, peaks_included
-        
+
         def n_value_dIt_filter(unfiltered_fraction_new, dIt_data, MINIMUM_PEAKS=3):
             # Generate dIt filtered fraction_new DataFrame
             filtered_fraction_new = dIt_filter(unfiltered_fraction_new, dIt_data)
@@ -274,46 +282,46 @@ class NValueCalculator:
             except:
                 pass
             return n_value_by_stddev(filtered_fraction_new)
-        
+
         def calc_stddev(fraction_new, MINIMUM_PEAKS=3):
             stddev_dataframe = fraction_new.copy()
-            
+
             # Find how many valid peaks exist
             stddev_dataframe = stddev_dataframe[
                 ['n_D'] + [col for col in stddev_dataframe.columns if 'I' in col]]
             stddev_dataframe['num_non_null'] = (stddev_dataframe.count(axis='columns') - 1)
-            
+
             # rearrange columns to allow for proper std_dev calculation
             stddev_dataframe = stddev_dataframe[
                 ['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
-            
+
             # Calculate stddev for valid rows
             stddev_dataframe['stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
             stddev_dataframe.loc[:, 'stddev'] = stddev_dataframe['stddev'].where(
                 stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS, np.nan)
-            
+
             return stddev_dataframe
-        
+
         def s_n_filter(empirical_intensities, noise, NOISE_FILTER=10.0):
             empir_series = pd.Series(empirical_intensities)
             s_n_values = pd.Series([empirical_intensities[i] / noise for i in range(len(empirical_intensities))])
             filtered_empirical_intensities = empir_series.where(s_n_values >= NOISE_FILTER, np.nan)
             return filtered_empirical_intensities
-        
+
         def dIe_filter(unfiltered_dataframe, dIe_data):
             filtered_dataframe = unfiltered_dataframe.where(dIe_data < 0.05, np.nan)
             filtered_dataframe['n_D'] = unfiltered_dataframe['n_D']
             return filtered_dataframe
-        
+
         def n_value_dIe_filter(unfiltered_fraction_new, dIe_data, MINIMUM_PEAKS=3):
             # Generate dIt filtered fraction_new DataFrame
             filtered_fraction_new = dIe_filter(unfiltered_fraction_new, dIe_data)
             filtered_fraction_new['n_D'] = unfiltered_fraction_new['n_D']
             filtered_fraction_new.drop('stddev', axis=1, inplace=True)
             filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
-            
+
             return n_value_by_stddev(filtered_fraction_new)
-        
+
         def n_value_s_n_filter(empirical_intensities, noise, fraction_new_values, NOISE_FILTER=100.0):
             valid_intensities = s_n_filter(empirical_intensities, noise, NOISE_FILTER)
             filtered_fraction_new = fraction_new_values.copy()
@@ -321,7 +329,7 @@ class NValueCalculator:
                 if (np.isnan(ie)):
                     filtered_fraction_new['I' + str(peak)] = np.nan
             return n_value_by_stddev(filtered_fraction_new)
-        
+
         def n_value_using_angles(empirical_intensities, emass_labeled_intensities, MIN_DIMENSION=2):
             def angle_between(v1, v2):
                 """Calculates the unit vector of a given vector
@@ -336,7 +344,7 @@ class NValueCalculator:
                 :obj:`float`
                     Angle between the two vectors, given in radians
                 """
-                
+
                 def unit_vector(vector):
                     """Calculates the unit vector of a given vector
                     Parameters
@@ -347,10 +355,10 @@ class NValueCalculator:
                     vector : :obj:`list` of :obj:`float`
                     """
                     return vector / np.linalg.norm(vector)
-                
+
                 if len(v1) <= MIN_DIMENSION:
                     return np.nan
-                
+
                 uv1 = unit_vector(v1)
                 uv2 = unit_vector(v2)
                 angle = np.arccos(np.dot(uv1, uv2))
@@ -360,36 +368,36 @@ class NValueCalculator:
                     else:
                         return np.pi
                 return angle
-            
+
             # Turn empirical intensities into a vector to compare angles.
             empirical_vector = np.array(empirical_intensities)
-            
+
             # Turn emass outputs into vectors to use to compare angles
             emass_labeled_vectors = emass_labeled_intensities.drop(columns="n_D")
             emass_labeled_vectors['combined_intensities'] = emass_labeled_vectors.values.tolist()
             emass_labeled_vectors['combined_intensities'] = emass_labeled_vectors['combined_intensities'].apply(
                 lambda x: np.array(x))
             emass_labeled_vectors = emass_labeled_vectors['combined_intensities']
-            
+
             empir_truths = ~np.isnan(empirical_vector)
             total_truths = np.array([~np.isnan(emass_labeled_vectors[i]) & empir_truths for i in
                                      np.array(range(len(emass_labeled_vectors)))])
-            
+
             # Compute angle between emass intensity data and empirical intensity data
             empir_v_emass_angles = pd.Series(
                 [angle_between(empirical_vector[total_truths[i]], emass_labeled_vectors[i][total_truths[i]]) for i in
                  range(len(emass_labeled_vectors))])
-            
+
             # Determine n-value (the #D associated with the smallest angle)
             angle_n_value = empir_v_emass_angles.to_numpy().argmin()
-            
+
             column_names = emass_labeled_intensities.columns[1:]
             peaks_included = pd.Series(column_names[total_truths[angle_n_value]]) \
                 .to_string(header=False, index=False).replace('I', 'M').replace('\n', ' ')
             if peaks_included == 'Series([], )':
                 truth_count = [np.sum(total_truths[:, x]) for x in range(len(total_truths[0]))]
                 peaks_included = ' '.join(str(x) for x in truth_count)
-            
+
             return empir_v_emass_angles, angle_n_value, peaks_included
 
         # could speed up by forgoing mzs, but mzs will be needed down the line
@@ -422,6 +430,7 @@ class NValueCalculator:
             unfiltered_fraction_new, dIt_data)
 
         # import matplotlib.pyplot as plt
+        # plt.set_loglevel("critical")
         # plt.plot(unfiltered_fraction_new['stddev'], label="normal n")
         # plt.title(str.format("{}_{}\n n_value = {}", row.chemical_formula, row.sample_group, int(n_value)))
         # plt.legend()
@@ -434,19 +443,20 @@ class NValueCalculator:
         # 	plt.savefig(str.format("{}_{}_dIt_{}.png", row.chemical_formula, row.sample_group, row.index))
         # 	plt.clf()
 
+        print("Returning row results.")
         return dIt_n_value, dIt_stddev
 
     @staticmethod
     def parse_cf(cf):
         d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
         num_h = int(d['H'])
-    
+
         num_d = 0
         # Makes the cf not distinguish between Deuterium and Hydrogen
         # if d['D']:
         # 	num_h += int(d['D'])
         # 	del d['D']
-    
+
         blank = '{}'
         d.update({'H': blank, 'X': blank})  # H = # of Hydrogen, X = # labeled sites
         cf_string = ''.join('%s%s' % (k, v) for k, v in d.items())

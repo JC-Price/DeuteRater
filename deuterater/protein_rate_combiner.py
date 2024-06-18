@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import pandas as pd
 import multiprocessing as mp
+mp.freeze_support()
 import numpy as np
 import os
 

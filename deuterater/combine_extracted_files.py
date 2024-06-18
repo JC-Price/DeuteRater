@@ -30,6 +30,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import os
 
 import pandas as pd
 import numpy as np  # noqa: 401
@@ -38,6 +39,7 @@ import traceback  # noqa: 401
 from pathlib import Path
 from functools import partial
 import multiprocessing as mp
+mp.freeze_support()
 
 from tqdm import tqdm  # noqa: 401
 
@@ -75,34 +77,19 @@ class CombineExtractedFiles:
 
         # collect necessary components to determine n_value from amino acids
         if self.biomolecule_type == "Peptide":
-            aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
+            # aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
+
+            # we need to get aa_labeling_sites_path based off current user's current working directory (cwd)
+            cwd = os.getcwd()
+            new_labeling_path = os.path.join(cwd, "resources/aa_labeling_sites.tsv")
+            settings.aa_labeling_sites_path = new_labeling_path
+            aa_label_df = settings.aa_labeling_sites_path
+            print("aa_labeling_sites_path:")
+            print(aa_label_df)
+
             aa_label_df.set_index('study_type', inplace=True)
             self.aa_labeling_dict = aa_label_df.loc[settings.label_key,].to_dict()
             settings.use_empir_n_value = False
-
-        # pull in two sub tables from the output table. possibilities for .tsv and .csv files
-        # if self.enrichment_path.suffix == '.tsv':
-        #     self._file_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep='\t',
-        #         usecols=["Filename", "Time", "Subject ID"]
-        #     )
-        #     self._enrichment_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep='\t',
-        #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-        #     )
-        # elif self.enrichment_path.suffix == '.csv':
-        #     self._file_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep=',',
-        #         usecols=["Filename", "Time", "Subject ID"]
-        #     )
-        #     self._enrichment_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep=',',
-        #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-        #     )
         
         # since the multiple sub tables can have different length, get rid
         # of the rows that are empty
@@ -293,6 +280,7 @@ class CombineExtractedFiles:
         # file_path, time, enrichment = args
         # file_path, time, sample_id = args
         file_path, time, enrichment, sample_group, biological_replicate, calculate_n_values, biomolecule_type = args
+        # adj_file_path = file_path.replace('/', '\\\\')
         df = pd.read_csv(filepath_or_buffer=file_path, sep='\t')
         df = CombineExtractedFiles._apply_filters(df)
         #  if the user or a previous process defined n, that's fine.  but it will be
@@ -301,11 +289,6 @@ class CombineExtractedFiles:
             if aa_labeling_dict != "":
                 df = df.apply(CombineExtractedFiles._calculate_literature_n, axis=1, args=(aa_labeling_dict,))
 
-        df['time'] = time
-        df['enrichment'] = enrichment
-        df["sample_group"] = sample_group
-        df["bio_rep"] = biological_replicate
-        df['calculate_n_value'] = calculate_n_values
         return df
     
     # calculate the n value based on amino acid sequence
