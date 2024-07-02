@@ -28,4 +28,4 @@ q	pyrollidine from Q	5	5	1	2	0	0
 s	Phosphorylation of S	3	6	1	5	0	1
 t	Phosphorylation of T	4	8	1	5	0	1
 y	Phosphorylation of Y	9	10	1	5	0	1
-k	Acetylation of K	8	14	3	2	0	1
+k	Acetylation of K	8	14	3	2	0	0
