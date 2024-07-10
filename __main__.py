@@ -418,6 +418,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         make_table_in_order = True
         for analysis_step in worklist:
             if analysis_step == "Extract":
+                # import tracemalloc
+                # import psutil
+                # tracemalloc.start()
                 # no if for this one, if extract is here it is the start
                 id_file = self.collect_single_file("ID", "Extract", "CSV (*.csv)")
                 if id_file == "":
@@ -488,6 +491,18 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.write()
                     # need to delete classes when they're done or they may linger in RAM
                     del extractor
+
+                # snapshot = tracemalloc.take_snapshot()
+                # top_stats = snapshot.statistics('lineno')
+                #
+                # print('[ Top 20 ]')
+                # for stat in top_stats[:20]:
+                #     print(stat)
+                #
+                # print("\nDisplaying open files:")
+                # for proc in psutil.process_iter():
+                #     print(proc.open_files())
+
                 # this takes awhile so only bother with it if necessary
                 if settings.use_chromatography_division != "No":
                     divider = ChromatographyDivider(settings_path=rate_settings_file,
