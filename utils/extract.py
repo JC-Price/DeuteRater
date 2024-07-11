@@ -200,7 +200,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
             peak_range_start = 0 - settings.peak_lookback
             peak_range_end = id.n_isos + settings.peak_lookahead
 
-            # Iterate through all of the peaks we want to look for
+            # Iterate through all the peaks we want to look for
             for peak_num in range(peak_range_start, peak_range_end):
                 # define the mz to search for in the spectrum
                 search_mz = id.mz + (peak_num * NEUTRON / charge)
@@ -275,6 +275,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
 
     for id in ids:
         id.aggregate_envelopes()
+        print(id.condensed_envelope)
 
     # TODO: Better variable naming here. obs? I can do better
     # TODO: is there better way to initialize this?

@@ -315,6 +315,7 @@ class Extractor:  # TODO name change
         func = partial(func, self._index_ID_map)  # pass the index mapping
 
         # set up and run the multiprocessing
+        settings.debug_level = 1
         if settings.debug_level == 0:
             try:
                 results = list(
@@ -342,8 +343,7 @@ class Extractor:  # TODO name change
         # By filtering out the non-dataframe elements of this list, we exclude
         #   any incomplete or invalid chunks without ultimately terminating the
         #   program
-        results = [r for r in results
-                   if isinstance(r, pd.core.frame.DataFrame)]
+        results = [r for r in results if isinstance(r, pd.core.frame.DataFrame)]
         if len(results) == 0:
             # TODO: Implement and raise appropriate warning
             print('No data was successfully extracted')

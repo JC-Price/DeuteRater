@@ -127,9 +127,7 @@ class ID(object):
     # '__str__' function
     def __repr__(self):
         # TODO: clean this up and add metainformation
-        return 'ID({})'.format(
-            ','.join([repr(envelope) for envelope in self._envelopes])
-        )
+        return 'ID({})'.format(','.join([repr(envelope) for envelope in self._envelopes]))
 
     # Defining the __str__ function allows python to call str()
     # on this object. This is usually the best way to define a 'toString'
@@ -153,6 +151,8 @@ class ID(object):
         from copy import deepcopy
         
         valid_envelopes = [envelope for envelope in self._envelopes if envelope.is_valid]
+        print("valid envelopes")
+        print(len(valid_envelopes))
 
         # First, we see if there are even enough envelopes to warrant analyzing
         #   this identification
@@ -266,16 +266,19 @@ class ID(object):
         self._envelopes = cut_finger_filter(self)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
+            print("minimum envelopes hit")
             return
 
         self._envelopes = DR_3_5_angle_filter(self, settings.max_valid_angle)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
+            print("minimum envelopes hit")
             return
 
         self._envelopes = highest_intensity_scans_filter(self)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
+            print("minimum envelopes hit")
             return
 
         # NOTE: this threshold was defined in the original deuterater
@@ -320,8 +323,9 @@ class ID(object):
             normal_distribution_scale_factor = 1.4826
             self.signal_noise.append(mad(diff) * normal_distribution_scale_factor * 3)
         
-        # After performing all of this filtration, aggregate all of the data
+        # After performing all of this filtration, aggregate all the data
         #   in the remaining envelopes in to a 'condensed envelope'
+        print("condensing envelopes")
         self.condense_envelopes()
 
     def _get_rt_list(self, rounded=False):
@@ -398,8 +402,7 @@ class ID(object):
 
         # TODO: mean or median?
         # NOTE: if we sum the signal then we need to sum the baseline
-        self.condensed_envelope.baseline = \
-            median([float(envelope.baseline) for envelope in self._envelopes])
+        self.condensed_envelope.baseline = median([float(envelope.baseline) for envelope in self._envelopes])
 
     def divide_chromatography(self, should_plot=False):
         import scipy.ndimage as ndi

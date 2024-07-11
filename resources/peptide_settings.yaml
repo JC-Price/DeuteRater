@@ -29,7 +29,7 @@ id_file_rt_unit: !!str "sec"
 trim_ids_to_mzml_bounds: !!bool false
 
 # chunk size, given in observations
-chunk_size: !!int 600
+chunk_size: !!int 50
 
 # If a file is less than "chunking_method_threshold" times
 #   "max_chunk_size" lines long, then split the identification
