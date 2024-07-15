@@ -48,7 +48,6 @@ from PyQt5 import uic, QtWidgets
 import deuterater.settings as settings
 from utils.useful_classes import setting_numerical_info, setting_string_info
 
-
 # location = os.path.dirname(os.path.abspath(sys.executable))
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 default_peptide_rate_settings = os.path.join(location, "resources", "peptide_settings.yaml")
@@ -68,17 +67,17 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.setWindowTitle("Rate Settings Menu")
         self.setupUi(self)
         # initial set up of the different settings.
-        self.all_settings=[
+        self.all_settings = [
             setting_string_info(self.recognize_available_cores, "recognize_available_cores",
-                                 settings.recognize_available_cores, True),
+                                settings.recognize_available_cores, True),
             setting_numerical_info(self.default_cores, "n_processors",
                                    settings.n_processors, True),
             setting_string_info(self.rt_unit, "id_file_rt_unit",
                                 settings.id_file_rt_unit, False),
             setting_numerical_info(self.time_window, "time_window",
-                                    settings.time_window, False),
+                                   settings.time_window, False),
             setting_numerical_info(self.ppm_error, "ppm_window",
-                                    settings.ppm_window, True),
+                                   settings.ppm_window, True),
             setting_string_info(self.use_chromatography_division,
                                 "use_chromatography_division",
                                 settings.use_chromatography_division,
@@ -94,9 +93,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.label_key, "label_key",
                                 settings.label_key, False),
             setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
-                                    settings.min_aa_sequence_length, True),
+                                   settings.min_aa_sequence_length, True),
             setting_numerical_info(self.min_allowed_n_value, "min_allowed_n_values",
-                                    settings.min_allowed_n_values, True),
+                                   settings.min_allowed_n_values, True),
             setting_numerical_info(self.min_allowed_rate, "minimum_allowed_sequence_rate",
                                    settings.minimum_allowed_sequence_rate, False),
             setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
@@ -105,18 +104,18 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    "minimum_sequences_to_combine_for_protein_rate",
                                    settings.minimum_sequences_to_combine_for_protein_rate,
                                    True),
-            setting_string_info(self.graph_file_type, 
+            setting_string_info(self.graph_file_type,
                                 "graph_output_format",
                                 settings.graph_output_format,
                                 False),
-            setting_string_info(self.protein_roll_up_type, 
+            setting_string_info(self.protein_roll_up_type,
                                 "protein_combination_method",
                                 settings.protein_combination_method,
                                 False),
             setting_string_info(self.verbose_output, "verbose_output",
                                 settings.verbose_output, True),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
-                                settings.abundance_manual_bias, False),
+                                   settings.abundance_manual_bias, False),
             setting_string_info(self.asymptope_type, "asymptote",
                                 settings.asymptote, False),
             setting_numerical_info(self.combined_manual_bias, "combined_manual_bias",
@@ -131,13 +130,15 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.roll_up_rate_calc, True),
             setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
                                    settings.spacing_manual_bias, False),
+            setting_string_info(self.use_abundance, "use_abundance",
+                                settings.use_abundance, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                 settings.use_empir_n_value, True),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
                                 settings.use_neutromer_spacing, True),
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
-            ]
+        ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -147,7 +148,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         self.LoadButton.clicked.connect(self.load_settings)
         self.SaveButton.clicked.connect(self.save_settings)
         self.ExitButton.clicked.connect(self.close)
-    
+
     # save the current settings
     def save_settings(self):
         # we need to provide the values that are not altred for the dump
@@ -155,10 +156,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         for setting_object in self.all_settings:
             name, value = setting_object.save_value()
             save_value_dict[name] = value
-            
+
         settings.freeze(self.current_setting_file, save_value_dict)
         return True
-       
+
     # if the user wants to exit we can check if something has changed, so we can give them a chance to save
     def check_for_changes(self):
         for setting in self.all_settings:
@@ -168,7 +169,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
 
     # load a previous saved settings file
     def load_settings(self):
-        response = QtWidgets.QMessageBox.question(self, "Question", "Would you like to load a already existing settings file? This will overwrite all current settings.",
+        response = QtWidgets.QMessageBox.question(self, "Question",
+                                                  "Would you like to load a already existing settings file? This will overwrite all current settings.",
                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         if response == QtWidgets.QMessageBox.No:
             return
@@ -183,13 +185,15 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         # only bother with an error message if there is an error.  if the user just exited without selecting anything don't bother them with it
         if filename == "":
             return
-        
+
         comp_results = settings.compare(self.current_setting_file, filename)
         if comp_results == "Error":
-            QtWidgets.QMessageBox.warning(self, "Error", ("Issue reading .yaml file. Please make sure the .yaml still exists and is not currently opened."))
+            QtWidgets.QMessageBox.warning(self, "Error", (
+                "Issue reading .yaml file. Please make sure the .yaml still exists and is not currently opened."))
             return
         elif comp_results == "Different Keys":
-            QtWidgets.QMessageBox.warning(self, "Error", ("Loaded settings file either is missing settings or has too many. Please try a different file with the correct settings"))
+            QtWidgets.QMessageBox.warning(self, "Error", (
+                "Loaded settings file either is missing settings or has too many. Please try a different file with the correct settings"))
             return
         elif comp_results == "MATCH":
             QtWidgets.QMessageBox.information(self, "Info", ("Settings file have the same data."))
@@ -197,75 +201,77 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
         elif comp_results == "Mismatched Keys":
             settings.load(filename)
             settings.freeze(self.current_setting_file)
-            self.all_settings=[
-            setting_string_info(self.recognize_available_cores, "recognize_available_cores",
-                                 settings.recognize_available_cores, True),
-            setting_numerical_info(self.default_cores, "n_processors",
-                                   settings.n_processors, True),
-            setting_string_info(self.rt_unit, "id_file_rt_unit",
-                                settings.id_file_rt_unit, False),
-            setting_numerical_info(self.time_window, "time_window",
-                                    settings.time_window, False),
-            setting_numerical_info(self.ppm_error, "ppm_window",
-                                    settings.ppm_window, True),
-            setting_string_info(self.use_chromatography_division,
-                                "use_chromatography_division",
-                                settings.use_chromatography_division,
-                                False),
-            setting_numerical_info(self.mz_prox_filter,
-                                   "mz_proximity_tolerance",
-                                   settings.mz_proximity_tolerance,
-                                   True),
-            setting_numerical_info(self.rt_prox_filter,
-                                   "rt_proximity_tolerance",
-                                   settings.rt_proximity_tolerance,
-                                   False),
-            setting_string_info(self.label_key, "label_key",
-                                settings.label_key, False),
-            setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
-                                    settings.min_aa_sequence_length, True),
-            setting_numerical_info(self.min_allowed_n_value, "min_allowed_n_values",
-                                    settings.min_allowed_n_values, True),
-            setting_numerical_info(self.min_allowed_rate, "minimum_allowed_sequence_rate",
-                                   settings.minimum_allowed_sequence_rate, False),
-            setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
-                                   settings.maximum_allowed_sequence_rate, False),
-            setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
-                                   "minimum_sequences_to_combine_for_protein_rate",
-                                   settings.minimum_sequences_to_combine_for_protein_rate,
-                                   True),
-            setting_string_info(self.graph_file_type, 
-                                "graph_output_format",
-                                settings.graph_output_format,
-                                False),
-            setting_string_info(self.protein_roll_up_type, 
-                                "protein_combination_method",
-                                settings.protein_combination_method,
-                                False),
-            setting_string_info(self.verbose_output, "verbose_output",
-                                 settings.verbose_output, True),
-            setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
-                                settings.abundance_manual_bias, False),
-            setting_string_info(self.asymptope_type, "asymptote",
-                                settings.asymptote, False),
-            setting_numerical_info(self.combined_manual_bias, "combined_manual_bias",
-                                   settings.combined_manual_bias, False),
-            setting_numerical_info(self.fixed_asymptote_value, "fixed_asymptote_value",
-                                   settings.fixed_asymptote_value, False),
-            setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
-                                   settings.minimum_nonzero_points, True),
-            setting_numerical_info(self.proliferation_adjustment, "proliferation_adjustment",
-                                   settings.proliferation_adjustment, False),
-            setting_string_info(self.roll_up_option,"roll_up_rate_calc",
-                                settings.roll_up_rate_calc, True),
-            setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
-                                   settings.spacing_manual_bias, False),
-            setting_string_info(self.calculate_n_values, "use_empir_n_value",
-                                settings.use_empir_n_value, True),
-            setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                settings.use_neutromer_spacing, True),
-            setting_string_info(self.verbose_rate, "verbose_rate",
-                                settings.verbose_rate, True),
+            self.all_settings = [
+                setting_string_info(self.recognize_available_cores, "recognize_available_cores",
+                                    settings.recognize_available_cores, True),
+                setting_numerical_info(self.default_cores, "n_processors",
+                                       settings.n_processors, True),
+                setting_string_info(self.rt_unit, "id_file_rt_unit",
+                                    settings.id_file_rt_unit, False),
+                setting_numerical_info(self.time_window, "time_window",
+                                       settings.time_window, False),
+                setting_numerical_info(self.ppm_error, "ppm_window",
+                                       settings.ppm_window, True),
+                setting_string_info(self.use_chromatography_division,
+                                    "use_chromatography_division",
+                                    settings.use_chromatography_division,
+                                    False),
+                setting_numerical_info(self.mz_prox_filter,
+                                       "mz_proximity_tolerance",
+                                       settings.mz_proximity_tolerance,
+                                       True),
+                setting_numerical_info(self.rt_prox_filter,
+                                       "rt_proximity_tolerance",
+                                       settings.rt_proximity_tolerance,
+                                       False),
+                setting_string_info(self.label_key, "label_key",
+                                    settings.label_key, False),
+                setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
+                                       settings.min_aa_sequence_length, True),
+                setting_numerical_info(self.min_allowed_n_value, "min_allowed_n_values",
+                                       settings.min_allowed_n_values, True),
+                setting_numerical_info(self.min_allowed_rate, "minimum_allowed_sequence_rate",
+                                       settings.minimum_allowed_sequence_rate, False),
+                setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
+                                       settings.maximum_allowed_sequence_rate, False),
+                setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
+                                       "minimum_sequences_to_combine_for_protein_rate",
+                                       settings.minimum_sequences_to_combine_for_protein_rate,
+                                       True),
+                setting_string_info(self.graph_file_type,
+                                    "graph_output_format",
+                                    settings.graph_output_format,
+                                    False),
+                setting_string_info(self.protein_roll_up_type,
+                                    "protein_combination_method",
+                                    settings.protein_combination_method,
+                                    False),
+                setting_string_info(self.verbose_output, "verbose_output",
+                                    settings.verbose_output, True),
+                setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
+                                       settings.abundance_manual_bias, False),
+                setting_string_info(self.asymptope_type, "asymptote",
+                                    settings.asymptote, False),
+                setting_numerical_info(self.combined_manual_bias, "combined_manual_bias",
+                                       settings.combined_manual_bias, False),
+                setting_numerical_info(self.fixed_asymptote_value, "fixed_asymptote_value",
+                                       settings.fixed_asymptote_value, False),
+                setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
+                                       settings.minimum_nonzero_points, True),
+                setting_numerical_info(self.proliferation_adjustment, "proliferation_adjustment",
+                                       settings.proliferation_adjustment, False),
+                setting_string_info(self.roll_up_option, "roll_up_rate_calc",
+                                    settings.roll_up_rate_calc, True),
+                setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
+                                       settings.spacing_manual_bias, False),
+                setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                    settings.use_empir_n_value, True),
+                setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                    settings.use_empir_n_value, True),
+                setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
+                                    settings.use_neutromer_spacing, True),
+                setting_string_info(self.verbose_rate, "verbose_rate",
+                                    settings.verbose_rate, True),
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -322,7 +328,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.protein_combination_method,
                                 False),
             setting_string_info(self.verbose_output, "verbose_output",
-                                settings.verbose_output, True)
+                                settings.verbose_output, True),
+            setting_numerical_info(self.use_neutromer_spacing, "use_neutromer_spacing",
+                                   settings.use_neutromer_spacing, True)
 
         ]
         for setting_object in self.all_settings:
@@ -387,30 +395,31 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_object.set_object_value()
         QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
         return
-    
+
     # should overwrite the close of the exit button and the red x in the corner  
     def closeEvent(self, event):
         if self.check_for_changes():
             event.accept()
         else:
-            reply = QtWidgets.QMessageBox.question(self, "Unsaved Changes", 
-                ("There are unsaved changes.  Would you like to save before"
-                " exiting?"), 
-                QtWidgets.QMessageBox.Yes|QtWidgets.QMessageBox.No|QtWidgets.QMessageBox.Cancel)
+            reply = QtWidgets.QMessageBox.question(self, "Unsaved Changes",
+                                                   ("There are unsaved changes.  Would you like to save before"
+                                                    " exiting?"),
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
             if reply == QtWidgets.QMessageBox.No:
-                event.accept()        
+                event.accept()
             elif reply == QtWidgets.QMessageBox.Yes:
                 allowed_to_save = self.save_settings()
                 if allowed_to_save:
                     event.accept()
                 else:
-                    event.ignore()  
-            # hit red x or cancel just don't exit
-            else: 
-                event.ignore()  
-      
-    # the point of this is to get the values from the settings .yaml 
-    # that the user is not altering. don't need special classes since 
+                    event.ignore()
+                    # hit red x or cancel just don't exit
+            else:
+                event.ignore()
+
+                # the point of this is to get the values from the settings .yaml
+
+    # that the user is not altering. don't need special classes since
     #  we have to officially declare and all we need to do is get the value
     @staticmethod
     def _get_filters():
@@ -454,6 +463,5 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "spacing_agreement_filter": settings.spacing_agreement_filter,
             "unique_sequence_column": settings.unique_sequence_column,
             "y_intercept_of_fit": settings.y_intercept_of_fit,
-            }
+        }
         return unalterable_settings
-        

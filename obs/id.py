@@ -151,8 +151,6 @@ class ID(object):
         from copy import deepcopy
         
         valid_envelopes = [envelope for envelope in self._envelopes if envelope.is_valid]
-        print("valid envelopes")
-        print(len(valid_envelopes))
 
         # First, we see if there are even enough envelopes to warrant analyzing
         #   this identification
@@ -266,19 +264,16 @@ class ID(object):
         self._envelopes = cut_finger_filter(self)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
-            print("minimum envelopes hit")
             return
 
         self._envelopes = DR_3_5_angle_filter(self, settings.max_valid_angle)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
-            print("minimum envelopes hit")
             return
 
         self._envelopes = highest_intensity_scans_filter(self)
 
         if len(self._envelopes) < settings.min_envelopes_to_combine:
-            print("minimum envelopes hit")
             return
 
         # NOTE: this threshold was defined in the original deuterater
@@ -325,7 +320,6 @@ class ID(object):
         
         # After performing all of this filtration, aggregate all the data
         #   in the remaining envelopes in to a 'condensed envelope'
-        print("condensing envelopes")
         self.condense_envelopes()
 
     def _get_rt_list(self, rounded=False):

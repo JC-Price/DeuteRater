@@ -30,6 +30,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import traceback
 
 """
 as with combine_extracted_files, this provides some basic filtering and 
@@ -121,7 +122,13 @@ class theoretical_enrichment_calculator(object):
                        minimum_n_value=settings.min_allowed_n_values,
                        minimum_sequence_length=settings.min_aa_sequence_length,
                        biomolecule_type=self.biomolecule_type)
-        df_split = np.array_split(unique_molecules_df, len(unique_molecules_df))
+        try:
+            df_split = np.array_split(unique_molecules_df, len(unique_molecules_df))
+        except Exception as e:
+            print("ERROR: No valid data in combined_extracted_files output file")
+            print(e)
+            traceback.print_tb(e.__traceback__)
+            raise
 
         mp_pools = mp.Pool(self._n_processors)
 

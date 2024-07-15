@@ -169,22 +169,18 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
         # determine id indices of peaks searches
         # adding and subtracting the floating point error tolerance allows us
         # to include the extremes of the range
-        local_window_min = \
-            spec_rt - settings.time_window  # + settings.fpe_tolerance)
-        local_window_max = \
-            spec_rt + settings.time_window  # + settings.fpe_tolerance)
+        local_window_min = spec_rt - settings.time_window  # + settings.fpe_tolerance)
+        local_window_max = spec_rt + settings.time_window  # + settings.fpe_tolerance)
         try:
-            lo_slice_index = \
-                min(chunk[chunk['rt'] > local_window_min].axes[0].tolist())
-            hi_slice_index = \
-                max(chunk[chunk['rt'] < local_window_max].axes[0].tolist())
+            lo_slice_index = min(chunk[chunk['rt'] > local_window_min].axes[0].tolist())
+            hi_slice_index = max(chunk[chunk['rt'] < local_window_max].axes[0].tolist())
         except:
             continue
 
         # iterate through relevant ids
         for id in ids[dmt.inclusive_slice(lo_slice_index, hi_slice_index)]:
             charge = id.z
-            # instatntiate an envelope
+            # instantiate an envelope
             envelope = Envelope(
                 peaks=[],
                 rt=spec_rt,
@@ -275,7 +271,6 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
 
     for id in ids:
         id.aggregate_envelopes()
-        print(id.condensed_envelope)
 
     # TODO: Better variable naming here. obs? I can do better
     # TODO: is there better way to initialize this?
