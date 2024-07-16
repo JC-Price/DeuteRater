@@ -257,7 +257,7 @@
    </property>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
-     <string>Options</string>
+     <string>Settings</string>
     </property>
     <addaction name="actionSettings"/>
    </widget>

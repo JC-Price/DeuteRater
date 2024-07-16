@@ -126,6 +126,7 @@ class RateCalculator:
             self.model[id_col] = self.model[id_col] + self.model["Adduct"].apply(lambda x: f"_{x}")
         groups = self.model.groupby(by=[id_col, group_column])
         # Prepare for fit
+        # TODO: add an 'else' option for p0 and rate_eq - Ben D
         if settings.asymptote == 'Variable':
             p0 = [.1, 1]
             rate_eq = partial(

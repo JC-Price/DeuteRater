@@ -225,7 +225,7 @@ unique_sequence_column: !!str "Sequence"
 use_empir_n_value: !!bool false
 
 # Whether to use neutromer spacing
-use_neutromer_spacing: !!bool false
+use_neutromer_spacing: !!bool True
 
 #$Decides how the abundance fraction new "abund_fn" is calculated.
 #$ No = Not Calculated

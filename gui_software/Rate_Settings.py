@@ -138,6 +138,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.use_neutromer_spacing, True),
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
+            setting_string_info(self.bias_calculation, "bias_calculation",
+                                settings.bias_calculation, False)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -266,16 +268,16 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                        settings.spacing_manual_bias, False),
                 setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                     settings.use_empir_n_value, True),
-                setting_string_info(self.calculate_n_values, "use_empir_n_value",
-                                    settings.use_empir_n_value, True),
                 setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
                                     settings.use_neutromer_spacing, True),
                 setting_string_info(self.verbose_rate, "verbose_rate",
                                     settings.verbose_rate, True),
+                setting_string_info(self.bias_calculation, "bias_calculation",
+                                    settings.bias_calculation, False)
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
-            QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
+            QtWidgets.QMessageBox.information(self, "Info", "Settings successfully loaded.")
             return
 
     # load the default peptide settings file
@@ -329,13 +331,17 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 False),
             setting_string_info(self.verbose_output, "verbose_output",
                                 settings.verbose_output, True),
-            setting_numerical_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                   settings.use_neutromer_spacing, True)
+            setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                settings.use_empir_n_value, True),
+            setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
+                                   settings.use_neutromer_spacing, True),
+            setting_string_info(self.bias_calculation, "bias_calculation",
+                                settings.bias_calculation, False)
 
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
-        QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
+        QtWidgets.QMessageBox.information(self, "Info", "Settings successfully loaded.")
         return
 
     # load the default lipid settings file
@@ -388,12 +394,16 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.protein_combination_method,
                                 False),
             setting_string_info(self.verbose_output, "verbose_output",
-                                settings.verbose_output, True)
+                                settings.verbose_output, True),
+            setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
+                                settings.use_neutromer_spacing, True),
+            setting_string_info(self.bias_calculation, "bias_calculation",
+                                settings.bias_calculation, False)
 
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
-        QtWidgets.QMessageBox.information(self, "Info", ("Settings successfully loaded."))
+        QtWidgets.QMessageBox.information(self, "Info", "Settings successfully loaded.")
         return
 
     # should overwrite the close of the exit button and the red x in the corner  
