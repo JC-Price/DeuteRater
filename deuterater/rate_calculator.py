@@ -418,7 +418,9 @@ class RateCalculator:
                 graph_name = None
                 graph_title = None
             try:
-                if biomolecule_type == "Lipid":
+                if settings.graph_output_format == "none":
+                    print("No graphs were generated. Change DeuteRater settings if you want graphs to be generated.")
+                elif biomolecule_type == "Lipid":
                     if settings.roll_up_rate_calc:
                         graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                                    rate_eq, graph_folder, max_time,
@@ -473,11 +475,11 @@ class RateCalculator:
         new_x = np.unique(old_x)
         new_y, errors = [], []
         for x in new_x:
-            # $ grab indicies for the time
-            x_time_indicies = np.where(old_x == x)[0]
-            # $grab only relevant indicies of y and oulier check
+            # $ grab indices for the time
+            x_time_indices = np.where(old_x == x)[0]
+            # $grab only relevant indices of y and outlier check
             temp_y_values = RateCalculator._mask_outliers(
-                old_y[x_time_indicies])
+                old_y[x_time_indices])
             # $second length check (first is in _mask_outliers) to avoid
             # $medians and std devs on statistically invalid data
             if len(temp_y_values) == 1:

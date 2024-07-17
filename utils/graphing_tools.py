@@ -173,17 +173,30 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         #
         # plt.rc('font', **font)
         plt.tight_layout()
-        plt.savefig(filename[:-4] + ".png")
-        plt.savefig(filename[:-4] + ".svg")
+        graph_output_format = settings.graph_output_format
+        if graph_output_format == "png":
+            plt.savefig(filename[:-4] + ".png", format="png")
+        elif graph_output_format == "svg":
+            plt.savefig(filename[:-4] + ".svg", format="svg")
+        elif graph_output_format == "pdf":
+            plt.savefig(filename[:-4] + ".pdf", format="pdf")
 
-    # $the following characters are not allowed in windows file names: /\ : * ? " <> |
+    # $the following characters are not allowed in Windows file names: /\ : * ? " <> |
     # $replace them with underscores (yes this could erase duplicates, but this is unlikely
     # $first place, that situation is unlikely problematic enough to bother with)
     except OSError:
         for bad_char in bad_save_file_characters:
             name = name.replace(bad_char, "_")
-        filename = os.path.join(save_folder_name, name) + f".png"
-        plt.savefig(filename[:-4] + ".png")
-        plt.savefig(filename[:-4] + ".svg")
+
+        graph_output_format = settings.graph_output_format
+        if graph_output_format == "png":
+            filename = os.path.join(save_folder_name, name) + f".png"
+            plt.savefig(filename[:-4] + ".png", format="png")
+        elif graph_output_format == "svg":
+            filename = os.path.join(save_folder_name, name) + f".svg"
+            plt.savefig(filename[:-4] + ".svg", format="svg")
+        elif graph_output_format == "pdf":
+            filename = os.path.join(save_folder_name, name) + f".pdf"
+            plt.savefig(filename[:-4] + ".pdf", format="pdf")
 
     plt.clf()
