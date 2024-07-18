@@ -35,6 +35,7 @@ import pandas as pd
 import numpy as np  # noqa
 from copy import copy
 import multiprocessing as mp
+import concurrent.futures as cf
 
 from functools import partial
 
@@ -115,7 +116,7 @@ class FractionNewCalculator:
         if self._n_processors > 60:
             self.n_processors = 60
 
-        self._mp_pool = mp.Pool(self._n_processors)
+        # self._mp_pool = mp.Pool(self._n_processors)
 
         # TODO: sort out different n-value names. - Ben D
         # if settings.use_empir_n_value:
@@ -195,12 +196,17 @@ class FractionNewCalculator:
             func = partial(func, settings_path=self.settings_path)
             func = partial(func, biomolecule_type=self.biomolecule_type)
 
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(func, model_pieces),
-                    total=len(self.model), desc="Fraction New Calculation: "
-                )
-            )
+            # results = list(
+            #     tqdm(
+            #         self._mp_pool.imap_unordered(func, model_pieces),
+            #         total=len(self.model), desc="Fraction New Calculation: "
+            #     )
+            # )
+
+            with cf.ProcessPoolExecutor() as executor:
+                results = list(
+                    tqdm(executor.map(func, model_pieces), total=len(self.model), desc="Fraction New Calculation: ",
+                         leave=False))
 
         if settings.debug_level >= 1:
             print('Beginning single-processor fraction new calculation.')
@@ -210,9 +216,6 @@ class FractionNewCalculator:
                 results.append(FractionNewCalculator._mp_prepare(row, self.settings_path, self.biomolecule_type))
 
         self.model = pd.concat(results, sort=False)
-
-        self._mp_pool.close()
-        self._mp_pool.join()
 
     # $generic error output for filters based on n values or other criteria
     # $preferably will do before the calculations so can leave all blank except

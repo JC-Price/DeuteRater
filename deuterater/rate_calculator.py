@@ -38,6 +38,7 @@ from scipy.stats import t  # pearsonr?
 from scipy.optimize import curve_fit  # least_sq?
 import warnings as w
 import multiprocessing as mp
+import concurrent.futures as cf
 
 from tqdm import tqdm  # noqa: 401
 
@@ -87,7 +88,7 @@ class RateCalculator:
         # $breaks windows/python interactions if too many cores are used. very niche application but still relevant
         if self._n_processors > 60:
             self.n_processors = 60
-        self._mp_pool = mp.Pool(self._n_processors)
+        # self._mp_pool = mp.Pool(self._n_processors)
 
         self.biomolecule_type = biomolecule_type  # CQ
 
@@ -165,12 +166,15 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                results = list(
-                    tqdm(
-                        self._mp_pool.imap_unordered(temp_rate_function, groups),
-                        total=len(groups), desc="Abundance Rate Calculation: "
-                    )
-                )
+                # results = list(
+                #     tqdm(
+                #         self._mp_pool.imap_unordered(temp_rate_function, groups),
+                #         total=len(groups), desc="Abundance Rate Calculation: "
+                #     )
+                # )
+                with cf.ProcessPoolExecutor() as executor:
+                    results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
+                                        desc="Abundance Rate Calculation: ", leave=False))
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Abundance Rate Calculation: "):
                     results.append(temp_rate_function(group))
@@ -191,12 +195,15 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                results = list(
-                    tqdm(
-                        self._mp_pool.imap_unordered(temp_rate_function, groups),
-                        total=len(groups), desc="Spacing Rate Calculation: "
-                    )
-                )
+                # results = list(
+                #     tqdm(
+                #         self._mp_pool.imap_unordered(temp_rate_function, groups),
+                #         total=len(groups), desc="Spacing Rate Calculation: "
+                #     )
+                # )
+                with cf.ProcessPoolExecutor() as executor:
+                    results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
+                                        desc="Spacing Rate Calculation: ", leave=False))
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Spacing Rate Calculation: "):
                     results.append(temp_rate_function(group))
@@ -213,12 +220,15 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                results = list(
-                    tqdm(
-                        self._mp_pool.imap_unordered(temp_rate_function, groups),
-                        total=len(groups), desc="Combined Rate Calculation: "
-                    )
-                )
+                # results = list(
+                #     tqdm(
+                #         self._mp_pool.imap_unordered(temp_rate_function, groups),
+                #         total=len(groups), desc="Combined Rate Calculation: "
+                #     )
+                # )
+                with cf.ProcessPoolExecutor() as executor:
+                    results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
+                                        desc="Combined Rate Calculation: ", leave=False))
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Combined Rate Calculation: "):
                     results.append(temp_rate_function(group))
@@ -234,9 +244,6 @@ class RateCalculator:
         self.datapoint_model = pd.concat(datapoint_results[0])
         # $swap back to normal warning behaviour
         w.filterwarnings("default")
-
-        self._mp_pool.close()
-        self._mp_pool.join()
 
         if not settings.verbose_rate:
             self.trim_verbose_data()

@@ -6,17 +6,10 @@ import pandas as pd
 import re
 import time
 import multiprocessing as mp
+import concurrent.futures as cf
 import numpy as np
 from tqdm import tqdm
 import deuterater.settings as settings
-
-# import logging as lg
-
-# lg.basicConfig(level=lg.INFO,
-#                filename="C:\\Users\\Brigham Young Univ\\Desktop\\DeuteRater Versions\\DeuteRater_v6\\log.txt",
-#                filemode='w')
-
-start = time.perf_counter()
 
 # output_columns = ['empir_n', 'stddev', 'dIt_n', 'dIt_stddev']
 output_columns = ['n_value', 'stddev']
@@ -37,7 +30,7 @@ class NValueCalculator:
         # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
         if self._n_processors > 60:
             self.n_processors = 60
-        self._mp_pool = mp.Pool(self._n_processors)
+        # self._mp_pool = mp.Pool(self._n_processors)
         self.full_df = dataframe
         self.output_columns = output_columns
         self.prepared_df = None
@@ -84,13 +77,17 @@ class NValueCalculator:
         results = list()
         # settings.debug_level = 1
         if settings.debug_level == 0:
-            from itertools import product
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(NValueCalculator.analyze_group, groups),
-                    total=len(groups), desc="Calculating n-values: "
-                )
-            )
+            # results = list(
+            #     tqdm(
+            #         self._mp_pool.imap_unordered(NValueCalculator.analyze_group, groups),
+            #         total=len(groups), desc="Calculating n-values: "
+            #     )
+            # )
+
+            with cf.ProcessPoolExecutor() as executor:
+                results = list(
+                    tqdm(executor.map(NValueCalculator.analyze_group, groups), total=len(groups), desc="Calculating n-values: ",
+                         leave=False))
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values:", total=len(groups)):
@@ -106,8 +103,6 @@ class NValueCalculator:
                                           how='outer',
                                           left_index=True,
                                           right_index=True)
-        self._mp_pool.close()
-        self._mp_pool.join()
 
     @staticmethod
     def analyze_group(partition):

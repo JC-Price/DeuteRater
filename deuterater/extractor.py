@@ -39,6 +39,7 @@ from tqdm import tqdm  # noqa: 401
 from more_itertools import one
 from functools import partial
 import multiprocessing as mp
+import concurrent.futures as cf
 from pathlib import Path  # noqa: 401
 import os
 import traceback
@@ -128,7 +129,7 @@ class Extractor:  # TODO name change
             self._id_rt_unit = settings.id_file_rt_unit
             self._trim_ids = settings.trim_ids_to_mzml_bounds
             self._rt_window = settings.time_window
-            self._mp_pool = mp.Pool(self._n_processors)
+            # self._mp_pool = mp.Pool(self._n_processors)
 
             if not os.path.exists(self.out_path):
                 open(self.out_path, 'w').close()
@@ -318,18 +319,8 @@ class Extractor:  # TODO name change
         # settings.debug_level = 1
         if settings.debug_level == 0:
             try:
-                results = list(
-                    # tqdm creates our progress bar
-                    tqdm(
-                        self._mp_pool.imap_unordered(
-                            func,
-                            self._id_chunks
-                        ),
-                        total=len(self._id_chunks),
-                        desc="Extracting: ",
-                        leave=False
-                    )
-                )
+                with cf.ProcessPoolExecutor() as executor:
+                    results = list(tqdm(executor.map(func, self._id_chunks), total=len(self._id_chunks), desc="Extracting: ", leave=False))
             except Exception as e:
                 print(
                     "The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
@@ -360,9 +351,6 @@ class Extractor:  # TODO name change
                 left_index=True,
                 right_on='id_index'
             )
-
-        self._mp_pool.close()
-        self._mp_pool.join()
 
 
 def main():

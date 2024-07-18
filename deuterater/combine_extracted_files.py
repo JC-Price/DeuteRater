@@ -38,6 +38,7 @@ import traceback  # noqa: 401
 from pathlib import Path
 from functools import partial
 import multiprocessing as mp
+import concurrent.futures as cf
 
 from tqdm import tqdm  # noqa: 401
 
@@ -131,7 +132,7 @@ class CombineExtractedFiles:
         if self._n_processors > 60:
             self.n_processors = 60
 
-        self._mp_pool = mp.Pool(self._n_processors)
+        # self._mp_pool = mp.Pool(self._n_processors)
         self.out_path = out_path
         self.model = None
 
@@ -163,12 +164,18 @@ class CombineExtractedFiles:
                 func = partial(CombineExtractedFiles._mp_prepare, self.settings_path, aa_labeling_dict=self.aa_labeling_dict)
             else:
                 func = partial(CombineExtractedFiles._mp_prepare, self.settings_path)
-            results = list(
-                tqdm(
-                    self._mp_pool.imap_unordered(func, args_list),
-                    total=len(self._enrichment_df), desc="Theory Generation: "
-                )
-            )
+
+            # results = list(
+            #     tqdm(
+            #         self._mp_pool.imap_unordered(func, args_list),
+            #         total=len(self._enrichment_df), desc="Theory Generation: "
+            #     )
+            # )
+
+            with cf.ProcessPoolExecutor() as executor:
+                results = list(
+                    tqdm(executor.map(func, args_list), total=len(args_list), desc="Theory Generation: ",
+                         leave=False))
 
         elif settings.debug_level >= 1:
             print('Beginning single-processor theory preparation.')
@@ -281,9 +288,6 @@ class CombineExtractedFiles:
             if self.biomolecule_type == "Peptide":
                 full_df.drop("calculate_n_value", axis=1, inplace=True)
             self.model = full_df
-
-        self._mp_pool.close()
-        self._mp_pool.join()
 
     # actually runs the relevant calculation. Yes reloading the settings is necessary
     # because each process has its own global variables in windows

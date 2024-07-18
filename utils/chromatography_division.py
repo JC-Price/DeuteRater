@@ -74,7 +74,7 @@ class ChromatographyDivider:
 			if self._n_processors > 60:
 				self.n_processors = 60
 			
-			self._mp_pool = mp.Pool(self._n_processors)
+			# self._mp_pool = mp.Pool(self._n_processors)
 		
 		except Exception as e:
 			print(e)
