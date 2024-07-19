@@ -206,7 +206,7 @@ class FractionNewCalculator:
             with cf.ProcessPoolExecutor() as executor:
                 results = list(
                     tqdm(executor.map(func, model_pieces), total=len(self.model), desc="Fraction New Calculation: ",
-                         leave=False))
+                         leave=True))
 
         if settings.debug_level >= 1:
             print('Beginning single-processor fraction new calculation.')

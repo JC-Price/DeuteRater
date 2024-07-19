@@ -759,6 +759,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
     # ask user for one file
     def collect_single_file(self, to_load, step_name, load_type):
+        # TODO: Update the pop up message text to match the names of the output files - Ben D
         QtWidgets.QMessageBox.information(self, "Info", ("Please choose the {} "
                                                          "file to load for {} step".format(to_load, step_name)))
         filename, file_type = QtWidgets.QFileDialog.getOpenFileName(self,

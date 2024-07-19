@@ -175,7 +175,7 @@ class CombineExtractedFiles:
             with cf.ProcessPoolExecutor() as executor:
                 results = list(
                     tqdm(executor.map(func, args_list), total=len(args_list), desc="Theory Generation: ",
-                         leave=False))
+                         leave=True))
 
         elif settings.debug_level >= 1:
             print('Beginning single-processor theory preparation.')

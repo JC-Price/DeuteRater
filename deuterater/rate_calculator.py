@@ -125,7 +125,9 @@ class RateCalculator:
         # Decide if rates should be put together with adducts or not.
         if self.biomolecule_type == "Lipid" and settings.separate_adducts:
             self.model[id_col] = self.model[id_col] + self.model["Adduct"].apply(lambda x: f"_{x}")
+
         groups = self.model.groupby(by=[id_col, group_column])
+
         # Prepare for fit
         # TODO: add an 'else' option for p0 and rate_eq - Ben D
         if settings.asymptote == 'Variable':
@@ -174,7 +176,7 @@ class RateCalculator:
                 # )
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
-                                        desc="Abundance Rate Calculation: ", leave=False))
+                                        desc="Abundance Rate Calculation: ", leave=True))
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Abundance Rate Calculation: "):
                     results.append(temp_rate_function(group))
@@ -203,7 +205,7 @@ class RateCalculator:
                 # )
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
-                                        desc="Spacing Rate Calculation: ", leave=False))
+                                        desc="Spacing Rate Calculation: ", leave=True))
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Spacing Rate Calculation: "):
                     results.append(temp_rate_function(group))
@@ -228,7 +230,7 @@ class RateCalculator:
                 # )
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
-                                        desc="Combined Rate Calculation: ", leave=False))
+                                        desc="Combined Rate Calculation: ", leave=True))
             elif settings.debug_level >= 1:
                 for group in tqdm(groups, desc="Combined Rate Calculation: "):
                     results.append(temp_rate_function(group))
@@ -264,6 +266,7 @@ class RateCalculator:
                 needed_columns.append(p.format("Combined"))
         self.rate_model = self.rate_model[needed_columns]
 
+    # function passed into the multiprocessing for calculations
     def _mp_function(data_tuple, settings_path, fn_col,
                      fn_std_dev, calc_type, manual_bias, std_dev_filter, graph_folder,
                      rate_eq, max_time, p0, biomolecule_type):
@@ -334,8 +337,7 @@ class RateCalculator:
 
         # I think this fixes the issues with technical replicates.
         # $need to use astype(str) on all or if someone uses numbers for group names or replicate names issues result
-        num_bio_reps = len(
-            set(group["time"].astype(str) + group["sample_group"].astype(str) + group["bio_rep"].astype(str)))
+        num_bio_reps = len(set(group["time"].astype(str) + group["sample_group"].astype(str) + group["bio_rep"].astype(str)))
 
         if num_unique_times < settings.minimum_nonzero_points:
             result = RateCalculator._make_error_message(

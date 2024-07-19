@@ -96,7 +96,7 @@ ms_level: !!int 1
 
 #The file output the rate groups should be
 # Default = png. Available: png, pdf, svg
-graph_output_format: !!str "pdf"
+graph_output_format: !!str "png"
 
 # add ability to Median or Average roll up
 # allowed settings are Average and Median

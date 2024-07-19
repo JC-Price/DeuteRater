@@ -16,7 +16,7 @@ debug_level: 0
 error_of_non_replicated_point: 0.05
 error_of_zero: 0.01
 fixed_asymptote_value: 1.0
-graph_output_format: pdf
+graph_output_format: png
 how_divided: combined
 id_file_rt_unit: sec
 intensity_filter: 20000

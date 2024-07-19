@@ -31,31 +31,39 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-"""
-governs the optional use of comparing chromatography within a file or between files
-"""
 import pandas as pd
 import numpy as np
-try:
-	from obs.peak import Peak
-	from obs.id import ID
-	from obs.envelope import Envelope
-	from obs.molecule import Molecule
-	import deuterater.settings as settings
-except:
-	from DeuteRater.obs.peak import Peak
-	from DeuteRater.obs.id import ID
-	from DeuteRater.obs.envelope import Envelope
-	from DeuteRater.obs.molecule import Molecule
-	import DeuteRater.deuterater.settings as settings
+from obs.peak import Peak
+from obs.id import ID
+from obs.envelope import Envelope
+from obs.molecule import Molecule
+import deuterater.settings as settings
+
 from functools import partial
 import multiprocessing as mp
 import traceback
 import os
 from tqdm import tqdm
 
+"""
+governs the optional use of comparing chromatography within a file or between files
+"""
+
+# try:
+# 	from obs.peak import Peak
+# 	from obs.id import ID
+# 	from obs.envelope import Envelope
+# 	from obs.molecule import Molecule
+# 	import deuterater.settings as settings
+# except:
+# 	from DeuteRater.obs.peak import Peak
+# 	from DeuteRater.obs.id import ID
+# 	from DeuteRater.obs.envelope import Envelope
+# 	from DeuteRater.obs.molecule import Molecule
+# 	import DeuteRater.deuterater.settings as settings
+
+
 class ChromatographyDivider:
-	
 	def __init__(self, settings_path, out_paths, input_paths):
 		self.settings_path = settings_path
 		settings.load(self.settings_path)

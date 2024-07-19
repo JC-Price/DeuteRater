@@ -87,7 +87,7 @@ class NValueCalculator:
             with cf.ProcessPoolExecutor() as executor:
                 results = list(
                     tqdm(executor.map(NValueCalculator.analyze_group, groups), total=len(groups), desc="Calculating n-values: ",
-                         leave=False))
+                         leave=True))
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values:", total=len(groups)):

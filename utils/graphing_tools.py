@@ -153,7 +153,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
 
     if make_error_lines:
         plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color='black', alpha=.15)
-    if errors != []:  # $ only if roll up so need error bars
+    # $ only if roll up so need error bars
+    if errors:
         plt.errorbar(x_values, y_values, yerr=errors, elinewidth=1,
                      ecolor='red', linewidth=0)
     # $save figure and clear it for next time
@@ -178,8 +179,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
             plt.savefig(filename[:-4] + ".png", format="png")
         elif graph_output_format == "svg":
             plt.savefig(filename[:-4] + ".svg", format="svg")
-        elif graph_output_format == "pdf":
-            plt.savefig(filename[:-4] + ".pdf", format="pdf")
+        # elif graph_output_format == "pdf":
+        #     plt.savefig(filename[:-4] + ".pdf", format="pdf")
 
     # $the following characters are not allowed in Windows file names: /\ : * ? " <> |
     # $replace them with underscores (yes this could erase duplicates, but this is unlikely
@@ -195,8 +196,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         elif graph_output_format == "svg":
             filename = os.path.join(save_folder_name, name) + f".svg"
             plt.savefig(filename[:-4] + ".svg", format="svg")
-        elif graph_output_format == "pdf":
-            filename = os.path.join(save_folder_name, name) + f".pdf"
-            plt.savefig(filename[:-4] + ".pdf", format="pdf")
+        # elif graph_output_format == "pdf":
+        #     filename = os.path.join(save_folder_name, name) + f".pdf"
+        #     plt.savefig(filename[:-4] + ".pdf", format="pdf")
 
     plt.clf()

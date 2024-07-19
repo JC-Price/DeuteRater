@@ -766,11 +766,6 @@
     <widget class="QComboBox" name="graph_file_type">
      <item>
       <property name="text">
-       <string>pdf</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
        <string>png</string>
       </property>
      </item>
