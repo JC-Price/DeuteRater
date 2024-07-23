@@ -56,14 +56,12 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     plt.title(title)
     plt.xlabel('Time (Days)')
     plt.ylabel(f'Fraction New')
-    # plt.xlabel('Time')
-    # plt.ylabel(f'Fraction of Total {biomolecule} that is new')
 
     for time in x_values:
         plt.axvline(x=time, linewidth=.5, color="k")
 
     # $make the values for the line
-    # $make_error_lines is just to remove unoptimal fits for plus and minus
+    # $make_error_lines is just to remove non-optimal fits for plus and minus
     # $the main should have triggered the try except in rate_calculator.py if
     # $it is the issue.
     make_error_lines = True
@@ -71,10 +69,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     if asymptote_option == 'variable' or asymptote_option == "Variable":
         fit_line_y = rate_equation(fit_line_x, k=rate, a=asymptote)
         try:
-            fit_line_y_minus_error = rate_equation(fit_line_x,
-                                                   k=rate - ci, a=asymptote)
-            fit_line_y_plus_error = rate_equation(fit_line_x,
-                                                  k=rate + ci, a=asymptote)
+            fit_line_y_minus_error = rate_equation(fit_line_x, k=rate - ci, a=asymptote)
+            fit_line_y_plus_error = rate_equation(fit_line_x, k=rate + ci, a=asymptote)
         except:
             make_error_lines = False
     else:
@@ -89,10 +85,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     # $ unfortunately nans can cause errors.  only seem to occur if using one time and only error in an .exe but may as well sort this out
     plt.plot(fit_line_x, fit_line_y, main_line_symbol)
     if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
-        fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = \
-            MAXIMUM_GRAPH_RATE_ERROR
-        fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = \
-            MINIMUM_GRAPH_RATE_ERROR
+        fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = MAXIMUM_GRAPH_RATE_ERROR
+        fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = MINIMUM_GRAPH_RATE_ERROR
 
         # $plot  lines and points
     if full_data is None:

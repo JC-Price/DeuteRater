@@ -113,8 +113,10 @@ class RateCalculator:
         datapoint_results = []  # CQ
         max_time = max(self.model["time"])
         if self.biomolecule_type == "Peptide":
+            # peptide_analyte_id_column is the Protein_ID column
             id_col = settings.peptide_analyte_id_column
         elif self.biomolecule_type == "Lipid":
+            # lipid_analyte_id_column is the Lipid Unique Identifier column
             id_col = settings.lipid_analyte_id_column
         else:
             print("Unknown Analyte Type")
@@ -126,10 +128,10 @@ class RateCalculator:
         if self.biomolecule_type == "Lipid" and settings.separate_adducts:
             self.model[id_col] = self.model[id_col] + self.model["Adduct"].apply(lambda x: f"_{x}")
 
+        # group_column is the sample_group column
         groups = self.model.groupby(by=[id_col, group_column])
 
         # Prepare for fit
-        # TODO: add an 'else' option for p0 and rate_eq - Ben D
         if settings.asymptote == 'Variable':
             p0 = [.1, 1]
             rate_eq = partial(
@@ -143,6 +145,9 @@ class RateCalculator:
                 p_adj=settings.proliferation_adjustment,
                 a=settings.fixed_asymptote_value
             )
+        else:
+            p0 = np.nan
+            rate_eq = np.nan
 
         # $we're going to load up a function for mp.  we need to load up the
         # $function. don't add fn_col, fn_std_dev, calc_type, and manual_bias,
@@ -156,8 +161,7 @@ class RateCalculator:
 
         # $call the rate for each relevant measurement type
         # $add measurement specific arguments to partial function
-        # TODO: what is the use_abundance setting for? Do we need it? - Ben D
-        # settings.debug_level = 1
+        settings.debug_level = 1
         if settings.use_abundance != "No":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",
@@ -274,10 +278,10 @@ class RateCalculator:
         settings.load(settings_path)
         pd.options.mode.chained_assignment = None
 
+        # id_values will have the Protein_ID and sample_group
+        # group will be the dataframe containing the actual data
         id_values, group = data_tuple[0], data_tuple[1]
         id_name = id_values[0]
-        # if id_name == "PC 16:1_20:4_1827.4104000000002":
-        #     print("Found you.")
         sample_group_name = id_values[1]
         if biomolecule_type == "Peptide":
             common_name = group[settings.peptide_analyte_name_column].iloc[0]
@@ -287,8 +291,7 @@ class RateCalculator:
             raise Exception("Not a Valid Biomolecule Type")
         # $drop error string could do earlier for more speed, but this is
         # $clearer and allows errors that affect only one calculation type
-        group = RateCalculator._error_trimmer(
-            group, [fn_col, fn_std_dev])
+        group = RateCalculator._error_trimmer(group, [fn_col, fn_std_dev])
         # $the copy is just to avoid a SettingWithCopy warning in a few
         # $operations.  if it causes problems remove and suppress warning
         if not settings.remove_filters:
@@ -309,15 +312,12 @@ class RateCalculator:
 
         # set time as the x-axis and fraction new as the y-axis
         xs = np.concatenate(([0], group['time'].to_numpy()))
-        ys = np.concatenate(([settings.y_intercept_of_fit],
-                             group[fn_col].to_numpy()))
+        ys = np.concatenate(([settings.y_intercept_of_fit], group[fn_col].to_numpy()))
 
         if settings.roll_up_rate_calc:
             xs, ys, devs = RateCalculator._roll(xs, ys)
         else:
-            devs = np.concatenate((
-                [settings.error_of_zero],
-                group[fn_std_dev].to_numpy()))
+            devs = np.concatenate(([settings.error_of_zero], group[fn_std_dev].to_numpy()))
 
         # Get the number of unique time points, and continue if not enough
         num_unique_times = len(set(group['time']))
@@ -349,14 +349,14 @@ class RateCalculator:
         try:
             # $DO NOT use std dev as the Sigma because it creates influential outliers
             # $don't use sigma unless we have a different
-            popt, pcov = curve_fit(
-                f=rate_eq, xdata=xs, ydata=ys,
-                p0=p0)
+            # popt = optimal values for the parameters so the sum of the squared residuals of f(xdata, *popt) - ydata is minimized
+            # pcov = estimated approximate covariance of popt.
+            # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html for more details
+            popt, pcov = curve_fit(f=rate_eq, xdata=xs, ydata=ys, p0=p0)
 
             # pull results of fit into variables
             rate = popt[0]
-            asymptote = \
-                popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
+            asymptote = popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
             # TODO$ ci uses degrees of freedom = n-k where n is the number of points and k is the number of parameters estimated
             # $including intercept in linear regression.  if asymptote is fixed k =1 otherwise k =2 (intercept is fit by equation, not data)
             # $not counting charge states and different peptides as unique measurements.
@@ -369,9 +369,7 @@ class RateCalculator:
             if pcov[1][1] < 0:
                 pcov[1][1] = 0
 
-            confint = \
-                t.ppf(.975, num_files - len(popt)) * \
-                np.sqrt(np.diag(pcov))[0]
+            confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
 
             y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
             r_2 = dur.calculate_r2(ys, y_predicted)
@@ -547,7 +545,6 @@ class RateCalculator:
     # $errors are located. returns the trimmed dataframe
     @staticmethod
     def _error_trimmer(df, error_columns):
-        df[error_columns] = df[error_columns].apply(
-            pd.to_numeric, errors='coerce')
+        df[error_columns] = df[error_columns].apply(pd.to_numeric, errors='coerce')
         temp = df.dropna(axis=0, subset=error_columns)
         return temp
