@@ -153,7 +153,7 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
 
     # save the current settings
     def save_settings(self):
-        # we need to provide the values that are not altred for the dump
+        # we need to provide the values that are not altered for the dump
         save_value_dict = Rate_Setting_Menu._get_filters()
         for setting_object in self.all_settings:
             name, value = setting_object.save_value()
@@ -331,13 +331,32 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 False),
             setting_string_info(self.verbose_output, "verbose_output",
                                 settings.verbose_output, True),
+            setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
+                                   settings.abundance_manual_bias, False),
+            setting_string_info(self.asymptope_type, "asymptote",
+                                settings.asymptote, False),
+            setting_numerical_info(self.combined_manual_bias, "combined_manual_bias",
+                                   settings.combined_manual_bias, False),
+            setting_numerical_info(self.fixed_asymptote_value, "fixed_asymptote_value",
+                                   settings.fixed_asymptote_value, False),
+            setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
+                                   settings.minimum_nonzero_points, True),
+            setting_numerical_info(self.proliferation_adjustment, "proliferation_adjustment",
+                                   settings.proliferation_adjustment, False),
+            setting_string_info(self.roll_up_option, "roll_up_rate_calc",
+                                settings.roll_up_rate_calc, True),
+            setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
+                                   settings.spacing_manual_bias, False),
+            setting_string_info(self.use_abundance, "use_abundance",
+                                settings.use_abundance, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                 settings.use_empir_n_value, True),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                   settings.use_neutromer_spacing, True),
+                                settings.use_neutromer_spacing, True),
+            setting_string_info(self.verbose_rate, "verbose_rate",
+                                settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False)
-
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -395,11 +414,32 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 False),
             setting_string_info(self.verbose_output, "verbose_output",
                                 settings.verbose_output, True),
+            setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
+                                   settings.abundance_manual_bias, False),
+            setting_string_info(self.asymptope_type, "asymptote",
+                                settings.asymptote, False),
+            setting_numerical_info(self.combined_manual_bias, "combined_manual_bias",
+                                   settings.combined_manual_bias, False),
+            setting_numerical_info(self.fixed_asymptote_value, "fixed_asymptote_value",
+                                   settings.fixed_asymptote_value, False),
+            setting_numerical_info(self.minimum_nonzero_points, "minimum_nonzero_points",
+                                   settings.minimum_nonzero_points, True),
+            setting_numerical_info(self.proliferation_adjustment, "proliferation_adjustment",
+                                   settings.proliferation_adjustment, False),
+            setting_string_info(self.roll_up_option, "roll_up_rate_calc",
+                                settings.roll_up_rate_calc, True),
+            setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
+                                   settings.spacing_manual_bias, False),
+            setting_string_info(self.use_abundance, "use_abundance",
+                                settings.use_abundance, False),
+            setting_string_info(self.calculate_n_values, "use_empir_n_value",
+                                settings.use_empir_n_value, True),
             setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
                                 settings.use_neutromer_spacing, True),
+            setting_string_info(self.verbose_rate, "verbose_rate",
+                                settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False)
-
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

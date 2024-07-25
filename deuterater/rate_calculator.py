@@ -112,6 +112,8 @@ class RateCalculator:
         rate_results = []
         datapoint_results = []  # CQ
         max_time = max(self.model["time"])
+
+        # get the appropriate analyte column
         if self.biomolecule_type == "Peptide":
             # peptide_analyte_id_column is the Protein_ID column
             id_col = settings.peptide_analyte_id_column
@@ -121,6 +123,7 @@ class RateCalculator:
         else:
             print("Unknown Analyte Type")
             return
+
         # $could put manual bias correction here, would be slightly more
         # $efficient, but make the logic less clear
 
@@ -161,6 +164,8 @@ class RateCalculator:
 
         # $call the rate for each relevant measurement type
         # $add measurement specific arguments to partial function
+
+        # perform calculations for an abundance based rate
         settings.debug_level = 1
         if settings.use_abundance != "No":
             temp_rate_function = partial(rate_function,
@@ -172,12 +177,6 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                # results = list(
-                #     tqdm(
-                #         self._mp_pool.imap_unordered(temp_rate_function, groups),
-                #         total=len(groups), desc="Abundance Rate Calculation: "
-                #     )
-                # )
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
                                         desc="Abundance Rate Calculation: ", leave=True))
@@ -185,12 +184,10 @@ class RateCalculator:
                 for group in tqdm(groups, desc="Abundance Rate Calculation: "):
                     results.append(temp_rate_function(group))
 
-            # for group in tqdm(groups, desc="Abundance Rate Calculation: "):
-            #     results.append(temp_rate_function(group))
-
             rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
             datapoint_results.append([i[1] for i in results])  # CQ
 
+        # perform calculations for a neutromer spacing based rate
         if settings.use_neutromer_spacing:
             temp_rate_function = partial(rate_function,
                                          calc_type="Spacing",
@@ -201,12 +198,6 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                # results = list(
-                #     tqdm(
-                #         self._mp_pool.imap_unordered(temp_rate_function, groups),
-                #         total=len(groups), desc="Spacing Rate Calculation: "
-                #     )
-                # )
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
                                         desc="Spacing Rate Calculation: ", leave=True))
@@ -216,6 +207,7 @@ class RateCalculator:
             rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
             datapoint_results.append([i[1] for i in results])  # CQ
 
+        # perform calculations for a combined rate (neutromer spacing + abundance)
         if settings.use_abundance and settings.use_neutromer_spacing:
             temp_rate_function = partial(rate_function,
                                          calc_type="Combined",
@@ -226,12 +218,6 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                # results = list(
-                #     tqdm(
-                #         self._mp_pool.imap_unordered(temp_rate_function, groups),
-                #         total=len(groups), desc="Combined Rate Calculation: "
-                #     )
-                # )
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
                                         desc="Combined Rate Calculation: ", leave=True))
@@ -271,8 +257,7 @@ class RateCalculator:
         self.rate_model = self.rate_model[needed_columns]
 
     # function passed into the multiprocessing for calculations
-    def _mp_function(data_tuple, settings_path, fn_col,
-                     fn_std_dev, calc_type, manual_bias, std_dev_filter, graph_folder,
+    def _mp_function(data_tuple, settings_path, fn_col, fn_std_dev, calc_type, manual_bias, std_dev_filter, graph_folder,
                      rate_eq, max_time, p0, biomolecule_type):
         w.filterwarnings("error")
         settings.load(settings_path)
@@ -283,15 +268,19 @@ class RateCalculator:
         id_values, group = data_tuple[0], data_tuple[1]
         id_name = id_values[0]
         sample_group_name = id_values[1]
+
+        # grab the common name for the group (based on analyte name column)
         if biomolecule_type == "Peptide":
             common_name = group[settings.peptide_analyte_name_column].iloc[0]
         elif biomolecule_type == "Lipid":
             common_name = group[settings.lipid_analyte_name_column].iloc[0]
         else:
             raise Exception("Not a Valid Biomolecule Type")
+
         # $drop error string could do earlier for more speed, but this is
         # $clearer and allows errors that affect only one calculation type
         group = RateCalculator._error_trimmer(group, [fn_col, fn_std_dev])
+
         # $the copy is just to avoid a SettingWithCopy warning in a few
         # $operations.  if it causes problems remove and suppress warning
         if not settings.remove_filters:
@@ -349,8 +338,8 @@ class RateCalculator:
         try:
             # $DO NOT use std dev as the Sigma because it creates influential outliers
             # $don't use sigma unless we have a different
-            # popt = optimal values for the parameters so the sum of the squared residuals of f(xdata, *popt) - ydata is minimized
-            # pcov = estimated approximate covariance of popt.
+            # popt are the optimal values for the parameters so the sum of the squared residuals of f(xdata, *popt) - ydata is minimized
+            # pcov is the estimated approximate covariance of popt.
             # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html for more details
             popt, pcov = curve_fit(f=rate_eq, xdata=xs, ydata=ys, p0=p0)
 

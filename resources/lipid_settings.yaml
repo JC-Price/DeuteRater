@@ -212,7 +212,7 @@ roll_up_rate_calc: !!bool false
 s_n_filter: !!float 0
 
 # Treat each adduct for a lipid as a different rate curve.
-separate_adducts: !!bool False
+separate_adducts: !!bool True
 
 #$column to get the number of unique sequences used for a fit
 #$this is made for peptide sequences in proteins, but could be used for

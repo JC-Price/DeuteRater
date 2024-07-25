@@ -7,7 +7,7 @@ allowed_neutromer_peak_variance: 64
 allowed_peak_variance_min: 0.1
 asymptote: Variable
 baseline_lookback: 100
-bias_calculation: None
+bias_calculation: ''
 chunk_size: 50
 chunking_method_threshold: 2
 combined_agreement_filter: 0.1

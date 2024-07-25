@@ -39,6 +39,7 @@ from tqdm import tqdm  # noqa: 401
 from more_itertools import one
 from functools import partial
 import multiprocessing as mp
+from multiprocessing import set_start_method
 import concurrent.futures as cf
 from pathlib import Path  # noqa: 401
 import os
@@ -319,11 +320,11 @@ class Extractor:  # TODO name change
         # settings.debug_level = 1
         if settings.debug_level == 0:
             try:
-                with cf.ProcessPoolExecutor() as executor:
+                # set_start_method('spawn')
+                with cf.ProcessPoolExecutor(max_workers=4) as executor:
                     results = list(tqdm(executor.map(func, self._id_chunks), total=len(self._id_chunks), desc="Extracting: ", leave=True))
             except Exception as e:
-                print(
-                    "The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
+                print("The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")
 
         if settings.debug_level >= 1:
             print('Beginning single-processor extraction.')

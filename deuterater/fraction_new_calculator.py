@@ -254,8 +254,7 @@ class FractionNewCalculator:
                                                              "N value is less than {}".format(
                                                                  settings.min_allowed_n_values))
                     continue
-            if biomolecule_type == "Peptide" and \
-                    len(row.Sequence) < settings.min_aa_sequence_length:
+            if biomolecule_type == "Peptide" and len(row.Sequence) < settings.min_aa_sequence_length:
                 df = FractionNewCalculator._error_method(df, row,
                                                          "Fewer than {} amino acids".format(
                                                              settings.min_aa_sequence_length))
