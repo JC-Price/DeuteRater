@@ -302,6 +302,12 @@ class RateCalculator:
         # set time as the x-axis and fraction new as the y-axis
         xs = np.concatenate(([0], group['time'].to_numpy()))
         ys = np.concatenate(([settings.y_intercept_of_fit], group[fn_col].to_numpy()))
+        
+        # xdf = pd.DataFrame(xs)
+        # ydf = pd.DataFrame(ys)
+        #
+        # xdf.to_csv("D:\\DR Testing\\Graphing\\x_coords.csv", index=False)
+        # ydf.to_csv("D:\\DR Testing\\Graphing\\y_coords.csv", index=False)
 
         if settings.roll_up_rate_calc:
             xs, ys, devs = RateCalculator._roll(xs, ys)
