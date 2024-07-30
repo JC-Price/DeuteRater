@@ -80,30 +80,6 @@ class CombineExtractedFiles:
             aa_label_df.set_index('study_type', inplace=True)
             self.aa_labeling_dict = aa_label_df.loc[settings.label_key,].to_dict()
             settings.use_empir_n_value = False
-
-        # pull in two sub tables from the output table. possibilities for .tsv and .csv files
-        # if self.enrichment_path.suffix == '.tsv':
-        #     self._file_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep='\t',
-        #         usecols=["Filename", "Time", "Subject ID"]
-        #     )
-        #     self._enrichment_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep='\t',
-        #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-        #     )
-        # elif self.enrichment_path.suffix == '.csv':
-        #     self._file_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep=',',
-        #         usecols=["Filename", "Time", "Subject ID"]
-        #     )
-        #     self._enrichment_data = pd.read_csv(
-        #         filepath_or_buffer=str(self.enrichment_path),
-        #         sep=',',
-        #         usecols=["Subject ID Enrichment", "Time Enrichment", "Enrichment"]
-        #     )
         
         # since the multiple sub tables can have different length, get rid
         # of the rows that are empty
@@ -165,13 +141,6 @@ class CombineExtractedFiles:
             else:
                 func = partial(CombineExtractedFiles._mp_prepare, self.settings_path)
 
-            # results = list(
-            #     tqdm(
-            #         self._mp_pool.imap_unordered(func, args_list),
-            #         total=len(self._enrichment_df), desc="Theory Generation: "
-            #     )
-            # )
-
             with cf.ProcessPoolExecutor() as executor:
                 results = list(
                     tqdm(executor.map(func, args_list), total=len(args_list), desc="Theory Generation: ",
@@ -203,8 +172,11 @@ class CombineExtractedFiles:
                 results.append(df)
 
         self.model = pd.concat(results)
-        # if self.biomolecule_type == "Peptide":
-        #    self.model = self.model.drop(columns=['drop'])
+        
+        # if there is a column already named n_value, we want to remove it. Otherwise, when we merge the columns from the n-value
+        # calculations to the model, it will append _x to the original n_value column name and _y to the n_value_calculator n_value column.
+        if self.model.columns.isin(['n_value']).any():
+            self.model.drop(columns=['n_value'], inplace=True)
 
         if settings.use_empir_n_value:
             self.model = self.model.reset_index(drop=True)
@@ -213,10 +185,7 @@ class CombineExtractedFiles:
             # Used this for the human version to exclude rows that had really low intensities
             # self.model = self.model.loc[self.model["no_fn"] == ""]
 
-            column_list = list(
-
-                self.model.columns[
-                    self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
+            column_list = list(self.model.columns[self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
             column_list.sort()
             self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
 
@@ -283,11 +252,12 @@ class CombineExtractedFiles:
             # full_df.drop('empir_n', axis=1, inplace=True)
 
             # full_df.loc[full_df.index, "n_value"] = full_df["n_value"]
-            
-            full_df = full_df.rename(columns={'n_value_y': 'n_value'})
-            if self.biomolecule_type == "Peptide":
-                full_df.drop("calculate_n_value", axis=1, inplace=True)
+
+            full_df.drop("calculate_n_value", axis=1, inplace=True)
             self.model = full_df
+        else:
+            # put literature_n values into n_value column
+            self.model['n_value'] = self.model['literature_n']
 
     # actually runs the relevant calculation. Yes reloading the settings is necessary
     # because each process has its own global variables in windows

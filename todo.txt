@@ -6,7 +6,6 @@
 - add fraction new calculator module DONE
 
 - add columns for empirical n-values and literature n-values
-- check minimum n-value setting
 - fix fraction_new_calculator n-value column issue
 - figure out graph fitting issues
 - add setting to change standard deviation filter in graphing/rates

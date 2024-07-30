@@ -321,7 +321,7 @@ class Extractor:  # TODO name change
         if settings.debug_level == 0:
             try:
                 # set_start_method('spawn')
-                with cf.ProcessPoolExecutor(max_workers=4) as executor:
+                with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(func, self._id_chunks), total=len(self._id_chunks), desc="Extracting: ", leave=True))
             except Exception as e:
                 print("The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")

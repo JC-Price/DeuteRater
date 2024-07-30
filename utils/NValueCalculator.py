@@ -77,13 +77,6 @@ class NValueCalculator:
         results = list()
         # settings.debug_level = 1
         if settings.debug_level == 0:
-            # results = list(
-            #     tqdm(
-            #         self._mp_pool.imap_unordered(NValueCalculator.analyze_group, groups),
-            #         total=len(groups), desc="Calculating n-values: "
-            #     )
-            # )
-
             with cf.ProcessPoolExecutor() as executor:
                 results = list(
                     tqdm(executor.map(NValueCalculator.analyze_group, groups), total=len(groups), desc="Calculating n-values: ",

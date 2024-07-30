@@ -89,8 +89,12 @@ class deuterater_step(object):
                 raise ValueError("Improper input file")
             firstrow = next(reader)
         if biomolecule_type == "Peptide":
+            # print(input_file)
+            # print(self.peptide_required_columns)
             return set(self.peptide_required_columns).issubset(firstrow)
         elif biomolecule_type == "Lipid":
+            # print(input_file)
+            # print(self.lipid_required_columns)
             return set(self.lipid_required_columns).issubset(firstrow)
   
     

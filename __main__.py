@@ -74,18 +74,17 @@ default_guide_settings = os.path.join(location, "resources",
 # TODO: put these columns names in a better order - Ben D
 Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
                                       'Precursor m/z', 'Identification Charge', 'Sequence',
-                                      'Protein ID', "cf"],
+                                      'Protein ID', "cf", "literature_n"],
                                  ['Precursor Retention Time (sec)', 'Precursor m/z',
                                   'Identification Charge', "Lipid Unique Identifier",
-                                  "LMP", "Lipid Name", "HMP", "cf"])
+                                  "LMP", "Lipid Name", "HMP", "cf", "literature_n"])
 Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos",
-    "Sequence", "cf", "abundances", "mzs"],
+    "Sequence", "cf", "abundances", "mzs", "literature_n"],
                                      ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
                                       "Identification Charge", "LMP", "HMP", "n_isos",
-                                      "Lipid Name", "cf", "abundances", "mzs"]
-                                     )
+                                      "Lipid Name", "cf", "abundances", "mzs", "literature_n"])
 
 Combine_object = deuterater_step("combined_extracted_files_output.tsv",
                                  ["Filename", "Time", "Enrichment", "Sample_Group"],
@@ -112,16 +111,7 @@ fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
 rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein_ID", "Protein_Name",
                                                             "Sequence", "n_isos", "time", "sample_group", "enrichment",
                                                             "abundances", "Theoretical Unlabeled Normalized Abundances",
-                                                            "n_isos", "n_value"],
-                                   [])
-protein_rate_combination = deuterater_step("Final_Protein_Rates.csv", [
-    "Subject ID", "Protein ID", "Protein Name", "Sequence", "Abundance rate",
-    "Unique Timepoints", "Number of Measurements", "Approximate Variance",
-    "mean of all absolute residuals", "num times",
-    "n_isos", "num measurements", "time values",
-    "dropped points", "M0 constantly decreasing",
-    "Error column"
-], [])
+                                                            "n_isos", "n_value"], [])
 # create a dictionary, so we can call the deuterater_step objects
 step_object_dict = {
     "Extract": Extract_object,
@@ -129,8 +119,7 @@ step_object_dict = {
     "Combine Extracted Files": Combine_object,
     "Calculate Baseline Enrichment": delta_by_enrichment,
     "Calculate Fraction New": fraction_new_calculation,
-    "Rate Calculation": rate_calculation
-}
+    "Rate Calculation": rate_calculation}
 #  converter only does something other than make a file with a header for 
 # id files made with Peaks.  each version is slightly different so needs a different
 # analysis
