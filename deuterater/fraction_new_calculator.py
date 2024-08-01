@@ -77,18 +77,7 @@ protein_itertuple_renamer = {
     "Protein ID": "Protein_ID",
     "Homologous Proteins": "Homologous_Proteins",
     "Protein Name": "Protein_Name",
-    "literature_n": "n_value"
 }
-#    "Protein Name": "Protein_Name",
-
-# "n_isos": "num_peaks",
-
-lipid_itertuple_renamer = {
-    "literature_n": "n_value",
-}
-
-#    "Lipid Name": "Lipid_Name",
-#    "n_isos": "num_peaks",
 
 
 class FractionNewCalculator:
@@ -117,13 +106,7 @@ class FractionNewCalculator:
             self.n_processors = 60
 
         # self._mp_pool = mp.Pool(self._n_processors)
-
-        # TODO: sort out different n-value names. - Ben D
-        # if settings.use_empir_n_value:
-        #     itertuple_renamer['literature_n'] = 'literature_n'
-        #     itertuple_renamer['empir_n'] = 'n_value'
-        # else:
-        #     itertuple_renamer['literature_n'] = 'n_value'
+        
         if model_path[-4:] == ".tsv":
             self.model = pd.read_csv(model_path, sep='\t')
         elif model_path[-4:] == ".csv":
@@ -235,7 +218,7 @@ class FractionNewCalculator:
         settings.load(settings_path)
 
         # Remove NaN values for row.n_value and replace with error code -4
-        df.rename(columns={"literature_n": "n_value"})
+        # df.rename(columns={"literature_n": "n_value"})
         df['n_value'] = df['n_value'].fillna(int(-4))
 
         # $can start with itertuples. If need be can swap to apply

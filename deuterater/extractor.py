@@ -320,7 +320,6 @@ class Extractor:  # TODO name change
         # settings.debug_level = 1
         if settings.debug_level == 0:
             try:
-                # set_start_method('spawn')
                 with cf.ProcessPoolExecutor() as executor:
                     results = list(tqdm(executor.map(func, self._id_chunks), total=len(self._id_chunks), desc="Extracting: ", leave=True))
             except Exception as e:
