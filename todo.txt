@@ -7,10 +7,10 @@
 - add columns for empirical n-values and literature n-values DONE
 - fix fraction_new_calculator n-value column issue DONE
 
+- check quality filter for extraction scans
 - figure out graph fitting issues
 - add setting to change standard deviation filter in graphing/rates
 - check for double fitting process in rate calculator
-- check quality filter for extraction scans
 - when input files don't have required columns, show users what columns are missing
 - remove combine sequence rates settings
 

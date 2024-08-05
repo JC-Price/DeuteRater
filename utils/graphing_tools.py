@@ -98,17 +98,20 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         ydf.to_csv("D:\\DR Testing\\Abundance\\y_coords_ab.csv", index=False)
         plt.plot(x_values, y_values, data_points_symbol)
     else:
-        color_list = {"M+H": 'r',
-                      "-H": 'g',
-                      "M+Na": 'b',
-                      "+C2H3O2-": 'c',
-                      "M+NH4": 'm',
-                      '+COOH-': 'y',
-                      'M+H-[H2O]': 'coral',
-                      '+e-': 'dodgerblue',
-                      "M+Na-[H2O]": 'fuchsia',
-                      "M+NH4-[H2O]": 'lime',
-                      '-H2O': 'slateblue'}
+        color_list = {
+            "M+H": 'r',
+            "M+H-[H2O]": 'coral',
+            "M+NH4": 'm',
+            "M+Na": 'b',
+            "M+H-[2H2O]": 'orange',
+            "M+Na-[H2O]": 'fuchsia',
+            "M+NH4-[H2O]": 'lime',
+            "M-H": 'g',
+            "M-H-[H2O]": 'slateblue',
+            "+C2H3O2-": 'c',
+            "+COOH-": 'y',
+            "+e-": 'dodgerblue'
+        }
 
         # BD: See https://matplotlib.org/stable/api/markers_api.html for valid shapes/markers
         _valid_shapes = ['o', 'v', '^', '<', '>', 's', 'p', 'P', '*', 'h', 'H', 'X', 'D']
