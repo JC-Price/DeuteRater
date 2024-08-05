@@ -118,8 +118,7 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
         # If just the lower index is found, assign the highest index in
         #   the mzml to 'hi_spec_idx'
         hi_spec_idx = mzml_bounds['idx_max']
-    elif lo_rt_bound < mzml_bounds['rt_min'] < \
-            mzml_bounds['rt_max'] < hi_rt_bound:
+    elif lo_rt_bound < mzml_bounds['rt_min'] < mzml_bounds['rt_max'] < hi_rt_bound:
         # If neither index is found but the time span covered by the chunk of
         #   the ID file encompasses that of the mzml, assign 'lo_spec_idx' and
         #   'hi_spec_idx' the minimum and maximum index values given by the
@@ -262,8 +261,9 @@ def extract(settings_path, mzml_path, index_to_ID, chunk):
                                   if l != 0][1:101]
 
             normal_distribution_scale_factor = 1.4826
-            envelope.baseline = normal_distribution_scale_factor * mad(
-                lookback_baseline + lookahead_baseline)  # lookback_baseline + lookahead_baseline  #
+
+            # lookback_baseline + lookahead_baseline
+            envelope.baseline = normal_distribution_scale_factor * mad(lookback_baseline + lookahead_baseline)
 
             try:
                 id.append_envelope(envelope)
