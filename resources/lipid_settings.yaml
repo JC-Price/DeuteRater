@@ -16,7 +16,7 @@ debug_level: !!int 0
 # Whether to automate the partitioning logic
 recognize_available_cores: !!bool True
 
-# This will be used if automation fails or is set to false
+# This will be used if automation fails or is set to False
 n_processors: !!int 2
 
 # ID file retention time unit
@@ -26,7 +26,7 @@ id_file_rt_unit: !!str "sec"
 # Whether ID's that are at the beginning and end of an mzML's RT should be excluded.
 #   An ID is removed if its time_window results in looking outside of the mzML's bounds.
 #   i.e. An ID with a rt of 1 would be trimmed when the time_window is 1.5
-trim_ids_to_mzml_bounds: !!bool false
+trim_ids_to_mzml_bounds: !!bool False
 
 # chunk size, given in observations
 chunk_size: !!int 50
@@ -105,7 +105,7 @@ protein_combination_method: !!str "Average"
 
 #  whether or not to include some summary columns in the final output
 # mostly used for troubleshooting.
-verbose_output: !!bool false
+verbose_output: !!bool False
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
 
@@ -206,7 +206,7 @@ proliferation_adjustment: !!float 0.00
 remove_filters: !!bool False
 
 #$whether or not to use the roll up option
-roll_up_rate_calc: !!bool false
+roll_up_rate_calc: !!bool False
 
 # The Signal/Noise filter used in Chromatography Division
 s_n_filter: !!float 0
@@ -225,7 +225,7 @@ unique_sequence_column: !!str "Sequence"
 use_empir_n_value: !!bool True
 
 # Whether to use neutromer spacing
-use_neutromer_spacing: !!bool false
+use_neutromer_spacing: !!bool False
 
 #$Decides how the abundance fraction new "abund_fn" is calculated.
 #$ No = Not Calculated

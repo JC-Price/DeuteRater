@@ -481,17 +481,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     # need to delete classes when they're done or they may linger in RAM
                     del extractor
 
-                # snapshot = tracemalloc.take_snapshot()
-                # top_stats = snapshot.statistics('lineno')
-                #
-                # print('[ Top 20 ]')
-                # for stat in top_stats[:20]:
-                #     print(stat)
-                #
-                # print("\nDisplaying open files:")
-                # for proc in psutil.process_iter():
-                #     print(proc.open_files())
-
                 # this takes awhile so only bother with it if necessary
                 if settings.use_chromatography_division != "No":
                     divider = ChromatographyDivider(settings_path=rate_settings_file,

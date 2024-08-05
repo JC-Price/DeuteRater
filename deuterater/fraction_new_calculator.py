@@ -88,7 +88,7 @@ class FractionNewCalculator:
             itertuple_renamer = copy(protein_itertuple_renamer)
             settings.use_empir_n_value = False
         else:
-            itertuple_renamer = copy(lipid_itertuple_renamer)
+            itertuple_renamer = None
 
         self.biomolecule_type = biomolecule_type
 
@@ -114,9 +114,9 @@ class FractionNewCalculator:
         else:  # $should never trigger unless we are fiddling with the gui
             raise ValueError("invalid file extension")
 
-        # self.model.rename(columns=itertuple_renamer, inplace=True)
         self.out_path = out_path
-        self.model = self.model.rename(columns=itertuple_renamer)
+        if itertuple_renamer:
+            self.model = self.model.rename(columns=itertuple_renamer)
 
     def write(self):
         self.model.to_csv(

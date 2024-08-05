@@ -212,8 +212,7 @@ class Extractor:  # TODO name change
             return row
 
         self.ids = self.ids.apply(autofill, axis=1)
-        self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(
-            np.int8)  # TODO: Temp value, see note at top of files
+        self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(np.int8)  # TODO: Temp value, see note at top of files
         # self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
 
     def _partition_ids(self, trim):
@@ -227,8 +226,7 @@ class Extractor:  # TODO name change
         # NOTE: there is not really a reason to chunk the read operation
         # until the ID files are gigabytes in size
         if trim:
-            mask = (self._mzml_rt_min - self._rt_window < self.ids['rt']) \
-                   & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
+            mask = (self._mzml_rt_min - self._rt_window < self.ids['rt']) & (self.ids['rt'] + self._rt_window < self._mzml_rt_max)
             self.ids = self.ids[mask]
             self.ids.reset_index(inplace=True, drop=True)
 
@@ -287,10 +285,8 @@ class Extractor:  # TODO name change
 
         """
         # Open a pointer to the specified mzml file
-        mzml_fp = pymzml.run.Reader(
-            path_or_file=self.mzml_path,
-            build_index_from_scratch=True
-        )
+        mzml_fp = pymzml.run.Reader(path_or_file=self.mzml_path, build_index_from_scratch=True)
+
         # Create a mapping of the relative index of each scan in the mzml
         #   to the native id given in the file. This allows us to iterate
         #   smoothly through the mzml file no matter how spaced out or

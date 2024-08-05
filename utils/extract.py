@@ -30,9 +30,7 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-"""
-used in the extractor
-"""
+
 import pymzml
 import warnings
 import pandas as pd
@@ -49,6 +47,10 @@ from constants import NEUTRON
 from obs.peak import Peak
 from obs.envelope import Envelope
 from obs.id import ID
+
+"""
+used in the extractor
+"""
 
 
 # TODO: Any temporary values need to be in settings
