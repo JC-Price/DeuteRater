@@ -42,6 +42,7 @@ except:
     import DeuteRater.deuterater.settings as settings
 from .id import ID
 
+
 class Molecule(object):
     __slots__ = (
         "name",
@@ -97,7 +98,7 @@ class Molecule(object):
         allowed_neutromer_peak_variance = settings.allowed_neutromer_peak_variance
 
         # Looking at MassHunter across files, it appears a chromatographic peak
-        #   has at most.2 minutes of variance in the RT between the most intense
+        #   has at most 2 minutes of variance in the RT between the most intense
         #   scans. We will use this and use it as a decider on if peaks should
         #   be treated as the same or different peaks across EIC's
         allowed_peak_variance_min = settings.allowed_peak_variance_min
@@ -106,8 +107,8 @@ class Molecule(object):
         distance_between_scans = whole_rt_range / len(rt_list)
         allowed_scan_variance = int(allowed_peak_variance_min / distance_between_scans)
 
-        # Grab peaks from all of the ids for comparison. Also, remove any peaks
-        #   that are at the beginning or ending scan of the 3 minute window.
+        # Grab peaks from all the ids for comparison. Also, remove any peaks
+        #   that are at the beginning or ending scan of the 3-minute window.
         from copy import deepcopy, copy
         available_chrom_peaks = list()
         id_neutromer_peak_indexes = list()
@@ -122,7 +123,7 @@ class Molecule(object):
             available_chrom_peaks[-1].insert(0, rep)
             chrom_peak_indexes[-1].insert(0, rep)
 
-            # Remove any peaks that has it's center at the end or beginning of 3 minute window.
+            # Remove any peaks that has its center at the end or beginning of 3-minute window.
             if len(id.rt_peak_index) > 1:
                 end_range = None
                 start_range = None
@@ -297,7 +298,7 @@ class Molecule(object):
                 for i in range(id.n_isos):
                     current_neutromer_peak = current_neutromer_peaks[i]
                     if current_unique_peak[0] < current_neutromer_peak < current_unique_peak[1]:
-                        # The neutromer peak is inside of the window.
+                        # The neutromer peak is inside the window.
                         continue
                     elif current_unique_peak[0] > current_neutromer_peak:
                         # The current window is later than the current neutromer peak,
