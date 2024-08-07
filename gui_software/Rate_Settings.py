@@ -100,20 +100,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.minimum_allowed_sequence_rate, False),
             setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
                                    settings.maximum_allowed_sequence_rate, False),
-            setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
-                                   "minimum_sequences_to_combine_for_protein_rate",
-                                   settings.minimum_sequences_to_combine_for_protein_rate,
-                                   True),
             setting_string_info(self.graph_file_type,
                                 "graph_output_format",
                                 settings.graph_output_format,
                                 False),
-            setting_string_info(self.protein_roll_up_type,
-                                "protein_combination_method",
-                                settings.protein_combination_method,
-                                False),
-            setting_string_info(self.verbose_output, "verbose_output",
-                                settings.verbose_output, True),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
                                    settings.abundance_manual_bias, False),
             setting_string_info(self.asymptope_type, "asymptote",
@@ -139,7 +129,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
-                                settings.bias_calculation, False)
+                                settings.bias_calculation, False),
+            setting_numerical_info(self.maximum_rate_standard_deviation, "maximum_rate_standard_deviation",
+                                   settings.maximum_rate_standard_deviation, False)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -317,20 +309,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.minimum_allowed_sequence_rate, False),
             setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
                                    settings.maximum_allowed_sequence_rate, False),
-            setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
-                                   "minimum_sequences_to_combine_for_protein_rate",
-                                   settings.minimum_sequences_to_combine_for_protein_rate,
-                                   True),
             setting_string_info(self.graph_file_type,
                                 "graph_output_format",
                                 settings.graph_output_format,
                                 False),
-            setting_string_info(self.protein_roll_up_type,
-                                "protein_combination_method",
-                                settings.protein_combination_method,
-                                False),
-            setting_string_info(self.verbose_output, "verbose_output",
-                                settings.verbose_output, True),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
                                    settings.abundance_manual_bias, False),
             setting_string_info(self.asymptope_type, "asymptote",
@@ -356,7 +338,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
-                                settings.bias_calculation, False)
+                                settings.bias_calculation, False),
+            setting_numerical_info(self.maximum_rate_standard_deviation, "maximum_rate_standard_deviation",
+                                   settings.maximum_rate_standard_deviation, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -400,20 +384,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.minimum_allowed_sequence_rate, False),
             setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
                                    settings.maximum_allowed_sequence_rate, False),
-            setting_numerical_info(self.minimum_sequences_to_combine_for_protein_rate,
-                                   "minimum_sequences_to_combine_for_protein_rate",
-                                   settings.minimum_sequences_to_combine_for_protein_rate,
-                                   True),
             setting_string_info(self.graph_file_type,
                                 "graph_output_format",
                                 settings.graph_output_format,
                                 False),
-            setting_string_info(self.protein_roll_up_type,
-                                "protein_combination_method",
-                                settings.protein_combination_method,
-                                False),
-            setting_string_info(self.verbose_output, "verbose_output",
-                                settings.verbose_output, True),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
                                    settings.abundance_manual_bias, False),
             setting_string_info(self.asymptope_type, "asymptote",
@@ -439,7 +413,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
-                                settings.bias_calculation, False)
+                                settings.bias_calculation, False),
+            setting_numerical_info(self.maximum_rate_standard_deviation, "maximum_rate_standard_deviation",
+                                   settings.maximum_rate_standard_deviation, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

@@ -353,7 +353,7 @@ class RateCalculator:
             rate = popt[0]
             asymptote = popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
             # TODO$ ci uses degrees of freedom = n-k where n is the number of points and k is the number of parameters estimated
-            # $including intercept in linear regression.  if asymptote is fixed k =1 otherwise k =2 (intercept is fit by equation, not data)
+            # $including intercept in linear regression.  if asymptote is fixed k=1 otherwise k=2 (intercept is fit by equation, not data)
             # $not counting charge states and different peptides as unique measurements.
             # $despite the claim in the documentation, according to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]
             # $is standard error, not std dev, so don't divide by sqrt of n

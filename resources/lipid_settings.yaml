@@ -85,8 +85,6 @@ minimum_allowed_sequence_rate: !!float 0.0
 
 maximum_allowed_sequence_rate: !!float 1.5
 
-minimum_sequences_to_combine_for_protein_rate: !!int 3
-
 # A filter used in many areas for scan combining. If a neutromer peak is below the
 # a intensity filter, it is not considered to gaussian fitting and is not considered
 # a valid scan. Default = 20k
@@ -97,15 +95,6 @@ ms_level: !!int 1
 #The file output the rate groups should be
 # Default = png. Available: png, pdf, svg
 graph_output_format: !!str "png"
-
-# add ability to Median or Average roll up
-# allowed settings are Average and Median
-protein_combination_method: !!str "Average"
-
-
-#  whether or not to include some summary columns in the final output
-# mostly used for troubleshooting.
-verbose_output: !!bool False
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
 
@@ -234,9 +223,12 @@ use_neutromer_spacing: !!bool False
 #$ highest = Use the most intense neutromer's FN as the abund_fn
 use_abundance: !!str "M0"
 
-bias_calculation: !!str "None"
+bias_calculation: !!str "none"
 
 verbose_rate: !!bool True
 
 #$ allows adjustment of y intercept (avoids hard coding)
 y_intercept_of_fit: !!float 0.0000
+
+#TODO: write accurate description - Ben D
+maximum_rate_standard_deviation: 0.1

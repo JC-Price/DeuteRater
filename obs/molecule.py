@@ -93,7 +93,7 @@ class Molecule(object):
             unique_chrom_peaks and reps_with_peak attributes.
         
         min_window_width: int
-            The minimum number of scans a rt window can be compoased of.
+            The minimum number of scans a rt window can be composed of.
         """
         allowed_neutromer_peak_variance = settings.allowed_neutromer_peak_variance
 
@@ -154,7 +154,7 @@ class Molecule(object):
                 except:
                     continue
                 
-                # For a peak to be considered, it must be comprised of all 3 neuromer peaks, and the
+                # For a peak to be considered, it must be comprised of all 3 neutromer peaks, and the
                 #   peak of each neutromer's elution curve must be within +-5 scans of the combined peak.
                 all_neutromers_exist = all(
                     [any(
@@ -218,7 +218,8 @@ class Molecule(object):
         self.reps_with_peak = where_peak_appears
         self.unique_chrom_peaks = unique_peaks
         self.corresponding_chrom_peaks = peaks_that_appear
-        
+
+        #TODO: figure out if this would be useful to include - Ben D
         # # Remove peaks that switch neutromer peak order when
         # #   sorted by intensity.
         # index_to_remove = []
@@ -242,7 +243,7 @@ class Molecule(object):
             
         self._find_peak_variance()
         
-        # Store max height of each chromatogrpahic peak.
+        # Store max height of each chromatographic peak.
         stored_intensities = list()
         for peak in self.corresponding_chrom_peaks:
             curr_id_list = dict()

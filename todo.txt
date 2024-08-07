@@ -6,18 +6,17 @@
 - add fraction new calculator module DONE
 - add columns for empirical n-values and literature n-values DONE
 - fix fraction_new_calculator n-value column issue DONE
+- check quality filter for extraction scans (intensity filter, testing peaks for internal minimum, min of 10 scans - max of 60) DONE
+- Fix spinbox settings for: extraction time window, retention time proximity filter, minimum allowed rate, and maximum allowed rate. DONE
+- add setting to change standard deviation filter in graphing/rates DONE
+- remove combine sequence rates settings DONE
+- change stddev column name to n_value_stddev DONE
 
-- check quality filter for extraction scans (intensity filter, testing peaks for internal minimum, min of 10 scans - max of 60)
-    - max scans found in ID.py (highest_intensity_scans_filter), min scans found in ID.py and molecule.py (analyze_peaks)
-    - do we need to add this back?
-        # # Remove peaks that switch neutromer peak order when
-        # #   sorted by intensity.
-    - intensity and internal minimum checks are also probably in molecule.py
-- figure out graph fitting issues
-- add setting to change standard deviation filter in graphing/rates
+- integrate new standard deviation into fraction new calculations
+- add filter for n-values (throw out any that have a cv above value - stddev/n_value)
 - check for double fitting process in rate calculator
+- figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++)
 - when input files don't have required columns, show users what columns are missing
-- remove combine sequence rates settings
 
 - set default settings for peptides and lipids
 - run full tests for peptides and lipids

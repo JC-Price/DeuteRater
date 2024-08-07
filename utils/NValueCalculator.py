@@ -12,7 +12,7 @@ from tqdm import tqdm
 import deuterater.settings as settings
 
 # output_columns = ['empir_n', 'stddev', 'dIt_n', 'dIt_stddev']
-output_columns = ['n_value', 'stddev']
+output_columns = ['n_value', 'n_value_stddev']
 
 
 class NValueCalculator:
@@ -234,7 +234,7 @@ class NValueCalculator:
             stddev_dataframe = calc_stddev(fraction_new, MINIMUM_PEAKS)
             
             # Find n-value and stddev of filtered data
-            if stddev_dataframe['stddev'].isna().all():
+            if stddev_dataframe['n_value_stddev'].isna().all():
                 filtered_nValue_min = np.nan
                 filtered_stddev_min = np.nan
                 
@@ -242,9 +242,9 @@ class NValueCalculator:
                 truth_count = [np.sum(truth_values.iloc[:, x]) for x in range(truth_values.shape[1])]
                 peaks_included = ' '.join(str(x) for x in truth_count)
             else:
-                min_index = stddev_dataframe['stddev'].idxmin()
+                min_index = stddev_dataframe['n_value_stddev'].idxmin()
                 filtered_nValue_min = stddev_dataframe.loc[min_index, 'n_D']
-                filtered_stddev_min = stddev_dataframe['stddev'].min()
+                filtered_stddev_min = stddev_dataframe['n_value_stddev'].min()
                 
                 data_mask = stddev_dataframe.iloc[min_index].notna().reset_index(drop=True)[2:-1]
                 peaks_included = pd.Series(stddev_dataframe.columns)[2:-1][data_mask] \
@@ -257,7 +257,7 @@ class NValueCalculator:
             # Generate dIt filtered fraction_new DataFrame
             filtered_fraction_new = dIt_filter(unfiltered_fraction_new, dIt_data)
             try:
-                filtered_fraction_new.drop('stddev', axis=1, inplace=True)
+                filtered_fraction_new.drop('n_value_stddev', axis=1, inplace=True)
                 filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
             except:
                 pass
@@ -276,8 +276,8 @@ class NValueCalculator:
                 ['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
             
             # Calculate stddev for valid rows
-            stddev_dataframe['stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
-            stddev_dataframe.loc[:, 'stddev'] = stddev_dataframe['stddev'].where(
+            stddev_dataframe['n_value_stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
+            stddev_dataframe.loc[:, 'n_value_stddev'] = stddev_dataframe['n_value_stddev'].where(
                 stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS, np.nan)
             
             return stddev_dataframe
@@ -297,7 +297,7 @@ class NValueCalculator:
             # Generate dIt filtered fraction_new DataFrame
             filtered_fraction_new = dIe_filter(unfiltered_fraction_new, dIe_data)
             filtered_fraction_new['n_D'] = unfiltered_fraction_new['n_D']
-            filtered_fraction_new.drop('stddev', axis=1, inplace=True)
+            filtered_fraction_new.drop('n_value_stddev', axis=1, inplace=True)
             filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
             
             return n_value_by_stddev(filtered_fraction_new)

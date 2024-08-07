@@ -41,32 +41,29 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="2">
-    <widget class="QLabel" name="label_43">
-     <property name="text">
-      <string>Verbose Output</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="1">
-    <widget class="QDoubleSpinBox" name="rt_prox_filter"/>
-   </item>
-   <item row="19" column="2">
-    <widget class="QLabel" name="label_32">
-     <property name="text">
-      <string>Minimum number of peptide sequences per protein rate</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="19" column="3">
-    <widget class="QSpinBox" name="minimum_sequences_to_combine_for_protein_rate"/>
-   </item>
+<!--   <item row="21" column="2">-->
+<!--    <widget class="QLabel" name="label_43">-->
+<!--     <property name="text">-->
+<!--      <string>Verbose Output</string>-->
+<!--     </property>-->
+<!--     <property name="wordWrap">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--    </widget>-->
+<!--   </item>-->
+<!--   <item row="19" column="2">-->
+<!--    <widget class="QLabel" name="label_32">-->
+<!--     <property name="text">-->
+<!--      <string>Minimum number of peptide sequences per protein rate</string>-->
+<!--     </property>-->
+<!--     <property name="wordWrap">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--    </widget>-->
+<!--   </item>-->
+<!--   <item row="19" column="3">-->
+<!--    <widget class="QSpinBox" name="minimum_sequences_to_combine_for_protein_rate"/>-->
+<!--   </item>-->
    <item row="16" column="0">
     <widget class="QLabel" name="label_7">
      <property name="font">
@@ -86,20 +83,30 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="3">
-    <widget class="QComboBox" name="verbose_output">
-     <item>
-      <property name="text">
-       <string>Yes</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
+   <item row="14" column="1">
+    <widget class="QDoubleSpinBox" name="rt_prox_filter">
+     <property name="minimum">
+      <double>0.010000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
     </widget>
    </item>
+<!--   <item row="21" column="3">-->
+<!--    <widget class="QComboBox" name="verbose_output">-->
+<!--     <item>-->
+<!--      <property name="text">-->
+<!--       <string>Yes</string>-->
+<!--      </property>-->
+<!--     </item>-->
+<!--     <item>-->
+<!--      <property name="text">-->
+<!--       <string>No</string>-->
+<!--      </property>-->
+<!--     </item>-->
+<!--    </widget>-->
+<!--   </item>-->
    <item row="17" column="2">
     <widget class="QLabel" name="label_44">
      <property name="text">
@@ -129,6 +136,26 @@
      </item>
     </widget>
    </item>
+   <item row="18" column="2">
+    <widget class="QLabel" name="label_45">
+     <property name="text">
+      <string>Maximum standard deviation for rate</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="3">
+    <widget class="QDoubleSpinBox" name="maximum_rate_standard_deviation">
+     <property name="minimum">
+      <double>0.010000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
+   </item>
    <item row="17" column="0">
     <widget class="QLabel" name="label_24">
      <property name="text">
@@ -136,30 +163,30 @@
      </property>
     </widget>
    </item>
-   <item row="20" column="2">
-    <widget class="QLabel" name="label_42">
-     <property name="text">
-      <string>How to combine sequences to protein</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="20" column="3">
-    <widget class="QComboBox" name="protein_roll_up_type">
-     <item>
-      <property name="text">
-       <string>Average</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Median</string>
-      </property>
-     </item>
-    </widget>
-   </item>
+<!--   <item row="20" column="2">-->
+<!--    <widget class="QLabel" name="label_42">-->
+<!--     <property name="text">-->
+<!--      <string>How to combine sequences to protein</string>-->
+<!--     </property>-->
+<!--     <property name="wordWrap">-->
+<!--      <bool>true</bool>-->
+<!--     </property>-->
+<!--    </widget>-->
+<!--   </item>-->
+<!--   <item row="20" column="3">-->
+<!--    <widget class="QComboBox" name="protein_roll_up_type">-->
+<!--     <item>-->
+<!--      <property name="text">-->
+<!--       <string>Average</string>-->
+<!--      </property>-->
+<!--     </item>-->
+<!--     <item>-->
+<!--      <property name="text">-->
+<!--       <string>Median</string>-->
+<!--      </property>-->
+<!--     </item>-->
+<!--    </widget>-->
+<!--   </item>-->
    <item row="13" column="1">
     <widget class="QSpinBox" name="mz_prox_filter">
      <property name="minimum">
@@ -216,15 +243,22 @@
      </property>
     </widget>
    </item>
+   <item row="6" column="1">
+    <widget class="QDoubleSpinBox" name="time_window">
+     <property name="minimum">
+      <double>0.010000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
+   </item>
    <item row="7" column="0">
     <widget class="QLabel" name="label_21">
      <property name="text">
       <string>Allowed m/z error (ppm)</string>
      </property>
     </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QDoubleSpinBox" name="time_window"/>
    </item>
    <item row="8" column="0">
     <widget class="QLabel" name="label_22">
@@ -625,18 +659,18 @@
      </property>
     </widget>
    </item>
-   <item row="18" column="2" colspan="2">
-    <widget class="QLabel" name="label_11">
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>Combine Sequence Rates</string>
-     </property>
-    </widget>
-   </item>
+<!--   <item row="18" column="2" colspan="2">-->
+<!--    <widget class="QLabel" name="label_11">-->
+<!--     <property name="font">-->
+<!--      <font>-->
+<!--       <pointsize>12</pointsize>-->
+<!--      </font>-->
+<!--     </property>-->
+<!--     <property name="text">-->
+<!--      <string>Combine Sequence Rates</string>-->
+<!--     </property>-->
+<!--    </widget>-->
+<!--   </item>-->
    <item row="1" column="0">
     <widget class="QLabel" name="label_9">
      <property name="text">
@@ -691,7 +725,14 @@
     </widget>
    </item>
    <item row="4" column="3">
-    <widget class="QDoubleSpinBox" name="min_allowed_rate"/>
+    <widget class="QDoubleSpinBox" name="min_allowed_rate">
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
    </item>
    <item row="5" column="2">
     <widget class="QLabel" name="label_30">
@@ -704,7 +745,14 @@
     </widget>
    </item>
    <item row="5" column="3">
-    <widget class="QDoubleSpinBox" name="max_allowed_rate"/>
+    <widget class="QDoubleSpinBox" name="max_allowed_rate">
+     <property name="minimum">
+      <double>0.010000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
    </item>
    <item row="6" column="3">
     <widget class="QComboBox" name="error_graph_option">

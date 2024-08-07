@@ -78,11 +78,8 @@ min_aa_sequence_length: int
 min_allowed_n_values: int
 minimum_allowed_sequence_rate: float
 maximum_allowed_sequence_rate: float
-minimum_sequences_to_combine_for_protein_rate: int
 intensity_filter: int
 rel_height: float
-# TODO: make this make sense for both proteins and lipids - Ben D
-protein_combination_method: str
 sampling_rate: int
 smoothing_width: int
 smoothing_order: int
@@ -96,7 +93,6 @@ how_divided: str
 use_chromatography_division: str
 graph_output_format: str
 ms_level: int
-verbose_output: bool
 abundance_agreement_filter: float
 abundance_manual_bias: float
 asymptote: str
@@ -124,6 +120,7 @@ use_abundance: str
 bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
+maximum_rate_standard_deviation: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -211,9 +208,6 @@ def load(settings_path):
         
         global maximum_allowed_sequence_rate
         maximum_allowed_sequence_rate = s["maximum_allowed_sequence_rate"]
-        
-        global minimum_sequences_to_combine_for_protein_rate
-        minimum_sequences_to_combine_for_protein_rate = s["minimum_sequences_to_combine_for_protein_rate"]
 
         global intensity_filter
         intensity_filter = s["intensity_filter"]
@@ -223,9 +217,6 @@ def load(settings_path):
         
         global sampling_rate
         sampling_rate = s["sampling_rate"]
-        
-        global protein_combination_method
-        protein_combination_method = s["protein_combination_method"]
         
         global smoothing_width
         smoothing_width = s["smoothing_width"]
@@ -262,9 +253,6 @@ def load(settings_path):
         
         global graph_output_format
         graph_output_format = s["graph_output_format"]
-        
-        global verbose_output
-        verbose_output = s["verbose_output"]
 
         global abundance_agreement_filter
         abundance_agreement_filter = s["abundance_agreement_filter"]
@@ -347,6 +335,9 @@ def load(settings_path):
         global y_intercept_of_fit
         y_intercept_of_fit = s["y_intercept_of_fit"]
 
+        global maximum_rate_standard_deviation
+        maximum_rate_standard_deviation = s["maximum_rate_standard_deviation"]
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -397,11 +388,9 @@ def freeze(path=None, settings_dict = None):
             "min_allowed_n_values": min_allowed_n_values,
             "minimum_allowed_sequence_rate": minimum_allowed_sequence_rate,
             "maximum_allowed_sequence_rate": maximum_allowed_sequence_rate,
-            "minimum_sequences_to_combine_for_protein_rate": minimum_sequences_to_combine_for_protein_rate,
             "intensity_filter": intensity_filter,
             "rel_height": rel_height,
             "sampling_rate": sampling_rate,
-            "protein_combination_method": protein_combination_method,
             "smoothing_width": smoothing_width,
             "smoothing_order": smoothing_order,
             "allowed_peak_variance_min": allowed_peak_variance_min,
@@ -414,7 +403,6 @@ def freeze(path=None, settings_dict = None):
             "ms_level": ms_level,
             "use_chromatography_division": use_chromatography_division,
             "graph_output_format": graph_output_format,
-            "verbose_output": verbose_output,
             "abundance_agreement_filter": abundance_agreement_filter,
             "abundance_manual_bias": abundance_manual_bias,
             "asymptote": asymptote,
@@ -441,7 +429,8 @@ def freeze(path=None, settings_dict = None):
             "use_abundance": use_abundance,
             "bias_calculation": bias_calculation,
             "verbose_rate": verbose_rate,
-            "y_intercept_of_fit": y_intercept_of_fit
+            "y_intercept_of_fit": y_intercept_of_fit,
+            "maximum_rate_standard_deviation": maximum_rate_standard_deviation
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

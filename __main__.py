@@ -798,10 +798,15 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
     # check a given input file has the headers we need
     def check_input(self, relevant_object, filename, biomolecule_type):
-        has_needed_columns = relevant_object.check_input_file(filename, biomolecule_type)
-        if not has_needed_columns:
+        needed_columns = relevant_object.check_input_file(filename, biomolecule_type)
+        if not needed_columns:
+            has_needed_columns = True
+        else:
+            has_needed_columns = False
+        if not needed_columns:
             QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                              "missing needed columns. Please correct and try again".format(filename)))
+                                                              "missing needed columns. Please add the following column "
+                                                              "names and try again: {}".format(filename, has_needed_columns)))
         return has_needed_columns
 
     # there are cases (specifically the enrichment table referencing extracted files) where there

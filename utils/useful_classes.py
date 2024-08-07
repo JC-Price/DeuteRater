@@ -88,20 +88,22 @@ class deuterater_step(object):
             else:
                 raise ValueError("Improper input file")
             firstrow = next(reader)
+        # if biomolecule_type == "Peptide":
+        #     return set(self.peptide_required_columns).issubset(firstrow)
+        # elif biomolecule_type == "Lipid":
+        #     return set(self.lipid_required_columns).issubset(firstrow)
         if biomolecule_type == "Peptide":
-            # print(input_file)
-            # print(self.peptide_required_columns)
-            return set(self.peptide_required_columns).issubset(firstrow)
+            return list(set(firstrow).difference(self.peptide_required_columns))
         elif biomolecule_type == "Lipid":
-            # print(input_file)
-            # print(self.lipid_required_columns)
-            return set(self.lipid_required_columns).issubset(firstrow)
-  
-    
+            return list(set(firstrow).difference(self.lipid_required_columns))
+
+
 """
 the next two classes are specific for the settings menu. they allow for strings or booleans, and integers or floats
 which side of the or is determined by a boolean argument
 """
+
+
 class setting_numerical_info(object):
     # data_object is the object from the menu, starting value is the initial 
     # value, setting_name is tha name in the settings menu, integer is a 
