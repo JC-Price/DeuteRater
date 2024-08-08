@@ -795,10 +795,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             has_needed_columns = True
         else:
             has_needed_columns = False
-        if not needed_columns:
+        if not has_needed_columns:
             QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
                                                               "missing needed columns. Please add the following column "
-                                                              "names and try again: {}".format(filename, has_needed_columns)))
+                                                              "names and try again: {}".format(filename, needed_columns)))
         return has_needed_columns
 
     # there are cases (specifically the enrichment table referencing extracted files) where there
