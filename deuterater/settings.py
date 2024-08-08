@@ -120,7 +120,7 @@ use_abundance: str
 bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
-maximum_rate_standard_deviation: float
+max_fn_standard_deviation: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -335,8 +335,8 @@ def load(settings_path):
         global y_intercept_of_fit
         y_intercept_of_fit = s["y_intercept_of_fit"]
 
-        global maximum_rate_standard_deviation
-        maximum_rate_standard_deviation = s["maximum_rate_standard_deviation"]
+        global max_fn_standard_deviation
+        max_fn_standard_deviation = s["max_fn_standard_deviation"]
 
     except Exception as e:
         print(e)
@@ -430,7 +430,7 @@ def freeze(path=None, settings_dict = None):
             "bias_calculation": bias_calculation,
             "verbose_rate": verbose_rate,
             "y_intercept_of_fit": y_intercept_of_fit,
-            "maximum_rate_standard_deviation": maximum_rate_standard_deviation
+            "max_fn_standard_deviation": max_fn_standard_deviation
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

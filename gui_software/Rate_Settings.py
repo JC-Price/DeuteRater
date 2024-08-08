@@ -130,8 +130,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False),
-            setting_numerical_info(self.maximum_rate_standard_deviation, "maximum_rate_standard_deviation",
-                                   settings.maximum_rate_standard_deviation, False)
+            setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
+                                   settings.max_fn_standard_deviation, False)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -339,8 +339,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False),
-            setting_numerical_info(self.maximum_rate_standard_deviation, "maximum_rate_standard_deviation",
-                                   settings.maximum_rate_standard_deviation, False)
+            setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
+                                   settings.max_fn_standard_deviation, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -414,8 +414,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False),
-            setting_numerical_info(self.maximum_rate_standard_deviation, "maximum_rate_standard_deviation",
-                                   settings.maximum_rate_standard_deviation, False)
+            setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
+                                   settings.max_fn_standard_deviation, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

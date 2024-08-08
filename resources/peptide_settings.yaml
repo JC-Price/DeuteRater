@@ -230,4 +230,4 @@ verbose_rate: !!bool True
 y_intercept_of_fit: !!float 0.0000
 
 #TODO: write accurate description - Ben D
-maximum_rate_standard_deviation: 0.1
+max_fn_standard_deviation: 0.1

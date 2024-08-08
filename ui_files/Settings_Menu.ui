@@ -139,7 +139,7 @@
    <item row="18" column="2">
     <widget class="QLabel" name="label_45">
      <property name="text">
-      <string>Maximum standard deviation for rate</string>
+      <string>Maximum fraction new standard deviation</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -147,7 +147,7 @@
     </widget>
    </item>
    <item row="18" column="3">
-    <widget class="QDoubleSpinBox" name="maximum_rate_standard_deviation">
+    <widget class="QDoubleSpinBox" name="max_fn_standard_deviation">
      <property name="minimum">
       <double>0.010000000000000</double>
      </property>

@@ -26,7 +26,7 @@ lipid_analyte_id_column: Lipid Unique Identifier
 lipid_analyte_name_column: Lipid Name
 max_valid_angle: 1.2
 maximum_allowed_sequence_rate: 1.5
-maximum_rate_standard_deviation: 0.1
+max_fn_standard_deviation: 0.1
 min_aa_sequence_length: 6
 min_allowed_n_values: 10
 min_envelopes_to_combine: 10

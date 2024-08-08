@@ -327,8 +327,7 @@ class FractionNewCalculator:
                 observed_mzs = [float(x) for x in row.mzs[1:-1].split(", ")]
                 observed_neutral_mass = [y * int(row.z)
                                          for y in observed_mzs]
-                df.at[row.Index, "observed_neutral_masses"] = \
-                    ", ".join([str(x) for x in observed_neutral_mass])
+                df.at[row.Index, "observed_neutral_masses"] = ", ".join([str(x) for x in observed_neutral_mass])
                 empirical_mz_deltas = FractionNewCalculator._calculate_deltas(
                     FractionNewCalculator._mz_deltas(observed_neutral_mass),
                     FractionNewCalculator._mz_deltas(e_mzs.loc[0][1:])
@@ -343,6 +342,8 @@ class FractionNewCalculator:
                 all_frac_new_combined = all_frac_new_abunds + all_frac_new_mzs
                 df = FractionNewCalculator.final_calculations(df, row, "combined", all_frac_new_combined,
                                                               "cfn")
+            # remove any rows that have an n_value_stddev greater than the max_fn_standard_deviation
+            df = df.drop(df[df.n_value_stddev > settings.max_fn_standard_deviation].index, inplace=True)
         return df
 
     @staticmethod
