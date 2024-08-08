@@ -41,29 +41,6 @@
      </property>
     </widget>
    </item>
-<!--   <item row="21" column="2">-->
-<!--    <widget class="QLabel" name="label_43">-->
-<!--     <property name="text">-->
-<!--      <string>Verbose Output</string>-->
-<!--     </property>-->
-<!--     <property name="wordWrap">-->
-<!--      <bool>true</bool>-->
-<!--     </property>-->
-<!--    </widget>-->
-<!--   </item>-->
-<!--   <item row="19" column="2">-->
-<!--    <widget class="QLabel" name="label_32">-->
-<!--     <property name="text">-->
-<!--      <string>Minimum number of peptide sequences per protein rate</string>-->
-<!--     </property>-->
-<!--     <property name="wordWrap">-->
-<!--      <bool>true</bool>-->
-<!--     </property>-->
-<!--    </widget>-->
-<!--   </item>-->
-<!--   <item row="19" column="3">-->
-<!--    <widget class="QSpinBox" name="minimum_sequences_to_combine_for_protein_rate"/>-->
-<!--   </item>-->
    <item row="16" column="0">
     <widget class="QLabel" name="label_7">
      <property name="font">
@@ -93,20 +70,6 @@
      </property>
     </widget>
    </item>
-<!--   <item row="21" column="3">-->
-<!--    <widget class="QComboBox" name="verbose_output">-->
-<!--     <item>-->
-<!--      <property name="text">-->
-<!--       <string>Yes</string>-->
-<!--      </property>-->
-<!--     </item>-->
-<!--     <item>-->
-<!--      <property name="text">-->
-<!--       <string>No</string>-->
-<!--      </property>-->
-<!--     </item>-->
-<!--    </widget>-->
-<!--   </item>-->
    <item row="17" column="2">
     <widget class="QLabel" name="label_44">
      <property name="text">
@@ -156,6 +119,35 @@
      </property>
     </widget>
    </item>
+   <item row="19" column="2">
+    <widget class="QLabel" name="label_50">
+     <property name="text">
+      <string>Fraction new calculation type</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="3">
+    <widget class="QComboBox" name="fraction_new_calculation">
+     <item>
+      <property name="text">
+       <string>abundance</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>neutromer spacing</string>
+      </property>
+     </item>
+      <item>
+      <property name="text">
+       <string>combined</string>
+      </property>
+     </item>
+    </widget>
+   </item>
    <item row="17" column="0">
     <widget class="QLabel" name="label_24">
      <property name="text">
@@ -163,30 +155,6 @@
      </property>
     </widget>
    </item>
-<!--   <item row="20" column="2">-->
-<!--    <widget class="QLabel" name="label_42">-->
-<!--     <property name="text">-->
-<!--      <string>How to combine sequences to protein</string>-->
-<!--     </property>-->
-<!--     <property name="wordWrap">-->
-<!--      <bool>true</bool>-->
-<!--     </property>-->
-<!--    </widget>-->
-<!--   </item>-->
-<!--   <item row="20" column="3">-->
-<!--    <widget class="QComboBox" name="protein_roll_up_type">-->
-<!--     <item>-->
-<!--      <property name="text">-->
-<!--       <string>Average</string>-->
-<!--      </property>-->
-<!--     </item>-->
-<!--     <item>-->
-<!--      <property name="text">-->
-<!--       <string>Median</string>-->
-<!--      </property>-->
-<!--     </item>-->
-<!--    </widget>-->
-<!--   </item>-->
    <item row="13" column="1">
     <widget class="QSpinBox" name="mz_prox_filter">
      <property name="minimum">
@@ -553,37 +521,10 @@
      </item>
     </widget>
    </item>
-   <item row="14" column="2">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Use Neutromer Spacing</string>
-     </property>
-     <property name="scaledContents">
-      <bool>false</bool>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="3">
-    <widget class="QComboBox" name="use_neutromer_spacing">
-     <item>
-      <property name="text">
-       <string>Yes</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>No</string>
-      </property>
-     </item>
-    </widget>
-   </item>
    <item row="15" column="2">
     <widget class="QLabel" name="label_24">
      <property name="text">
-      <string>Use Abundance</string>
+      <string>Abundance type</string>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -594,7 +535,7 @@
     </widget>
    </item>
    <item row="15" column="3">
-    <widget class="QComboBox" name="use_abundance">
+    <widget class="QComboBox" name="abundance_type">
      <item>
       <property name="text">
        <string>M0</string>
@@ -608,11 +549,6 @@
      <item>
       <property name="text">
        <string>Average</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>No</string>
       </property>
      </item>
     </widget>
@@ -659,18 +595,6 @@
      </property>
     </widget>
    </item>
-<!--   <item row="18" column="2" colspan="2">-->
-<!--    <widget class="QLabel" name="label_11">-->
-<!--     <property name="font">-->
-<!--      <font>-->
-<!--       <pointsize>12</pointsize>-->
-<!--      </font>-->
-<!--     </property>-->
-<!--     <property name="text">-->
-<!--      <string>Combine Sequence Rates</string>-->
-<!--     </property>-->
-<!--    </widget>-->
-<!--   </item>-->
    <item row="1" column="0">
     <widget class="QLabel" name="label_9">
      <property name="text">

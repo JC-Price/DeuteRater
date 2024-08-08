@@ -120,18 +120,18 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.roll_up_rate_calc, True),
             setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
                                    settings.spacing_manual_bias, False),
-            setting_string_info(self.use_abundance, "use_abundance",
-                                settings.use_abundance, False),
+            setting_string_info(self.abundance_type, "abundance_type",
+                                settings.abundance_type, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                 settings.use_empir_n_value, True),
-            setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                settings.use_neutromer_spacing, True),
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False),
             setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
-                                   settings.max_fn_standard_deviation, False)
+                                   settings.max_fn_standard_deviation, False),
+            setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
+                                settings.fraction_new_calculation, False)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -329,18 +329,18 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.roll_up_rate_calc, True),
             setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
                                    settings.spacing_manual_bias, False),
-            setting_string_info(self.use_abundance, "use_abundance",
-                                settings.use_abundance, False),
+            setting_string_info(self.abundance_type, "abundance_type",
+                                settings.abundance_type, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                 settings.use_empir_n_value, True),
-            setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                settings.use_neutromer_spacing, True),
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False),
             setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
-                                   settings.max_fn_standard_deviation, False)
+                                   settings.max_fn_standard_deviation, False),
+            setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
+                                settings.fraction_new_calculation, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -404,18 +404,18 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.roll_up_rate_calc, True),
             setting_numerical_info(self.spacing_manual_bias, "spacing_manual_bias",
                                    settings.spacing_manual_bias, False),
-            setting_string_info(self.use_abundance, "use_abundance",
-                                settings.use_abundance, False),
+            setting_string_info(self.abundance_type, "abundance_type",
+                                settings.abundance_type, False),
             setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                 settings.use_empir_n_value, True),
-            setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                settings.use_neutromer_spacing, True),
             setting_string_info(self.verbose_rate, "verbose_rate",
                                 settings.verbose_rate, True),
             setting_string_info(self.bias_calculation, "bias_calculation",
                                 settings.bias_calculation, False),
             setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
-                                   settings.max_fn_standard_deviation, False)
+                                   settings.max_fn_standard_deviation, False),
+            setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
+                                settings.fraction_new_calculation, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

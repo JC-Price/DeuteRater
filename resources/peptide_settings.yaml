@@ -212,15 +212,12 @@ unique_sequence_column: !!str "Sequence"
 #$We should be using the literature n-value for peptides.
 use_empir_n_value: !!bool False
 
-# Whether to use neutromer spacing
-use_neutromer_spacing: !!bool True
-
 #$Decides how the abundance fraction new "abund_fn" is calculated.
 #$ No = Not Calculated
 #$ M0 = Use the M0's FN as the abund_fn
 #$ avg = Use the median FN as the abund_fn
 #$ highest = Use the most intense neutromer's FN as the abund_fn
-use_abundance: !!str "M0"
+abundance_type: !!str "M0"
 
 bias_calculation: !!str "none"
 
@@ -231,3 +228,7 @@ y_intercept_of_fit: !!float 0.0000
 
 #TODO: write accurate description - Ben D
 max_fn_standard_deviation: 0.1
+
+# determines what type of fraction new calculation DeuteRater will use
+# will affect fraction new calculations and rate calculations/graphing
+fraction_new_calculation: !!str combined

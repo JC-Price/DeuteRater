@@ -115,12 +115,12 @@ spacing_agreement_filter: float
 spacing_manual_bias: float
 unique_sequence_column: str
 use_empir_n_value: bool
-use_neutromer_spacing: bool
-use_abundance: str
+abundance_type: str
 bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
 max_fn_standard_deviation: float
+fraction_new_calculation: str
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -320,11 +320,8 @@ def load(settings_path):
         global use_empir_n_value
         use_empir_n_value = s["use_empir_n_value"]
 
-        global use_neutromer_spacing
-        use_neutromer_spacing = s['use_neutromer_spacing']
-
-        global use_abundance
-        use_abundance = s['use_abundance']
+        global abundance_type
+        abundance_type = s['abundance_type']
 
         global bias_calculation
         bias_calculation = s['bias_calculation']
@@ -337,6 +334,9 @@ def load(settings_path):
 
         global max_fn_standard_deviation
         max_fn_standard_deviation = s["max_fn_standard_deviation"]
+
+        global fraction_new_calculation
+        fraction_new_calculation = s["fraction_new_calculation"]
 
     except Exception as e:
         print(e)
@@ -425,12 +425,12 @@ def freeze(path=None, settings_dict = None):
             "spacing_manual_bias": spacing_manual_bias,
             "unique_sequence_column": unique_sequence_column,
             "use_empir_n_value": use_empir_n_value,
-            "use_neutromer_spacing": use_neutromer_spacing,
-            "use_abundance": use_abundance,
+            "abundance_type": abundance_type,
             "bias_calculation": bias_calculation,
             "verbose_rate": verbose_rate,
             "y_intercept_of_fit": y_intercept_of_fit,
-            "max_fn_standard_deviation": max_fn_standard_deviation
+            "max_fn_standard_deviation": max_fn_standard_deviation,
+            "fraction_new_calculation": fraction_new_calculation
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
