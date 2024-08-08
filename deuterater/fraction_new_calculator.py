@@ -103,7 +103,7 @@ class FractionNewCalculator:
             self._n_processors = settings.n_processors
         # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
         if self._n_processors > 60:
-            self.n_processors = 60
+            self._n_processors = 60
 
         # self._mp_pool = mp.Pool(self._n_processors)
         
@@ -179,7 +179,7 @@ class FractionNewCalculator:
             func = partial(func, settings_path=self.settings_path)
             func = partial(func, biomolecule_type=self.biomolecule_type)
 
-            with cf.ProcessPoolExecutor() as executor:
+            with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                 results = list(
                     tqdm(executor.map(func, model_pieces), total=len(self.model),
                          desc="Fraction New Calculation: ", leave=True))

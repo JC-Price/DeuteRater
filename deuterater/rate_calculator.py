@@ -87,7 +87,7 @@ class RateCalculator:
             self._n_processors = settings.n_processors
         # $breaks windows/python interactions if too many cores are used. very niche application but still relevant
         if self._n_processors > 60:
-            self.n_processors = 60
+            self._n_processors = 60
         # self._mp_pool = mp.Pool(self._n_processors)
 
         self.biomolecule_type = biomolecule_type  # CQ
@@ -177,7 +177,7 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                with cf.ProcessPoolExecutor() as executor:
+                with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
                                         desc="Abundance Rate Calculation: ", leave=True))
             elif settings.debug_level >= 1:
@@ -198,7 +198,7 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                with cf.ProcessPoolExecutor() as executor:
+                with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
                                         desc="Spacing Rate Calculation: ", leave=True))
             elif settings.debug_level >= 1:
@@ -218,7 +218,7 @@ class RateCalculator:
                                          biomolecule_type=self.biomolecule_type)
             results = list()
             if settings.debug_level == 0:
-                with cf.ProcessPoolExecutor() as executor:
+                with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                     results = list(tqdm(executor.map(temp_rate_function, groups), total=len(groups),
                                         desc="Combined Rate Calculation: ", leave=True))
             elif settings.debug_level >= 1:

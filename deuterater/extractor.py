@@ -121,7 +121,7 @@ class Extractor:  # TODO name change
             else:
                 self._n_processors = settings.n_processors
             if self._n_processors > 60:
-                self.n_processors = 60
+                self._n_processors = 60
             self._chunk_size = settings.chunk_size
             self._chunking_threshold = mul(
                 settings.chunking_method_threshold,
@@ -316,7 +316,7 @@ class Extractor:  # TODO name change
         # settings.debug_level = 1
         if settings.debug_level == 0:
             try:
-                with cf.ProcessPoolExecutor() as executor:
+                with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                     results = list(tqdm(executor.map(func, self._id_chunks), total=len(self._id_chunks), desc="Extracting: ", leave=True))
             except Exception as e:
                 print("The output for the data was too large to successfully output. Please use a smaller ID File to fix this issue.")

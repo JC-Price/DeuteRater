@@ -29,7 +29,7 @@ class NValueCalculator:
             self._n_processors = settings.n_processors
         # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
         if self._n_processors > 60:
-            self.n_processors = 60
+            self._n_processors = 60
         # self._mp_pool = mp.Pool(self._n_processors)
         self.full_df = dataframe
         self.output_columns = output_columns
@@ -77,7 +77,7 @@ class NValueCalculator:
         results = list()
         # settings.debug_level = 1
         if settings.debug_level == 0:
-            with cf.ProcessPoolExecutor() as executor:
+            with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                 results = list(
                     tqdm(executor.map(NValueCalculator.analyze_group, groups), total=len(groups), desc="Calculating n-values: ",
                          leave=True))

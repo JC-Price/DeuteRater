@@ -106,7 +106,7 @@ class CombineExtractedFiles:
         else:
             self._n_processors = settings.n_processors
         if self._n_processors > 60:
-            self.n_processors = 60
+            self._n_processors = 60
 
         # self._mp_pool = mp.Pool(self._n_processors)
         self.out_path = out_path
@@ -141,7 +141,7 @@ class CombineExtractedFiles:
             else:
                 func = partial(CombineExtractedFiles._mp_prepare, self.settings_path)
 
-            with cf.ProcessPoolExecutor() as executor:
+            with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                 results = list(
                     tqdm(executor.map(func, args_list), total=len(args_list), desc="Theory Generation: ",
                          leave=True))
