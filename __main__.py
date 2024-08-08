@@ -605,14 +605,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     )
                     if previous_output_file == "":
                         return
-                    # if settings.use_empir_n_value:
-                    # We shouldn't be using this option for peptides - Ben D
-                    # if biomolecule_type == "Peptide":
-                    #     step_object_dict['Fraction New Calculation'].peptide_required_columns.append('empir_n')
-                    # if biomolecule_type == "Lipid":
-                    # step_object_dict['Fraction New Calculation'].lipid_required_columns.append('empir_n')
-                    # TODO: Doesn't look like we ever use this column. Double check and remove.
-                    # step_object_dict["Calculate Fraction New"].lipid_required_columns.append('n_val_calc_n')
 
                     # if 'empir_n' in step_object_dict['Fraction New Calculator'][1]:
                     infile_is_good = self.check_input(

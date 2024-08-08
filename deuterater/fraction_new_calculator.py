@@ -171,7 +171,7 @@ class FractionNewCalculator:
             )
 
         # $now that we have dropped useless columns we can start the multiprocessing
-        # $don't use np.split or it will error if chunks are not equal sized
+        # $don't use np.split, or it will error if chunks are not equal sized
         model_pieces = np.array_split(self.model, len(self.model))
 
         if settings.debug_level == 0:
@@ -179,23 +179,15 @@ class FractionNewCalculator:
             func = partial(func, settings_path=self.settings_path)
             func = partial(func, biomolecule_type=self.biomolecule_type)
 
-            # results = list(
-            #     tqdm(
-            #         self._mp_pool.imap_unordered(func, model_pieces),
-            #         total=len(self.model), desc="Fraction New Calculation: "
-            #     )
-            # )
-
             with cf.ProcessPoolExecutor() as executor:
                 results = list(
-                    tqdm(executor.map(func, model_pieces), total=len(self.model), desc="Fraction New Calculation: ",
-                         leave=True))
+                    tqdm(executor.map(func, model_pieces), total=len(self.model),
+                         desc="Fraction New Calculation: ", leave=True))
 
         if settings.debug_level >= 1:
             print('Beginning single-processor fraction new calculation.')
             results = []
-            for row in tqdm(model_pieces,
-                            total=len(self.model), desc="Fraction New Calculation: "):
+            for row in tqdm(model_pieces, total=len(self.model), desc="Fraction New Calculation: "):
                 results.append(FractionNewCalculator._mp_prepare(row, self.settings_path, self.biomolecule_type))
 
         self.model = pd.concat(results, sort=False)
