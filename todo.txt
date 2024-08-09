@@ -11,15 +11,16 @@
 - add setting to change standard deviation filter in graphing/rates DONE
 - remove combine sequence rates settings DONE
 - change stddev column name to n_value_stddev DONE
-- change multiprocessing processors DONE
-- when input files don't have required columns, show users what columns are missing DONE
+- change multiprocessing processors DONE (8/9/24)
+- when input files don't have required columns, show users what columns are missing DONE (8/9/24)
 
-- add fraction new calculation type setting DONE
-    - change use abundance setting to a different name DONE
-    - remove use neutromer spacing setting/combine it with fraction new calculation DONE
+- add fraction new calculation type setting DONE (8/9/24)
+    - change use abundance setting to a different name DONE (8/9/24)
+    - remove use neutromer spacing setting/combine it with fraction new calculation DONE (8/9/24)
     - fix/add logic related to these settings ***START HERE***
 - integrate new standard deviation into fraction new calculations
 - add filter for n-values (throw out any that have a cv above value - stddev/n_value)
+- fix issue with loading existing settings.yaml file
 - check for double fitting process in rate calculator
 - figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++)
 
@@ -48,4 +49,3 @@ Settings Changes
 Name changes:
 - rate_output_format to graph_output_format
 - study_type to label_key
-- use_abundance to protein_combination_method

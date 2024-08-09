@@ -167,7 +167,7 @@ class RateCalculator:
 
         # perform calculations for an abundance based rate
         settings.debug_level = 1
-        if settings.use_abundance != "No":
+        if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",
                                          fn_col="abund_fn",
@@ -188,7 +188,7 @@ class RateCalculator:
             datapoint_results.append([i[1] for i in results])  # CQ
 
         # perform calculations for a neutromer spacing based rate
-        if settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
             temp_rate_function = partial(rate_function,
                                          calc_type="Spacing",
                                          fn_col="nsfn",
@@ -208,7 +208,7 @@ class RateCalculator:
             datapoint_results.append([i[1] for i in results])  # CQ
 
         # perform calculations for a combined rate (neutromer spacing + abundance)
-        if settings.use_abundance and settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "combined":
             temp_rate_function = partial(rate_function,
                                          calc_type="Combined",
                                          fn_col="cfn",
@@ -245,13 +245,13 @@ class RateCalculator:
         potential_columns = ["{} rate", "{} 95pct_confidence", "{} half life"]
         if settings.asymptote != "Fixed":
             potential_columns.insert(1, "{} asymptote")
-        if settings.use_abundance:
+        if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
             for p in potential_columns:
                 needed_columns.append(p.format("Abundance"))
-        if settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
             for p in potential_columns:
                 needed_columns.append(p.format("Spacing"))
-        if settings.use_abundance and settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "combined":
             for p in potential_columns:
                 needed_columns.append(p.format("Combined"))
         self.rate_model = self.rate_model[needed_columns]

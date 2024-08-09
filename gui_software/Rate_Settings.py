@@ -260,8 +260,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                        settings.spacing_manual_bias, False),
                 setting_string_info(self.calculate_n_values, "use_empir_n_value",
                                     settings.use_empir_n_value, True),
-                setting_string_info(self.use_neutromer_spacing, "use_neutromer_spacing",
-                                    settings.use_neutromer_spacing, True),
                 setting_string_info(self.verbose_rate, "verbose_rate",
                                     settings.verbose_rate, True),
                 setting_string_info(self.bias_calculation, "bias_calculation",

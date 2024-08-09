@@ -142,7 +142,7 @@ class FractionNewCalculator:
                           "column")
             return
 
-        if settings.use_abundance != "No":
+        if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
             self.model = self.model.assign(
                 theory_unlabeled_abunds="",
                 theory_labeled_abunds="",
@@ -152,7 +152,7 @@ class FractionNewCalculator:
                 frac_new_abunds_std_dev="",
                 abund_fn=""
             )
-        if settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
             self.model = self.model.assign(
                 observed_neutral_masses="",
                 theory_unlabeled_mzs="",
@@ -162,7 +162,7 @@ class FractionNewCalculator:
                 frac_new_mzs_std_dev="",
                 nsfn=""
             )
-        if settings.use_abundance != "No" and settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "combined":
             self.model = self.model.assign(
                 frac_new_combined="",
                 frac_new_combined_outlier_checked="",
@@ -197,11 +197,11 @@ class FractionNewCalculator:
     # $ actual measurement
     @staticmethod
     def _error_method(df, row, error_message):
-        if settings.use_abundance != "No":
+        if settings.fraction_new_calculation == "abundance":
             df.at[row.Index, "abund_fn"] = error_message
-        if settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "neutromer spacing":
             df.at[row.Index, "nsfn"] = error_message
-        if settings.use_abundance != "No" and settings.use_neutromer_spacing:
+        if settings.fraction_new_calculation == "combined":
             df.at[row.Index, "cfn"] = error_message
         return df
 
@@ -262,19 +262,19 @@ class FractionNewCalculator:
             )
             e_mzs, e_abunds = enriched_results
 
-            if settings.use_abundance != "No":
+            if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
                 # takes the e_abunds values and puts them into a single string value
                 FractionNewCalculator._prepare_row(df, row, "abunds", e_abunds)
 
                 # normalizes the peaks by ratio using the normalize function in emass.py
                 normalized_empirical_abunds = FractionNewCalculator._normalize_abundances(row.abundances[1:-1].split(", "))
+
                 # stores normalized abundances to dataframe
                 df.at[row.Index, 'normalized_empirical_abundances'] = normalized_empirical_abunds
 
                 # calculate deltas for theory abundances
-                theory_abund_deltas = FractionNewCalculator._calculate_deltas(
-                    e_abunds.loc[1][1:], e_abunds.loc[0][1:]
-                )
+                theory_abund_deltas = FractionNewCalculator._calculate_deltas(e_abunds.loc[1][1:], e_abunds.loc[0][1:])
+
                 # calculate deltas for empirical abundances
                 empirical_abund_deltas = FractionNewCalculator._calculate_deltas(
                     [float(x) for x in normalized_empirical_abunds.split(", ")],
@@ -292,12 +292,10 @@ class FractionNewCalculator:
                 # df.at[row.Index, 'delta_I'] = np.std(empirical_abund_deltas)
 
                 # $don't need to break if we only have one or zero. combined and
-                # $spacing are still fine, we just shouldn't do the other calculations
-                # $here
+                # $spacing are still fine, we just shouldn't do the other calculations here
                 if len(theory_abund_deltas) < 2:
                     minimum_abund_change = 0.04
-                    df.at[row.Index, "abund_fn"] = \
-                        f"Insufficient peaks with theory above {minimum_abund_change}"
+                    df.at[row.Index, "abund_fn"] = f"Insufficient peaks with theory above {minimum_abund_change}"
                     all_frac_new_abunds = []
                 else:
                     # calculate fraction based off empirical and theory abundance deltas
@@ -308,7 +306,7 @@ class FractionNewCalculator:
                     df = FractionNewCalculator.final_calculations(df, row, "abunds", all_frac_new_abunds,
                                                                   "abund_fn", theory_abund_deltas[0])
 
-            if settings.use_neutromer_spacing:
+            if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
                 FractionNewCalculator._prepare_row(df, row, "mzs", e_mzs)
                 theory_mz_deltas = FractionNewCalculator._calculate_deltas(
                     FractionNewCalculator._mz_deltas(e_mzs.loc[1][1:]),
@@ -324,18 +322,31 @@ class FractionNewCalculator:
                     FractionNewCalculator._mz_deltas(observed_neutral_mass),
                     FractionNewCalculator._mz_deltas(e_mzs.loc[0][1:])
                 )
-                all_frac_new_mzs = FractionNewCalculator._calculate_fractions(
-                    empirical_mz_deltas, theory_mz_deltas
-                )
-                df = FractionNewCalculator.final_calculations(df, row, "mzs", all_frac_new_mzs,
-                                                              "nsfn")
+                all_frac_new_mzs = FractionNewCalculator._calculate_fractions(empirical_mz_deltas, theory_mz_deltas)
+                df = FractionNewCalculator.final_calculations(df, row, "mzs", all_frac_new_mzs, "nsfn")
 
-            if settings.use_neutromer_spacing and settings.use_abundance != "No":
+            if settings.fraction_new_calculation == "combined":
                 all_frac_new_combined = all_frac_new_abunds + all_frac_new_mzs
-                df = FractionNewCalculator.final_calculations(df, row, "combined", all_frac_new_combined,
-                                                              "cfn")
-            # remove any rows that have an n_value_stddev greater than the max_fn_standard_deviation
-            df = df.drop(df[df.n_value_stddev > settings.max_fn_standard_deviation].index, inplace=True)
+                df = FractionNewCalculator.final_calculations(df, row, "combined", all_frac_new_combined, "cfn")
+
+            # filter out any rows that have a fraction new standard deviation greater than the max_fn_standard deviation setting
+            if settings.fraction_new_calculation == "abundance":
+                df = FractionNewCalculator.stddev_filter(df, 'frac_new_abunds_std_dev', 'abund_fn')
+            elif settings.fraction_new_calculation == "neutromer spacing":
+                df = FractionNewCalculator.stddev_filter(df, 'frac_new_mzs_std_dev', 'nsfn')
+            else:
+                df = FractionNewCalculator.stddev_filter(df, "frac_new_combined_std_dev", 'cfn')
+
+        return df
+
+    @staticmethod
+    def stddev_filter(df, fn_stddev_column, fn_column):
+        # for any rows that have an n_value_stddev greater than the max_fn_standard_deviation, remove fraction new and stddev
+        if isinstance(df.iloc[0][fn_column], float):
+            if float(df.iloc[0][fn_stddev_column]) > settings.max_fn_standard_deviation:
+                df.frac_new_abunds = ""
+                df.frac_new_abunds_std_dev = ""
+                df.abund_fn = f"{fn_stddev_column} greater than {settings.max_fn_standard_deviation}"
         return df
 
     @staticmethod
@@ -396,7 +407,7 @@ class FractionNewCalculator:
         mad = np.median(differences)
         zscores = [.6745 * d / mad for d in differences]
         # $even if we could do a list comprehension for the next step
-        # $it would be too long for easy readibility
+        # $it would be too long for easy readability
         good_turnovers = []
         for z in range(len(zscores)):
             if zscores[z] < z_score_cutoff:
@@ -411,33 +422,27 @@ class FractionNewCalculator:
     @staticmethod
     def _prepare_row(full_df, row, keyword, df):
         # need to do [1:] in order to cut out the n_D
-        full_df.at[row.Index, 'theory_unlabeled_{}'.format(keyword)] = \
-            FractionNewCalculator._series_to_string(df.loc[0][1:])
-        full_df.at[row.Index, 'theory_labeled_{}'.format(keyword)] = \
-            FractionNewCalculator._series_to_string(df.loc[1][1:])
+        full_df.at[row.Index, 'theory_unlabeled_{}'.format(keyword)] = FractionNewCalculator._series_to_string(df.loc[0][1:])
+        full_df.at[row.Index, 'theory_labeled_{}'.format(keyword)] = FractionNewCalculator._series_to_string(df.loc[1][1:])
         return full_df
 
-    # $compresses the code to made the last few output columns
+    # $compresses the code to make the last few output columns
     @staticmethod
-    def final_calculations(df, row, keyword, data, final_column,
-                           m0_max_delta=1):
-        df.at[row.Index, 'frac_new_{}'.format(keyword)] = \
-            ", ".join([str(r) for r in data])
+    def final_calculations(df, row, keyword, data, final_column, m0_max_delta=1):
+        df.at[row.Index, 'frac_new_{}'.format(keyword)] = ", ".join([str(r) for r in data])
 
-        # data = all_frac_new_abunds
-
+        # NOTE: data = all_frac_new_abunds
         if keyword == "abunds":
             min_allowed_abund_max_delta = 0.04
-            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = str(FractionNewCalculator._std_dev_calculator(data))
+            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = FractionNewCalculator._std_dev_calculator(data)
             if abs(m0_max_delta) < min_allowed_abund_max_delta:
-                df.at[row.Index, final_column] = \
-                    "Low Theoretical M0 delta possible. Point rejected"
+                df.at[row.Index, final_column] = "Low Theoretical M0 delta possible. Point rejected"
             else:
-                if settings.use_abundance == "M0":
-                    df.at[row.Index, final_column] = str(data[0])
-                elif settings.use_abundance == "Average":
-                    df.at[row.Index, final_column] = str(np.median(data))
-                elif settings.use_abundance == "Highest":
+                if settings.abundance_type == "M0":
+                    df.at[row.Index, final_column] = data[0]
+                elif settings.abundance_type == "Average":
+                    df.at[row.Index, final_column] = np.median(data)
+                elif settings.abundance_type == "Highest":
                     try:
                         abundances = [float(a) for a in row.abundances[1:-1].split(", ")]
                         abunds_to_drop = df.low_labeling_peaks.iloc[0]
@@ -451,15 +456,13 @@ class FractionNewCalculator:
                             # TODO: what does this mean? - Ben D
                             print("Need to implement multiple drops... help!")
 
-                        df.at[row.Index, final_column] = str(data[np.argmax(abundances)])
+                        df.at[row.Index, final_column] = data[np.argmax(abundances)]
                     except:
                         print("Need to implement multiple drops... help!")
         else:
             # TODO: need to do further analysis on outlier check for these
             data = FractionNewCalculator._mad_outlier_check(data, settings.zscore_cutoff)
-            df.at[row.Index, 'frac_new_{}_outlier_checked'.format(
-                keyword)] = ", ".join([str(r) for r in data])
-            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = \
-                str(FractionNewCalculator._std_dev_calculator(data))
-            df.at[row.Index, final_column] = str(np.median(data))
+            df.at[row.Index, 'frac_new_{}_outlier_checked'.format(keyword)] = ", ".join([str(r) for r in data])
+            df.at[row.Index, 'frac_new_{}_std_dev'.format(keyword)] = FractionNewCalculator._std_dev_calculator(data)
+            df.at[row.Index, final_column] = np.median(data)
         return df
