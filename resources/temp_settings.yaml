@@ -17,7 +17,7 @@ debug_level: 0
 error_of_non_replicated_point: 0.05
 error_of_zero: 0.01
 fixed_asymptote_value: 1.0
-fraction_new_calculation: combined
+fraction_new_calculation: abundance
 graph_output_format: png
 how_divided: combined
 id_file_rt_unit: sec
@@ -26,7 +26,7 @@ intensity_weight: 0.6
 label_key: tissue
 lipid_analyte_id_column: Lipid Unique Identifier
 lipid_analyte_name_column: Lipid Name
-max_fn_standard_deviation: 0.15000000000000002
+max_fn_standard_deviation: 0.20000000000000007
 max_valid_angle: 1.2
 maximum_allowed_sequence_rate: 1.5
 min_aa_sequence_length: 6
@@ -36,7 +36,7 @@ minimum_allowed_sequence_rate: 0.0
 minimum_nonzero_points: 3
 ms_level: 1
 mz_proximity_tolerance: 100
-n_processors: 6
+n_processors: 2
 peak_lookahead: 1
 peak_lookback: 1
 peak_ratio_denominator: 10

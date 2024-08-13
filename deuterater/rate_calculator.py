@@ -166,7 +166,7 @@ class RateCalculator:
         # $add measurement specific arguments to partial function
 
         # perform calculations for an abundance based rate
-        settings.debug_level = 1
+        # settings.debug_level = 1
         if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",
@@ -396,16 +396,11 @@ class RateCalculator:
                                                             sample_group_name, fn_col, result[f'{calc_type} rate'],
                                                             1.0)
             elif biomolecule_type == "Lipid":
-                # graph_name = "{}_{}_{}".format(id_name,
-                # 							   sample_group_name, fn_col)
-                # graph_title = "{}_{}_{}\nk={:.3f}, a={:.3f}".format(id_name,
-                # 											sample_group_name, fn_col, result['Abundance rate'],
-                # 											result['Abundance asymptote'])
                 graph_name = "{}_{}_{}".format(id_name[:-1],
-                                               sample_group_name, "AFN")
+                                               sample_group_name, fn_col)
                 graph_title = "{}_{}_{}\nk={:.3f}, a={:.3f}".format(id_name[:-1],
-                                                                    sample_group_name, "AFN", result['Abundance rate'],
-                                                                    result['Abundance asymptote'])
+                                                                    sample_group_name, fn_col, result[f'{calc_type} rate'],
+                                                                    result['{} rate'.format(calc_type)])
                 if "dietary_lit_n_avg" in list(group.columns):
                     lit_n_str = ""
                     if group.iloc[0]["dietary_lit_n_avg"] != 0:
@@ -426,11 +421,11 @@ class RateCalculator:
                     if settings.roll_up_rate_calc:
                         graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                                    rate_eq, graph_folder, max_time,
-                                   settings.asymptote, devs, biomolecule_type, full_data=group, title=graph_title)
+                                   settings.asymptote, devs, biomolecule_type, calc_type=fn_col, full_data=group, title=graph_title)
                     else:
                         graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                                    rate_eq, graph_folder, max_time,
-                                   settings.asymptote, biomolecule_type, full_data=group, title=graph_title)
+                                   settings.asymptote, biomolecule_type, calc_type=fn_col, full_data=group, title=graph_title)
                 else:
                     if settings.roll_up_rate_calc:
                         graph_rate(graph_name, xs, ys, rate, asymptote, confint,

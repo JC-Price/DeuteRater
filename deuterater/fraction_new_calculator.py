@@ -344,9 +344,24 @@ class FractionNewCalculator:
         # for any rows that have an n_value_stddev greater than the max_fn_standard_deviation, remove fraction new and stddev
         if isinstance(df.iloc[0][fn_column], float):
             if float(df.iloc[0][fn_stddev_column]) > settings.max_fn_standard_deviation:
-                df.frac_new_abunds = ""
-                df.frac_new_abunds_std_dev = ""
-                df.abund_fn = f"{fn_stddev_column} greater than {settings.max_fn_standard_deviation}"
+                if fn_column == "abund_fn":
+                    df.frac_new_abunds = ""
+                    df.frac_new_abunds_std_dev = ""
+                    df.abund_fn = f"{fn_stddev_column} greater than {settings.max_fn_standard_deviation}"
+                if fn_column == "nsfn":
+                    df.frac_new_mzs = ""
+                    df.frac_new_mzs_std_dev = ""
+                    df.nsfn = f"{fn_stddev_column} greater than {settings.max_fn_standard_deviation}"
+                if fn_column == "cfn":
+                    df.frac_new_abunds = ""
+                    df.frac_new_abunds_std_dev = ""
+                    df.abund_fn = ""
+                    df.frac_new_mzs = ""
+                    df.frac_new_mzs_std_dev = ""
+                    df.nsfn = ""
+                    df.frac_new_combined = ""
+                    df.frac_new_combined_std_dev = ""
+                    df.cfn = f"{fn_stddev_column} greater than {settings.max_fn_standard_deviation}"
         return df
 
     @staticmethod

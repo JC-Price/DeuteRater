@@ -50,7 +50,7 @@ bad_save_file_characters = ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]
 
 
 def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
-               save_folder_name, maximum, asymptote_option, biomolecule, errors=[], full_data=None, title=None):
+               save_folder_name, maximum, asymptote_option, biomolecule, errors=[], calc_type=None, full_data=None, title=None):
     # $start naming things
     if title is None:
         title = name
@@ -142,24 +142,19 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                     charge_data = charge_group[1]
                     n_val = charge_data['n_value'].unique()[0]
                     x = charge_data['time']
-                    y = charge_data['abund_fn']
+                    y = charge_data[calc_type]
                     label = f'{rep}_z{charge}_{adduct} n={n_val}'
                     plt.ylim(0, 1)
                     if should_fill:
-                        plt.scatter(x, y, marker=shape,
-                                    facecolor=color, edgecolor='k',
-                                    label=label)
+                        plt.scatter(x, y, marker=shape, facecolor=color, edgecolor='k', label=label)
                     else:
-                        plt.scatter(x, y, marker=shape,
-                                    facecolor='none', edgecolor=color,
-                                    label=label)
+                        plt.scatter(x, y, marker=shape, facecolor='none', edgecolor=color, label=label)
 
     if make_error_lines:
         plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color='black', alpha=.15)
     # $ only if roll up so need error bars
     if errors:
-        plt.errorbar(x_values, y_values, yerr=errors, elinewidth=1,
-                     ecolor='red', linewidth=0)
+        plt.errorbar(x_values, y_values, yerr=errors, elinewidth=1, ecolor='red', linewidth=0)
     # $save figure and clear it for next time
     from matplotlib.font_manager import FontProperties
     font = FontProperties()
