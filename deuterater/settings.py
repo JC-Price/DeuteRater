@@ -121,6 +121,7 @@ verbose_rate: bool
 y_intercept_of_fit: float
 max_fn_standard_deviation: float
 fraction_new_calculation: str
+n_value_cv_limit: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -338,6 +339,9 @@ def load(settings_path):
         global fraction_new_calculation
         fraction_new_calculation = s["fraction_new_calculation"]
 
+        global n_value_cv_limit
+        n_value_cv_limit = s["n_value_cv_limit"]
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -430,7 +434,8 @@ def freeze(path=None, settings_dict = None):
             "verbose_rate": verbose_rate,
             "y_intercept_of_fit": y_intercept_of_fit,
             "max_fn_standard_deviation": max_fn_standard_deviation,
-            "fraction_new_calculation": fraction_new_calculation
+            "fraction_new_calculation": fraction_new_calculation,
+            "n_value_cv_limit": n_value_cv_limit
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

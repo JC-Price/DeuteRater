@@ -131,7 +131,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
                                    settings.max_fn_standard_deviation, False),
             setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
-                                settings.fraction_new_calculation, False)
+                                settings.fraction_new_calculation, False),
+            setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
+                                   settings.n_value_cv_limit, False)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -259,7 +261,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                 setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
                                        settings.max_fn_standard_deviation, False),
                 setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
-                                    settings.fraction_new_calculation, False)
+                                    settings.fraction_new_calculation, False),
+                setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
+                                       settings.n_value_cv_limit, False)
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -334,7 +338,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
                                    settings.max_fn_standard_deviation, False),
             setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
-                                settings.fraction_new_calculation, False)
+                                settings.fraction_new_calculation, False),
+            setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
+                                   settings.n_value_cv_limit, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -409,7 +415,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.max_fn_standard_deviation, "max_fn_standard_deviation",
                                    settings.max_fn_standard_deviation, False),
             setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
-                                settings.fraction_new_calculation, False)
+                                settings.fraction_new_calculation, False),
+            setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
+                                   settings.n_value_cv_limit, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
