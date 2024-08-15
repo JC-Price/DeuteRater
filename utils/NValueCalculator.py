@@ -13,10 +13,12 @@ import deuterater.settings as settings
 
 # output_columns = ['empir_n', 'stddev', 'dIt_n', 'dIt_stddev']
 output_columns = ['n_value', 'n_value_stddev', "num_nv_time_points", "cv"]
+error_statement = ["error occurred", "error occurred", "error occurred", "error occurred"]
+timepoints_statement = ["no valid time points", "no valid time points", "no valid time points", "no valid time points"]
 
 
 class NValueCalculator:
-    def __init__(self, dataframe, settings_path, biomolecule_type, output_columns=['']):
+    def __init__(self, dataframe, settings_path, biomolecule_type):
         # this DataFrame should only contain the correct columns
         settings.load(settings_path)
         self.settings_path = settings_path
@@ -24,13 +26,12 @@ class NValueCalculator:
         if settings.recognize_available_cores is True:
             # BD: Issue with mp.cpu_count() finding too many cores available
             self._n_processors = round(mp.cpu_count() * 0.75)
-            # self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
         # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
         if self._n_processors > 60:
             self._n_processors = 60
-        # self._mp_pool = mp.Pool(self._n_processors)
+
         self.full_df = dataframe
         self.output_columns = output_columns
         self.prepared_df = None
@@ -135,14 +136,12 @@ class NValueCalculator:
             # sort the rows, so we have the rows to calculate n-values for at the top
             partition[1].sort_values(by='calculate_n_value', ascending=False, kind='mergesort', ignore_index=True,
                                      inplace=True)
-            num_points = 0
+
+            # calculate n-values for appropriate rows, once we get to a row that has 'no' in the calculate_n_value column,
+            # we break out of the for loop and average the n-values we have
             for row in partition[1].itertuples(index=False):
-                # calculate n-values for appropriate rows, once we get to a row that has 'no' in the calculate_n_value column,
-                # we break out of the for loop and average the n-values we have
                 if row.calculate_n_value.lower() == 'no':
                     break
-                else:
-                    num_points += 1
                 # Get/find enrichment value
                 enrichment = row.enrichment
                 if enrichment == 0:
@@ -162,55 +161,51 @@ class NValueCalculator:
                 except Exception as e:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
-            nv = []
+            has_error = False
+
             # append error message if no valid time points could be used
             if len(nvalues) == 0:
-                return pd.concat([partition[1].reset_index(drop=True),
-                                  pd.DataFrame(data=["no valid time points", "no valid time points", 0, 0],
-                                               columns=output_columns)], axis=1)
+                has_error = True
+                data = timepoints_statement
 
-            # calculate standard deviation of n values and exclude any outliers - Ben D
-            nv = [n[0] if n[0] is not np.nan else -1 for n in nvalues]
-            nv_std = np.std(nv, dtype=np.float64)
-            avg_nv = np.average(nv)
+            if not has_error:
+                # calculate standard deviation of n values and exclude any outliers - Ben D
+                nv = [n[0] if n[0] is not np.nan else -1 for n in nvalues]
+                nv_std = np.std(nv, dtype=np.float64)
+                avg_nv = np.average(nv)
 
-            for i, value in enumerate(nv):
-                # remove any n values that aren't within 1 standard deviation - Ben D
-                if value > avg_nv + nv_std or value < avg_nv - nv_std:
-                    nv.pop(i)
+                for i, value in enumerate(nv):
+                    # remove any n values that aren't within 1 standard deviation - Ben D
+                    if value > avg_nv + nv_std or value < avg_nv - nv_std:
+                        nv.pop(i)
 
-            # if there aren't any values left, append error message
-            if not nv:
-                return pd.concat([partition[1].reset_index(drop=True),
-                                  pd.DataFrame(data=["no valid time points", "no valid time points", 0, 0],
-                                               columns=output_columns)], axis=1)
-            # recalculate average n-value and standard deviation with outliers removed - Ben Driggs
-            avg_nv = np.average(nv)
-            nv_std = np.std(nv, dtype=np.float64)
+                # if there aren't any values left, append error message
+                if not nv:
+                    has_error = True
+                    data = timepoints_statement
 
-            # calculate cv (confidence value - stddev/n-value), throw out any that have a cv above the set filter
-            cv = nv_std / avg_nv
-            if cv > settings.n_value_cv_limit:
-                return pd.concat([partition[1].reset_index(drop=True),
-                                  pd.DataFrame(data=[f"cv greater than {settings.n_value_cv_limit}",
-                                                     f"cv greater than {settings.n_value_cv_limit}", 0, 0],
-                                               columns=output_columns)], axis=1)
+                if not has_error:
+                    # recalculate average n-value and standard deviation with outliers removed - Ben Driggs
+                    avg_nv = np.average(nv)
+                    nv_std = np.std(nv, dtype=np.float64)
+                    num_points = len(nv)
+
+                    # calculate cv (confidence value - stddev/n-value)
+                    cv = float(nv_std / avg_nv)
+                    data = [float(avg_nv), float(nv_std), int(num_points), float(cv)]
 
             # apply average n value to each time point - Ben D
             for row in partition[1].itertuples(index=False):
                 try:
-                    results.append([avg_nv, nv_std, num_points, cv])
+                    results.append(data)
                 except Exception as e:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
-                    results.append([-4, -4, 0])
 
-            return pd.concat(
-                [partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
+            return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
         except IOError as e:
             # print(e)
             return pd.concat(
-                [partition[1].reset_index(drop=True), pd.DataFrame(data=["error occurred", "error occurred", 0, 0],
-                                                                   columns=output_columns)], axis=1)
+                [partition[1].reset_index(drop=True), pd.DataFrame(data=error_statement, columns=output_columns)], axis=1)
 
     @staticmethod
     def analyze_row(row, emass_results):

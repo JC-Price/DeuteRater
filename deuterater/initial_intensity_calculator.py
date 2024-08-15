@@ -47,6 +47,7 @@ may merge into combine_extracted_files.py
 from tqdm import tqdm
 import pandas as pd
 import multiprocessing as mp
+import concurrent.futures as cf
 import numpy as np
 
 from pathlib import Path
@@ -130,18 +131,24 @@ class theoretical_enrichment_calculator(object):
             traceback.print_tb(e.__traceback__)
             raise
 
-        mp_pools = mp.Pool(self._n_processors)
-
         # TODO: add a debug version of this process. - Ben D
 
-        final_df = pd.concat(tqdm(
-            mp_pools.imap(func, df_split),
-            total=len(df_split),
-            desc="Calculating Initial Intensities: "
-        ), axis=1).drop_duplicates(keep='first')
+        if settings.debug_level == 0:
+            with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
+                final_df = pd.concat(tqdm(executor.map(func, df_split), total=len(df_split),
+                                          desc="Calculating Initial Intensities: "), axis=1).drop_duplicates(keep='first')
+        elif settings.debug_level >= 1:
+            dfs = []
+            for dframe in tqdm(df_split, desc="Calculating Initial Intensities: "):
+                dfs = func(dframe)
+            final_df = pd.concat(dfs, axis=1).drop_duplicates(keep='first')
 
-        mp_pools.close()
-        mp_pools.join()
+        # final_df = pd.concat(tqdm(
+        #     mp_pools.imap(func, df_split),
+        #     total=len(df_split),
+        #     desc="Calculating Initial Intensities: "
+        # ), axis=1).drop_duplicates(keep='first')
+
         final_df = final_df.T
         if self.biomolecule_type == "Peptide":
             final_df = final_df.set_index("Sequence")
@@ -156,6 +163,10 @@ class theoretical_enrichment_calculator(object):
                             minimum_n_value, minimum_sequence_length, biomolecule_type):
         variable_list = []
         for row in df.itertuples():
+            # check if there is a valid n_value
+            if row.n_value == "no valid time points" or row.n_value == "error occurred":
+                continue
+
             output_series = pd.Series(index=new_columns, dtype="object")
             if biomolecule_type == "Peptide":
                 output_series["Sequence"] = row.Sequence
@@ -167,7 +178,7 @@ class theoretical_enrichment_calculator(object):
                     f"Sequence is less than {minimum_sequence_length} amino acids",
                     output_series))
                 continue
-            if biomolecule_type == "Lipid" and row.n_value < minimum_n_value:
+            if biomolecule_type == "Lipid" and float(row.n_value) < minimum_n_value:
                 variable_list.append(_error_message_results(
                     f"less than {minimum_n_value} labeling sites",
                     output_series))
