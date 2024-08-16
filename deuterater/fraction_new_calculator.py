@@ -210,36 +210,35 @@ class FractionNewCalculator:
         settings.load(settings_path)
 
         # Remove NaN values for row.n_value and replace with error code -4
-        # df.rename(columns={"literature_n": "n_value"})
         df['n_value'] = df['n_value'].fillna(int(-4))
 
         # $can start with itertuples. If need be can swap to apply
         for row in df.itertuples(index=True):
 
+            if settings.use_empir_n_value:
+                # first check if the cv is above the allowed amount
+                if row.cv == "no valid time points" or row.cv == "error occurred":
+                    df = FractionNewCalculator._error_method(df, row, "Error: see n_value column")
+                    continue
+
             if settings.remove_filters:
                 if row.n_value < 0:
-                    df = FractionNewCalculator._error_method(df, row,
-                                                             "N value is less than {}".format(
-                                                                 settings.min_allowed_n_values))
+                    df = FractionNewCalculator._error_method(df, row, "N value is less than {}".format(settings.min_allowed_n_values))
                     continue
             else:
                 # $Do any initial filtering to save time calculating
-                if row.n_value < settings.min_allowed_n_values:
-                    df = FractionNewCalculator._error_method(df, row,
-                                                             "N value is less than {}".format(
-                                                                 settings.min_allowed_n_values))
+                if float(row.n_value) < settings.min_allowed_n_values:
+                    df = FractionNewCalculator._error_method(df, row, "N value is less than {}".format(settings.min_allowed_n_values))
                     continue
             if biomolecule_type == "Peptide" and len(row.Sequence) < settings.min_aa_sequence_length:
-                df = FractionNewCalculator._error_method(df, row,
-                                                         "Fewer than {} amino acids".format(
-                                                             settings.min_aa_sequence_length))
+                df = FractionNewCalculator._error_method(df, row, "Fewer than {} amino acids".format(settings.min_aa_sequence_length))
                 continue
 
             # $if the user chooses 0 as enrichment it will cause divide by zero
             # $error later, so we will use the settings to force it
             # $result should be close to 0 change anyway
-            if row.enrichment != 0.0:
-                use_enrich = row.enrichment
+            if float(row.enrichment) != 0.0:
+                use_enrich = float(row.enrichment)
             else:
                 # Usually is 0.05 so no need to store it as a setting
                 # use_enrich = settings.enrichment_of_zero
@@ -253,7 +252,7 @@ class FractionNewCalculator:
             # generate emass information for the row
             _, enriched_results = fn_emass(
                 parsed_cf=parsed_cf,
-                n_list=[0, row.n_value],
+                n_list=[0, float(row.n_value)],
                 n_H=num_h,
                 low_pct=0,
                 high_pct=use_enrich,

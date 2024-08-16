@@ -292,6 +292,19 @@ class RateCalculator:
                 sample_group_name, calc_type, 0, 0, 0, 0)
             return result, group
 
+        if settings.use_empir_n_value:
+            # check if cv is above the set filter value
+            if group.iloc[0]['cv'] == "no valid time points" or group.iloc[0]['cv'] == "error occurred":
+                result = RateCalculator._make_error_message("Error: see n_value column", "",
+                                                            id_name, common_name, sample_group_name, calc_type,
+                                                            0, 0, 0, 0)
+                return result, group
+            elif float(group.iloc[0]['cv']) > settings.n_value_cv_limit:
+                result = RateCalculator._make_error_message(f"cv is greater than {settings.n_value_cv_limit}", "",
+                                                            id_name, common_name, sample_group_name, calc_type,
+                                                            0, 0, 0, 0)
+                return result, group
+
         # offset all values by a certain amount (instrument bias)
         if settings.bias_calculation == "calculated":
             bias = RateCalculator._calc_bias(group, fn_col)
@@ -337,8 +350,7 @@ class RateCalculator:
         if num_unique_times < settings.minimum_nonzero_points:
             result = RateCalculator._make_error_message(
                 "Insufficient times", "", id_name, common_name, sample_group_name,
-                calc_type, num_measurements, num_unique_times, unique_length,
-                num_files)
+                calc_type, num_measurements, num_unique_times, unique_length, num_files)
             return result, group
         # perform fit
         try:

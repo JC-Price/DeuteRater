@@ -53,7 +53,6 @@ the third is the freeze function which allows saving the variables
 location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 resource_location = os.path.join(location, "resources")
 
-# TODO: go through settings and make sure they can be used for both proteins and lipids. - Ben D
 debug_level: int
 recognize_available_cores: bool
 n_processors: int
@@ -101,9 +100,12 @@ combined_manual_bias: float
 error_of_non_replicated_point: float
 error_of_zero: float
 fixed_asymptote_value: float
+fraction_new_calculation: str
 lipid_analyte_id_column: str
 lipid_analyte_name_column: str
+max_fn_standard_deviation: float
 minimum_nonzero_points: int
+n_value_cv_limit: float
 peptide_analyte_id_column: str
 peptide_analyte_name_column: str
 proliferation_adjustment: float
@@ -119,9 +121,6 @@ abundance_type: str
 bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
-max_fn_standard_deviation: float
-fraction_new_calculation: str
-n_value_cv_limit: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -138,8 +137,8 @@ def load(settings_path):
             raise InvalidSettingsWarning(
                 'Invalid debug level value given'
             )
-            print('Running with debug level 0')
-            debug_level = 0
+            # print('Running with debug level 0')
+            # debug_level = 0
 
         global recognize_available_cores
         recognize_available_cores = s['recognize_available_cores']
@@ -446,4 +445,3 @@ def freeze(path=None, settings_dict = None):
             )
     else:
         print(yaml.dump(data=settings_dict, canonical=False))
-

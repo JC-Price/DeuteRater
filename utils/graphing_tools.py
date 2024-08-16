@@ -91,11 +91,11 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
 
         # $plot  lines and points
     if full_data is None:
-        xdf = pd.DataFrame(x_values)
-        ydf = pd.DataFrame(y_values)
-        
-        xdf.to_csv("D:\\DR Testing\\Abundance\\x_coords_ab.csv", index=False)
-        ydf.to_csv("D:\\DR Testing\\Abundance\\y_coords_ab.csv", index=False)
+        # xdf = pd.DataFrame(x_values)
+        # ydf = pd.DataFrame(y_values)
+        #
+        # xdf.to_csv("D:\\DR Testing\\Abundance\\x_coords_ab.csv", index=False)
+        # ydf.to_csv("D:\\DR Testing\\Abundance\\y_coords_ab.csv", index=False)
         plt.plot(x_values, y_values, data_points_symbol)
     else:
         color_list = {

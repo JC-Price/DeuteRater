@@ -122,7 +122,8 @@ class theoretical_enrichment_calculator(object):
                        new_columns=new_columns,
                        minimum_n_value=settings.min_allowed_n_values,
                        minimum_sequence_length=settings.min_aa_sequence_length,
-                       biomolecule_type=self.biomolecule_type)
+                       biomolecule_type=self.biomolecule_type,
+                       use_empir_n_value=settings.use_empir_n_value)
         try:
             df_split = np.array_split(unique_molecules_df, len(unique_molecules_df))
         except Exception as e:
@@ -135,19 +136,13 @@ class theoretical_enrichment_calculator(object):
 
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
-                final_df = pd.concat(tqdm(executor.map(func, df_split), total=len(df_split),
-                                          desc="Calculating Initial Intensities: "), axis=1).drop_duplicates(keep='first')
+                final_df = pd.concat(tqdm(executor.map(func, df_split), total=len(df_split), desc="Calculating Initial Intensities: "),
+                                     axis=1).drop_duplicates(keep='first')
         elif settings.debug_level >= 1:
             dfs = []
             for dframe in tqdm(df_split, desc="Calculating Initial Intensities: "):
-                dfs = func(dframe)
+                dfs.append(func(dframe))
             final_df = pd.concat(dfs, axis=1).drop_duplicates(keep='first')
-
-        # final_df = pd.concat(tqdm(
-        #     mp_pools.imap(func, df_split),
-        #     total=len(df_split),
-        #     desc="Calculating Initial Intensities: "
-        # ), axis=1).drop_duplicates(keep='first')
 
         final_df = final_df.T
         if self.biomolecule_type == "Peptide":
@@ -159,24 +154,26 @@ class theoretical_enrichment_calculator(object):
 
     # actually runs the relevant calculation.
     @staticmethod
-    def _individual_process(df, new_columns,
-                            minimum_n_value, minimum_sequence_length, biomolecule_type):
+    def _individual_process(df, new_columns, minimum_n_value, minimum_sequence_length, biomolecule_type, use_empir_n_value):
         variable_list = []
         for row in df.itertuples():
-            # check if there is a valid n_value
-            if row.n_value == "no valid time points" or row.n_value == "error occurred":
-                continue
-
             output_series = pd.Series(index=new_columns, dtype="object")
+
             if biomolecule_type == "Peptide":
                 output_series["Sequence"] = row.Sequence
             else:
                 output_series["Adduct_cf"] = row.Adduct_cf
+
+            # check if there is a valid n_value, otherwise we'll drop the row
+            if use_empir_n_value:
+                if row.n_value == "no valid time points" or row.n_value == "error occurred":
+                    variable_list.append(_error_message_results("Error: see n_value column", output_series))
+                    continue
+
             # drop rows we will not use before doing any compiles calculations
             if biomolecule_type == "Peptide" and len(row.Sequence) < minimum_sequence_length:
                 variable_list.append(_error_message_results(
-                    f"Sequence is less than {minimum_sequence_length} amino acids",
-                    output_series))
+                    f"Sequence is less than {minimum_sequence_length} amino acids", output_series))
                 continue
             if biomolecule_type == "Lipid" and float(row.n_value) < minimum_n_value:
                 variable_list.append(_error_message_results(
