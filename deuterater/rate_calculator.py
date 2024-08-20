@@ -305,6 +305,20 @@ class RateCalculator:
                                                             0, 0, 0, 0)
                 return result, group
 
+        # make sure we have the right variable types for important columns
+        convert_dict = {'n_value': float, 'time': float}
+        if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
+            convert_dict['abund_fn'] = float
+            convert_dict['frac_new_abunds_std_dev'] = float
+        if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
+            convert_dict['nsfn'] = float
+            convert_dict['frac_new_mzs_std_dev'] = float
+        if settings.fraction_new_calculation == "combined":
+            convert_dict['cfn'] = float
+            convert_dict['frac_new_combined_std_dev'] = float
+
+        group = group.astype(convert_dict)
+
         # offset all values by a certain amount (instrument bias)
         if settings.bias_calculation == "calculated":
             bias = RateCalculator._calc_bias(group, fn_col)

@@ -23,6 +23,9 @@
 - add filter for n-values (throw out any that have a cv above value - stddev/n_value, 0.10) add it for fraction new step DONE (8/16/24)
 
 - figure out this issue: Graphing failed with the following error: unsupported operand type(s) for +: 'float' and 'str'
+- add a setting for separating lipid adducts for rate calculation and graphing
+- fix issue where names are cut off in graph titles
+- add flexibility to graph y-axis height
 - check for double fitting process in rate calculator
 - figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++)
 

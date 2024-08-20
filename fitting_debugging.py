@@ -19,11 +19,17 @@ p0 = [.1, 1]
 
 
 def main():
-    x_coords = pd.read_csv(x_file)
-    y_coords = pd.read_csv(y_file)
-    
-    x = np.concatenate(x_coords.to_numpy())
-    y = np.concatenate(y_coords.to_numpy())
+    # x_coords = pd.read_csv(x_file)
+    # y_coords = pd.read_csv(y_file)
+
+    x_coords = [0.0, 4.026388889, 16.0, 32.0, 0.241666667, 4.026388889, 16.0, 16.0, 32.0, 32.0, 16.0, 32.0, 32.0]
+    y_coords = [0.0, 0.204838428, 0.531504579, 0.599656298, 0.269851659, 0.160888153, 0.358216285, 0.277853713, 0.544392732, 0.455571038, 0.235614521, 0.542549354, 0.539167276]
+
+    x = np.array(x_coords)
+    y = np.array(y_coords)
+
+    # x = np.concatenate(x_coords.to_numpy())
+    # y = np.concatenate(y_coords.to_numpy())
     
     rate_eq = partial(dur.simple, p_adj=0.0)
     popt, pcov = curve_fit(f=rate_eq, xdata=x, ydata=y, p0=p0)
@@ -65,7 +71,7 @@ def main():
     
     plt.tight_layout()
     
-    plt.savefig("D:\\DR Testing\\graph.png", format="png")
+    plt.savefig("C:\\Users\\admin\\Desktop\\DR_Testing\\Graphs\\graph.png", format="png")
 
 
 if __name__ == "__main__":
