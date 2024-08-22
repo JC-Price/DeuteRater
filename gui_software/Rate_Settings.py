@@ -133,7 +133,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
                                 settings.fraction_new_calculation, False),
             setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
-                                   settings.n_value_cv_limit, False)
+                                   settings.n_value_cv_limit, False),
+            setting_string_info(self.separate_adducts, "separate_adducts",
+                                settings.separate_adducts, True)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -263,7 +265,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                 setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
                                     settings.fraction_new_calculation, False),
                 setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
-                                       settings.n_value_cv_limit, False)
+                                       settings.n_value_cv_limit, False),
+                setting_string_info(self.separate_adducts, "separate_adducts",
+                                    settings.separate_adducts, True)
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -340,7 +344,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
                                 settings.fraction_new_calculation, False),
             setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
-                                   settings.n_value_cv_limit, False)
+                                   settings.n_value_cv_limit, False),
+            setting_string_info(self.separate_adducts, "separate_adducts",
+                                settings.separate_adducts, True)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -417,7 +423,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_string_info(self.fraction_new_calculation, "fraction_new_calculation",
                                 settings.fraction_new_calculation, False),
             setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
-                                   settings.n_value_cv_limit, False)
+                                   settings.n_value_cv_limit, False),
+            setting_string_info(self.separate_adducts, "separate_adducts",
+                                settings.separate_adducts, True)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -487,7 +495,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "peptide_analyte_name_column": settings.peptide_analyte_name_column,
             'remove_filters': settings.remove_filters,
             "s_n_filter": settings.s_n_filter,
-            "separate_adducts": settings.separate_adducts,
             "spacing_agreement_filter": settings.spacing_agreement_filter,
             "unique_sequence_column": settings.unique_sequence_column,
             "y_intercept_of_fit": settings.y_intercept_of_fit,

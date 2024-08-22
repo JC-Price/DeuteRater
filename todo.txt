@@ -21,9 +21,9 @@
 - integrate new standard deviation into fraction new calculations DONE (8/13/24)
 - fix n_value calculations (are we only using day 32 data to calculate n_values?) DONE (8/16/24)
 - add filter for n-values (throw out any that have a cv above value - stddev/n_value, 0.10) add it for fraction new step DONE (8/16/24)
+- figure out this issue: Graphing failed with the following error: unsupported operand type(s) for +: 'float' and 'str' DONE (8/21/24)
+- add a setting for separating lipid adducts for rate calculation and graphing DONE (8/22/24)
 
-- figure out this issue: Graphing failed with the following error: unsupported operand type(s) for +: 'float' and 'str'
-- add a setting for separating lipid adducts for rate calculation and graphing
 - fix issue where names are cut off in graph titles
 - add flexibility to graph y-axis height
 - check for double fitting process in rate calculator
