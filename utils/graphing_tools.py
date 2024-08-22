@@ -58,13 +58,13 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
     plt.xlabel('Time (Days)')
     plt.ylabel(f'Fraction New')
 
+    # adds vertical lines correlated with each time point
     for time in x_values:
         plt.axvline(x=time, linewidth=.5, color="k")
 
-    # $make the values for the line
-    # $make_error_lines is just to remove non-optimal fits for plus and minus
-    # $the main should have triggered the try except in rate_calculator.py if
-    # $it is the issue.
+    # make the values for the line
+    # make_error_lines is just to remove non-optimal fits for plus and minus
+    # the main should have triggered the try except in rate_calculator.py if it is the issue.
     make_error_lines = True
     fit_line_x = np.arange(0, maximum + maximum / 10, .1)
     if asymptote_option == 'variable' or asymptote_option == "Variable":
@@ -83,19 +83,34 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
             make_error_lines = False
 
     # $ if add multiple conditions put each in parentheses  and use | or &
-    # $ unfortunately nans can cause errors.  only seem to occur if using one time and only error in an .exe but may as well sort this out
+    # $ unfortunately nans can cause errors.  only seem to occur if using one time and only error in an .exe
+    # but may as well sort this out
     plt.plot(fit_line_x, fit_line_y, main_line_symbol)
     if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
         fit_line_y_plus_error[fit_line_y_plus_error > MAXIMUM_GRAPH_RATE_ERROR] = MAXIMUM_GRAPH_RATE_ERROR
         fit_line_y_minus_error[fit_line_y_minus_error < MINIMUM_GRAPH_RATE_ERROR] = MINIMUM_GRAPH_RATE_ERROR
 
-        # $plot  lines and points
+    # plot lines and points
     if full_data is None:
         # xdf = pd.DataFrame(x_values)
         # ydf = pd.DataFrame(y_values)
         #
         # xdf.to_csv("D:\\DR Testing\\Abundance\\x_coords_ab.csv", index=False)
         # ydf.to_csv("D:\\DR Testing\\Abundance\\y_coords_ab.csv", index=False)
+        
+        # find min and max y values to dynamically display y-axis range.
+        # max and min will be -0.5 and 1.5
+        set_y_max = 1.5
+        set_y_min = -0.5
+        dp_min = min(y_values)
+        dp_max = max(y_values)
+        
+        if dp_min > set_y_min:
+            set_y_min = dp_min
+        if dp_max < set_y_max:
+            set_y_max = dp_max
+        
+        plt.ylim(set_y_min, set_y_max)
         plt.plot(x_values, y_values, data_points_symbol)
     else:
         color_list = {
@@ -144,7 +159,20 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                     x = charge_data['time']
                     y = charge_data[calc_type]
                     label = f'{rep}_z{charge}_{adduct} n={n_val}'
-                    plt.ylim(-0.5, 1.5)
+                    
+                    # find min and max y values to dynamically display y-axis range.
+                    # max and min will be -0.5 and 1.5
+                    set_y_max = 1.5
+                    set_y_min = -0.5
+                    dp_min = min(y_values)
+                    dp_max = max(y_values)
+                    
+                    if dp_min > set_y_min:
+                        set_y_min = dp_min
+                    if dp_max < set_y_max:
+                        set_y_max = dp_max
+                    
+                    plt.ylim(set_y_min, set_y_max)
                     if should_fill:
                         plt.scatter(x, y, marker=shape, facecolor=color, edgecolor='k', label=label)
                     else:

@@ -332,7 +332,6 @@ class RateCalculator:
         
         # xdf = pd.DataFrame(xs)
         # ydf = pd.DataFrame(ys)
-        #
         # xdf.to_csv("D:\\DR Testing\\Graphing\\x_coords.csv", index=False)
         # ydf.to_csv("D:\\DR Testing\\Graphing\\y_coords.csv", index=False)
 
@@ -352,7 +351,7 @@ class RateCalculator:
             unique_length = ""
         num_measurements = len(group.index)
 
-        # TODO$ this is not ideal but this is a good first attempt
+        # TODO: this is not ideal but this is a good first attempt
         num_files = len(set(group["mzml_path"]))
 
         # TODO: Handle Num Bio Reps in Stuff
@@ -385,12 +384,16 @@ class RateCalculator:
             # $is standard error, not std dev, so don't divide by sqrt of n
 
             # Had some issues with protein data where all values in pcov were negative and np.sqrt was throwing an error - Ben D
+            # TODO: take absolute value and explain
             if pcov[0][0] < 0:
                 pcov[0][0] = 0
             if pcov[1][1] < 0:
                 pcov[1][1] = 0
-
-            confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
+            try:
+                confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
+            except ValueError as e:
+                confint = 0
+                print(e)
 
             y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
             r_2 = dur.calculate_r2(ys, y_predicted)
