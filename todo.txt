@@ -24,18 +24,10 @@
 - figure out this issue: Graphing failed with the following error: unsupported operand type(s) for +: 'float' and 'str' DONE (8/21/24)
 - add a setting for separating lipid adducts for rate calculation and graphing DONE (8/22/24)
 - add flexibility to graph y-axis height DONE (8/22/24)
+- roll_up to outlier_removal (MAD test) DONE (8/23/24)
+- if covariance is negative, display confidence interval as N/A and don't draw error lines DONE (8/23/24)
 
-************************************************************************************************************************
-- what does this line mean? fit_line_x = np.arange(0, maximum + maximum / 10, .1)
-- roll_up_rate_calc setting? for lipids and peptides?
-- how to handle calculating confidence interval with negative values?
-
-- check for double fitting process in rate calculator
-- _mask_outliers only for roll_up_rate_calc option
-
-- roll_up to outlier_removal (stddev of 2)
-************************************************************************************************************************
-
+- what is the lower limit of points for when we remove outliers?
 - fix issue where names are cut off in graph titles
 - figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++)
 

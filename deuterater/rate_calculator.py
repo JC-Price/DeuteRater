@@ -335,18 +335,19 @@ class RateCalculator:
         # xdf.to_csv("D:\\DR Testing\\Graphing\\x_coords.csv", index=False)
         # ydf.to_csv("D:\\DR Testing\\Graphing\\y_coords.csv", index=False)
 
-        if settings.roll_up_rate_calc:
-            xs, ys, devs = RateCalculator._roll(xs, ys)
-        else:
-            devs = np.concatenate(([settings.error_of_zero], group[fn_std_dev].to_numpy()))
+        # if settings.use_outlier_removal:
+        #     # ys = RateCalculator.mask_outliers(ys)
+        #     xs, ys, devs = RateCalculator._roll(xs, ys)
+        # else:
+        #     devs = np.concatenate(([settings.error_of_zero], group[fn_std_dev].to_numpy()))
 
         # Get the number of unique time points, and continue if not enough
         num_unique_times = len(set(group['time']))
 
         if biomolecule_type == "Peptide":
             unique_length = len(set(group[settings.unique_sequence_column]))
-        # $for lipids or metabolites or similar, the unique length means
-        # $nothing.  if needed can add the elif
+            # $for lipids or metabolites or similar, the unique length means
+            # $nothing.  if needed can add the elif
         else:
             unique_length = ""
         num_measurements = len(group.index)
@@ -365,6 +366,12 @@ class RateCalculator:
                 "Insufficient times", "", id_name, common_name, sample_group_name,
                 calc_type, num_measurements, num_unique_times, unique_length, num_files)
             return result, group
+
+        # remove any outliers
+        if settings.use_outlier_removal:
+            ys, indices = RateCalculator.mask_outliers(ys)
+            xs = xs[indices]
+
         # perform fit
         try:
             # $DO NOT use std dev as the Sigma because it creates influential outliers
@@ -383,17 +390,12 @@ class RateCalculator:
             # $despite the claim in the documentation, according to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]
             # $is standard error, not std dev, so don't divide by sqrt of n
 
-            # Had some issues with protein data where all values in pcov were negative and np.sqrt was throwing an error - Ben D
-            # TODO: take absolute value and explain
-            if pcov[0][0] < 0:
-                pcov[0][0] = 0
-            if pcov[1][1] < 0:
-                pcov[1][1] = 0
+            # try to find confidence interval. Sometimes covariance will be negative, in which case we won't be able to calculate one.
+            # If so, we'll set confint to np.NaN and we won't draw any error lines
             try:
                 confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
             except ValueError as e:
-                confint = 0
-                print(e)
+                confint = np.NaN
 
             y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
             r_2 = dur.calculate_r2(ys, y_predicted)
@@ -415,7 +417,6 @@ class RateCalculator:
                     num_unique_times,
                 '{} uniques'.format(calc_type): unique_length,
                 '{} exceptions'.format(calc_type): "",
-                # $'calculation_type': calc_type
             }
             # $ if there is an asymptote need to provide it
             if biomolecule_type == "Peptide":
@@ -447,23 +448,23 @@ class RateCalculator:
                 if settings.graph_output_format == "none":
                     print("No graphs were generated. Change DeuteRater settings if you want graphs to be generated.")
                 elif biomolecule_type == "Lipid":
-                    if settings.roll_up_rate_calc:
-                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                                   rate_eq, graph_folder, max_time,
-                                   settings.asymptote, devs, biomolecule_type, calc_type=fn_col, full_data=group, title=graph_title)
-                    else:
-                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                                   rate_eq, graph_folder, max_time,
-                                   settings.asymptote, biomolecule_type, calc_type=fn_col, full_data=group, title=graph_title)
+                    # if settings.roll_up_rate_calc:
+                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                    #                rate_eq, graph_folder, max_time,
+                    #                settings.asymptote, devs, calc_type=fn_col, full_data=group, title=graph_title)
+                    # else:
+                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                               rate_eq, graph_folder, max_time,
+                               settings.asymptote, calc_type=fn_col, full_data=group, title=graph_title)
                 else:
-                    if settings.roll_up_rate_calc:
-                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                                   rate_eq, graph_folder, max_time,
-                                   settings.asymptote, devs, biomolecule_type, title=graph_title)
-                    else:
-                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                                   rate_eq, graph_folder, max_time,
-                                   settings.asymptote, biomolecule_type, title=graph_title)
+                    # if settings.roll_up_rate_calc:
+                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                    #                rate_eq, graph_folder, max_time,
+                    #                settings.asymptote, devs, title=graph_title)
+                    # else:
+                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                               rate_eq, graph_folder, max_time,
+                               settings.asymptote, title=graph_title)
             except Exception as c:
                 print("Graphing failed with the following error: ")
                 print(c)
@@ -485,15 +486,15 @@ class RateCalculator:
 
     # $function that does a mad outlier check on a numpy array
     @staticmethod
-    def _mask_outliers(y_values):
-        if len(y_values == 1):
-            return y_values
+    def mask_outliers(y_values):
+        if len(y_values) == 1:
+            return y_values, [0]
         med = np.median(y_values)
         differences = abs(y_values - med)
         med_abs_dev = np.median(differences)
         z_values = (differences * .6745) / med_abs_dev
-        good_indicies = np.where(z_values < settings.zscore_cutoff)[0]
-        return y_values[good_indicies]
+        good_indices = np.where(z_values < settings.zscore_cutoff)[0]
+        return y_values[good_indices], good_indices
 
     # $rollup time points
     @staticmethod
@@ -502,10 +503,12 @@ class RateCalculator:
         new_y, errors = [], []
         for x in new_x:
             # $ grab indices for the time
-            x_time_indices = np.where(old_x == x)[0]
+            # x_time_indices = np.where(old_x == x)[0]
+            x_time_indices = np.asarray(old_x == x).nonzero()[0]
+
             # $grab only relevant indices of y and outlier check
-            temp_y_values = RateCalculator._mask_outliers(
-                old_y[x_time_indices])
+            temp_y_values = RateCalculator.mask_outliers(old_y[x_time_indices])
+
             # $second length check (first is in _mask_outliers) to avoid
             # $medians and std devs on statistically invalid data
             if len(temp_y_values) == 1:
@@ -514,8 +517,7 @@ class RateCalculator:
             else:
                 new_y.append(np.median(temp_y_values))
                 standard_dev = np.std(temp_y_values, ddof=1)
-                # $I have seen std dev be 0 which causes problems for the fit,
-                # $so we'll just force no 0s
+                # I have seen std dev be 0 which causes problems for the fit, so we'll just force no 0s
                 if standard_dev == 0.0:
                     errors.append(settings.error_of_zero)
                 else:

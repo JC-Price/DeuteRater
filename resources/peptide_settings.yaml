@@ -194,7 +194,7 @@ proliferation_adjustment: !!float 0.00
 remove_filters: !!bool False
 
 #$whether or not to use the roll up option
-roll_up_rate_calc: !!bool True
+use_outlier_removal: !!bool True
 
 # The Signal/Noise filter used in Chromatography Division
 s_n_filter: !!float 0

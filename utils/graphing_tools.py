@@ -50,7 +50,7 @@ bad_save_file_characters = ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]
 
 
 def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
-               save_folder_name, maximum, asymptote_option, biomolecule, errors=[], calc_type=None, full_data=None, title=None):
+               save_folder_name, maximum, asymptote_option, errors=[], calc_type=None, full_data=None, title=None):
     # $start naming things
     if title is None:
         title = name
@@ -162,17 +162,19 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                     
                     # find min and max y values to dynamically display y-axis range.
                     # max and min will be -0.5 and 1.5
-                    set_y_max = 1.5
-                    set_y_min = -0.5
-                    dp_min = min(y_values)
-                    dp_max = max(y_values)
-                    
-                    if dp_min > set_y_min:
-                        set_y_min = dp_min
-                    if dp_max < set_y_max:
-                        set_y_max = dp_max
-                    
-                    plt.ylim(set_y_min, set_y_max)
+                    # we aren't using this right now. If we want to exclude points we probably want to do it during the
+                    # fraction new step or at the very beginning of the rate_calculator
+                    # set_y_max = 1.5
+                    # set_y_min = -0.5
+                    # dp_min = min(y_values)
+                    # dp_max = max(y_values)
+                    #
+                    # if dp_min > set_y_min:
+                    #     set_y_min = dp_min
+                    # if dp_max < set_y_max:
+                    #     set_y_max = dp_max
+                    # plt.ylim(set_y_min, set_y_max)
+
                     if should_fill:
                         plt.scatter(x, y, marker=shape, facecolor=color, edgecolor='k', label=label)
                     else:

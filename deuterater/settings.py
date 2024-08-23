@@ -110,13 +110,13 @@ peptide_analyte_id_column: str
 peptide_analyte_name_column: str
 proliferation_adjustment: float
 remove_filters: bool
-roll_up_rate_calc: bool
 s_n_filter: float
 separate_adducts: bool
 spacing_agreement_filter: float
 spacing_manual_bias: float
 unique_sequence_column: str
 use_empir_n_value: bool
+use_outlier_removal: bool
 abundance_type: str
 bias_calculation: str
 verbose_rate: bool
@@ -299,9 +299,6 @@ def load(settings_path):
         global remove_filters
         remove_filters = s["remove_filters"]
 
-        global roll_up_rate_calc
-        roll_up_rate_calc = s['roll_up_rate_calc']
-
         global s_n_filter
         s_n_filter = s["s_n_filter"]
 
@@ -340,6 +337,9 @@ def load(settings_path):
 
         global n_value_cv_limit
         n_value_cv_limit = s["n_value_cv_limit"]
+
+        global use_outlier_removal
+        use_outlier_removal = s["use_outlier_removal"]
 
     except Exception as e:
         print(e)
@@ -421,7 +421,7 @@ def freeze(path=None, settings_dict = None):
             "peptide_analyte_name_column": peptide_analyte_name_column,
             "proliferation_adjustment": proliferation_adjustment,
             "remove_filters": remove_filters,
-            "roll_up_rate_calc": roll_up_rate_calc,
+            "use_outlier_removal": use_outlier_removal,
             "s_n_filter": s_n_filter,
             "separate_adducts": separate_adducts,
             "spacing_agreement_filter": spacing_agreement_filter,
