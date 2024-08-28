@@ -26,11 +26,13 @@
 - add flexibility to graph y-axis height DONE (8/22/24)
 - roll_up to outlier_removal (MAD test) DONE (8/23/24)
 - if covariance is negative, display confidence interval as N/A and don't draw error lines DONE (8/23/24)
+- Fix overloaded exp issue and problem with converting columns to floats (need more filters to avoid rows that have text) DONE (8/28/24)
+- figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++) DONEish... (8/28/24)
 
 - what is the lower limit of points for when we remove outliers?
 - fix issue where names are cut off in graph titles
-- figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++)
 
+- test chromatography division
 - set default settings for peptides and lipids
 - run full tests for peptides and lipids
 - test running each step individually

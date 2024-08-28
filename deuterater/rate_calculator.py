@@ -306,18 +306,26 @@ class RateCalculator:
                 return result, group
 
         # make sure we have the right variable types for important columns
-        convert_dict = {'n_value': float, 'time': float}
-        if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
-            convert_dict['abund_fn'] = float
-            convert_dict['frac_new_abunds_std_dev'] = float
-        if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
-            convert_dict['nsfn'] = float
-            convert_dict['frac_new_mzs_std_dev'] = float
-        if settings.fraction_new_calculation == "combined":
-            convert_dict['cfn'] = float
-            convert_dict['frac_new_combined_std_dev'] = float
+        try:
+            convert_dict = {'n_value': float, 'time': float}
+            if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
+                convert_dict['abund_fn'] = float
+                convert_dict['frac_new_abunds_std_dev'] = float
+            if settings.fraction_new_calculation == "neutromer spacing" or settings.fraction_new_calculation == "combined":
+                convert_dict['nsfn'] = float
+                convert_dict['frac_new_mzs_std_dev'] = float
+            if settings.fraction_new_calculation == "combined":
+                convert_dict['cfn'] = float
+                convert_dict['frac_new_combined_std_dev'] = float
 
-        group = group.astype(convert_dict)
+            group = group.astype(convert_dict)
+        except Exception as e:
+            result = RateCalculator._make_error_message(
+                "value could not be determined", "Fraction new value(s) could not be used for rate calculations",
+                id_name, common_name, sample_group_name, calc_type, np.NaN,
+                np.NaN, np.NaN, np.NaN)
+
+            return result, group
 
         # offset all values by a certain amount (instrument bias)
         if settings.bias_calculation == "calculated":
@@ -379,7 +387,25 @@ class RateCalculator:
             # popt are the optimal values for the parameters so the sum of the squared residuals of f(xdata, *popt) - ydata is minimized
             # pcov is the estimated approximate covariance of popt.
             # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html for more details
-            popt, pcov = curve_fit(f=rate_eq, xdata=xs, ydata=ys, p0=p0)
+            try:
+                # Having some issues with curve_fit. Should we try Lmfit or the lm option?
+                # https://stackoverflow.com/questions/50371428/scipy-curve-fit-raises-optimizewarning-covariance-of-the-parameters-could-not
+                # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
+                popt, pcov = curve_fit(f=rate_eq, xdata=xs, ydata=ys, p0=p0)
+            except Exception as e:
+                if type(e) == ValueError:
+                    current_exception = "Incompatible x and/or y data"
+                elif type(e) == RuntimeError:
+                    current_exception = "least_squares minimization failed"
+                else:
+                    current_exception = "covariance of parameters couldn't be estimated"
+
+                result = RateCalculator._make_error_message(
+                    "value could not be determined", current_exception, id_name,
+                    common_name, sample_group_name, calc_type, num_measurements,
+                    num_unique_times, unique_length, num_files)
+
+                return result, group
 
             # pull results of fit into variables
             rate = popt[0]
