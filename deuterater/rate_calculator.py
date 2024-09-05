@@ -289,6 +289,7 @@ class RateCalculator:
         if not settings.remove_filters:
             group = group[group[fn_std_dev] < std_dev_filter].copy()
 
+        # return error message if there is no data for group
         if len(group) == 0:
             result = RateCalculator._make_error_message(
                 "No Isotope Envelopes Agree", "", id_name, common_name,
@@ -308,7 +309,7 @@ class RateCalculator:
                                                             0, 0, 0, 0)
                 return result, group
 
-        # make sure we have the right variable types for important columns
+        # make sure we have the right dtypes for important columns
         try:
             convert_dict = {'n_value': float, 'time': float}
             if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
@@ -320,14 +321,12 @@ class RateCalculator:
             if settings.fraction_new_calculation == "combined":
                 convert_dict['cfn'] = float
                 convert_dict['frac_new_combined_std_dev'] = float
-
             group = group.astype(convert_dict)
         except Exception as e:
             result = RateCalculator._make_error_message(
                 "value could not be determined", "Fraction new value(s) could not be used for rate calculations",
                 id_name, common_name, sample_group_name, calc_type, np.NaN,
                 np.NaN, np.NaN, np.NaN)
-
             return result, group
 
         # offset all values by a certain amount (instrument bias)
@@ -351,6 +350,13 @@ class RateCalculator:
         #     xs, ys, devs = RateCalculator._roll(xs, ys)
         # else:
         #     devs = np.concatenate(([settings.error_of_zero], group[fn_std_dev].to_numpy()))
+
+        # remove any outliers
+        if settings.use_outlier_removal and biomolecule_type == "Lipid":
+            ys, indices = RateCalculator.mask_outliers(ys)
+            xs = xs[indices]
+        elif biomolecule_type == "Peptide":
+            xs, ys, devs = RateCalculator._roll(xs, ys)
 
         # Get the number of unique time points, and continue if not enough
         num_unique_times = len(set(group['time']))
@@ -377,13 +383,6 @@ class RateCalculator:
                 "Insufficient times", "", id_name, common_name, sample_group_name,
                 calc_type, num_measurements, num_unique_times, unique_length, num_files)
             return result, group
-
-        # remove any outliers
-        if settings.use_outlier_removal and biomolecule_type == "Lipid":
-            ys, indices = RateCalculator.mask_outliers(ys)
-            xs = xs[indices]
-        elif biomolecule_type == "Peptide":
-            xs, ys, devs = RateCalculator._roll(xs, ys)
 
         # perform fit
         try:

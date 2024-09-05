@@ -33,6 +33,7 @@
 - still have open resource warning with large peptide mzmls
 - what is the lower limit of points for when we remove outliers?
 - fix issue where names are cut off in graph titles
+- figure out how to integrate fractional n-values
 
 - test chromatography division
 - set default settings for peptides and lipids
