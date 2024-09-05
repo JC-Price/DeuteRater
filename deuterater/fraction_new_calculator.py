@@ -51,11 +51,11 @@ import deuterater.settings as settings
 # TODO: Debug
 
 
-# $at this point we have far too many columns to be practical
-# $this is not a problem for theory since that is largely a combination of
-# $the table and the extracted files, so it is a nice place to store that data
-# $at this point we just need the bare essentials for calculation to ease
-# $troubleshooting and visibility
+# at this point we have far too many columns to be practical
+# this is not a problem for theory since that is largely a combination of
+# the table and the extracted files, so it is a nice place to store that data
+# at this point we just need the bare essentials for calculation to ease
+# troubleshooting and visibility
 columns_to_drop = ["Precursor Retention Time (sec)", "rt_start", "rt_end",
                    "rt_width", "Precursor m/z", "Identification Charge",
                    "id_index", "lookback_mzs", "lookback_abundances",
@@ -72,7 +72,7 @@ peptide_extra_columns_to_drop = ["quality", "avg_ppm", "start_loc",
 # this is because the elements are called using periods
 # therefore we will declare any particularly problematic.
 # we'll force that to change here
-# $if we're swapping between literature_n and theory_n use this dictionary
+# if we're swapping between literature_n and theory_n use this dictionary
 protein_itertuple_renamer = {
     "Protein ID": "Protein_ID",
     "Homologous Proteins": "Homologous_Proteins",
@@ -94,14 +94,14 @@ class FractionNewCalculator:
 
         self.error = ""
 
-        # $get the number of cores we're using for multiprocessing
+        # get the number of cores we're using for multiprocessing
         if settings.recognize_available_cores is True:
             # BD: Issue with mp.cpu_count() finding too many cores available
             self._n_processors = round(mp.cpu_count() * 0.75)
             # self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
-        # $breaks windows/python interactions if too many cores are used.  very niche application but still relevant
+        # breaks windows/python interactions if too many cores are used.  very niche application but still relevant
         if self._n_processors > 60:
             self._n_processors = 60
 
@@ -111,7 +111,7 @@ class FractionNewCalculator:
             self.model = pd.read_csv(model_path, sep='\t')
         elif model_path[-4:] == ".csv":
             self.model = pd.read_csv(model_path)
-        else:  # $should never trigger unless we are fiddling with the gui
+        else:  # should never trigger unless we are fiddling with the gui
             raise ValueError("invalid file extension")
 
         self.out_path = out_path
@@ -125,7 +125,7 @@ class FractionNewCalculator:
             index=False)
 
     def generate(self):
-        # $just drop the unneeded columns
+        # just drop the unneeded columns
         self.model = self.model.drop(columns_to_drop, axis=1, errors="ignore")
 
         if "no_fn" in self.model.columns:
@@ -170,8 +170,8 @@ class FractionNewCalculator:
                 cfn=""
             )
 
-        # $now that we have dropped useless columns we can start the multiprocessing
-        # $don't use np.split, or it will error if chunks are not equal sized
+        # now that we have dropped useless columns we can start the multiprocessing
+        # don't use np.split, or it will error if chunks are not equal sized
         model_pieces = np.array_split(self.model, len(self.model))
 
         if settings.debug_level == 0:
@@ -192,9 +192,9 @@ class FractionNewCalculator:
 
         self.model = pd.concat(results, sort=False)
 
-    # $generic error output for filters based on n values or other criteria
-    # $preferably will do before the calculations so can leave all blank except
-    # $ actual measurement
+    # generic error output for filters based on n values or other criteria
+    # preferably will do before the calculations so can leave all blank except
+    #  actual measurement
     @staticmethod
     def _error_method(df, row, error_message):
         if settings.fraction_new_calculation == "abundance":
@@ -212,7 +212,7 @@ class FractionNewCalculator:
         # Remove NaN values for row.n_value and replace with error code -4
         df['n_value'] = df['n_value'].fillna(int(-4))
 
-        # $can start with itertuples. If need be can swap to apply
+        # can start with itertuples. If need be can swap to apply
         for row in df.itertuples(index=True):
 
             if settings.use_empir_n_value:
@@ -226,7 +226,7 @@ class FractionNewCalculator:
                     df = FractionNewCalculator._error_method(df, row, "N value is less than {}".format(settings.min_allowed_n_values))
                     continue
             else:
-                # $Do any initial filtering to save time calculating
+                # Do any initial filtering to save time calculating
                 if float(row.n_value) < settings.min_allowed_n_values:
                     df = FractionNewCalculator._error_method(df, row, "N value is less than {}".format(settings.min_allowed_n_values))
                     continue
@@ -234,9 +234,9 @@ class FractionNewCalculator:
                 df = FractionNewCalculator._error_method(df, row, "Fewer than {} amino acids".format(settings.min_aa_sequence_length))
                 continue
 
-            # $if the user chooses 0 as enrichment it will cause divide by zero
-            # $error later, so we will use the settings to force it
-            # $result should be close to 0 change anyway
+            # if the user chooses 0 as enrichment it will cause divide by zero
+            # error later, so we will use the settings to force it
+            # result should be close to 0 change anyway
             if float(row.enrichment) != 0.0:
                 use_enrich = float(row.enrichment)
             else:
@@ -290,8 +290,8 @@ class FractionNewCalculator:
                 # TODO: Should this be included?
                 # df.at[row.Index, 'delta_I'] = np.std(empirical_abund_deltas)
 
-                # $don't need to break if we only have one or zero. combined and
-                # $spacing are still fine, we just shouldn't do the other calculations here
+                # don't need to break if we only have one or zero. combined and
+                # spacing are still fine, we just shouldn't do the other calculations here
                 if len(theory_abund_deltas) < 2:
                     minimum_abund_change = 0.04
                     df.at[row.Index, "abund_fn"] = f"Insufficient peaks with theory above {minimum_abund_change}"
@@ -390,9 +390,9 @@ class FractionNewCalculator:
         normalized_list = normalize([float(a) for a in abundance_list])
         return ", ".join([str(n) for n in normalized_list])
 
-    # $need to remove the abundances with a low maximum. usually caused by the
-    # $peak rising and falling. since we are calculating based on unidirectional
-    # $change this can cause problems for the std dev filter
+    # need to remove the abundances with a low maximum. usually caused by the
+    # peak rising and falling. since we are calculating based on unidirectional
+    # change this can cause problems for the std dev filter
     @staticmethod
     def _trim_abunds(theory, empirical):
         drop_list, new_theory, new_empirical = [], [], []
@@ -406,22 +406,22 @@ class FractionNewCalculator:
                 new_empirical.append(empirical[t])
         return new_theory, new_empirical, ", ".join(drop_list)
 
-    # $for right now this is not necessary, but we may need to expand it later
-    # $ can add a length check or outlier check to this later
+    # for right now this is not necessary, but we may need to expand it later
+    #  can add a length check or outlier check to this later
     @staticmethod
     def _std_dev_calculator(list_to_std_dev):
         return np.std(list_to_std_dev, ddof=1)
 
-    # $need to add an outlier check to the neutromer spacing (mzs)
-    # $as well as any combined data.  This is a median absolute
+    # need to add an outlier check to the neutromer spacing (mzs)
+    # as well as any combined data.  This is a median absolute
     @staticmethod
     def _mad_outlier_check(data_to_check, z_score_cutoff):
         initial_median = np.median(data_to_check)  # only calculate once
         differences = [abs(x - initial_median) for x in data_to_check]
         mad = np.median(differences)
         zscores = [.6745 * d / mad for d in differences]
-        # $even if we could do a list comprehension for the next step
-        # $it would be too long for easy readability
+        # even if we could do a list comprehension for the next step
+        # it would be too long for easy readability
         good_turnovers = []
         for z in range(len(zscores)):
             if zscores[z] < z_score_cutoff:
@@ -431,8 +431,8 @@ class FractionNewCalculator:
         else:
             return data_to_check
 
-    # $initial columns used for abundance and spacing.  currently equations are
-    # $too different to put in but may do later
+    # initial columns used for abundance and spacing.  currently equations are
+    # too different to put in but may do later
     @staticmethod
     def _prepare_row(full_df, row, keyword, df):
         # need to do [1:] in order to cut out the n_D
@@ -440,7 +440,7 @@ class FractionNewCalculator:
         full_df.at[row.Index, 'theory_labeled_{}'.format(keyword)] = FractionNewCalculator._series_to_string(df.loc[1][1:])
         return full_df
 
-    # $compresses the code to make the last few output columns
+    # compresses the code to make the last few output columns
     @staticmethod
     def final_calculations(df, row, keyword, data, final_column, m0_max_delta=1):
         df.at[row.Index, 'frac_new_{}'.format(keyword)] = ", ".join([str(r) for r in data])

@@ -29,6 +29,8 @@
 - Fix overloaded exp issue and problem with converting columns to floats (need more filters to avoid rows that have text) DONE (8/28/24)
 - figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++) DONEish... (8/28/24)
 
+- peptide roll up issues
+- still have open resource warning with large peptide mzmls
 - what is the lower limit of points for when we remove outliers?
 - fix issue where names are cut off in graph titles
 

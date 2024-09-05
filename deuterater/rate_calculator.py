@@ -58,19 +58,21 @@ class RateCalculator:
     def __init__(self, model_path, out_path, graph_folder, settings_path, biomolecule_type):
         settings.load(settings_path)
         if model_path[-4:] == ".tsv":
-            #'Theoretical Unlabeled Normalized Abundances': str,
-            self.model = pd.read_csv(model_path, sep='\t', dtype={'theory_unlabeled_abunds': str,
-                                                                  'theory_labeled_abunds': str,
-                                                                  'normalized_empirical_abundances': str,
-                                                                  'low_labeling_peaks': str,
-                                                                  'frac_new_abunds': str})
+            # 'Theoretical Unlabeled Normalized Abundances': str,
+            self.model = pd.read_csv(model_path, sep='\t', low_memory=False, dtype={'theory_unlabeled_abunds': str,
+                                                                                    'theory_labeled_abunds': str,
+                                                                                    'normalized_empirical_abundances': str,
+                                                                                    'low_labeling_peaks': str,
+                                                                                    'frac_new_abunds': str,
+                                                                                    'frac_new_abunds_std_dev': float})
         elif model_path[-4:] == ".csv":
-            self.model = pd.read_csv(model_path, dtype={'theory_unlabeled_abunds': str,
-                                                        'theory_labeled_abunds': str,
-                                                        'normalized_empirical_abundances': str,
-                                                        'low_labeling_peaks': str,
-                                                        'frac_new_abunds': str})
-        else:  # $should never trigger unless we are fiddling with the gui
+            self.model = pd.read_csv(model_path, low_memory=False, dtype={'theory_unlabeled_abunds': str,
+                                                                          'theory_labeled_abunds': str,
+                                                                          'normalized_empirical_abundances': str,
+                                                                          'low_labeling_peaks': str,
+                                                                          'frac_new_abunds': str,
+                                                                          'frac_new_abunds_std_dev': float})
+        else:  # should never trigger unless we are fiddling with the gui
             raise ValueError("invalid file extension")
         self.out_path = out_path
         self.rate_model = None
@@ -78,14 +80,14 @@ class RateCalculator:
         self.graph_folder = graph_folder
         self.settings_path = settings_path
 
-        # $get the number of cores we're using for multiprocessing
+        # get the number of cores we're using for multiprocessing
         if settings.recognize_available_cores is True:
             # BD: Issue with mp.cpu_count() finding too many cores available
             self._n_processors = round(mp.cpu_count() * 0.75)
             # self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
-        # $breaks windows/python interactions if too many cores are used. very niche application but still relevant
+        # breaks windows/python interactions if too many cores are used. very niche application but still relevant
         if self._n_processors > 60:
             self._n_processors = 60
         # self._mp_pool = mp.Pool(self._n_processors)
@@ -104,10 +106,10 @@ class RateCalculator:
             index=False
         )
 
-    # $this function governs which types of calculations to do and which
-    # $ rate equation to use. Collects the results and puts them in self.rate_model
+    # this function governs which types of calculations to do and which
+    #  rate equation to use. Collects the results and puts them in self.rate_model
     def calculate(self):
-        # $ catch the optimize warnings and so on
+        #  catch the optimize warnings and so on
         w.filterwarnings("error")
         rate_results = []
         datapoint_results = []  # CQ
@@ -124,8 +126,8 @@ class RateCalculator:
             print("Unknown Analyte Type")
             return
 
-        # $could put manual bias correction here, would be slightly more
-        # $efficient, but make the logic less clear
+        # could put manual bias correction here, would be slightly more
+        # efficient, but make the logic less clear
 
         # Decide if rates should be put together with adducts or not.
         if self.biomolecule_type == "Lipid" and settings.separate_adducts:
@@ -152,9 +154,9 @@ class RateCalculator:
             p0 = np.nan
             rate_eq = np.nan
 
-        # $we're going to load up a function for mp.  we need to load up the
-        # $function. don't add fn_col, fn_std_dev, calc_type, and manual_bias,
-        # $they will be added later
+        # we're going to load up a function for mp.  we need to load up the
+        # function. don't add fn_col, fn_std_dev, calc_type, and manual_bias,
+        # they will be added later
         rate_function = partial(RateCalculator._mp_function,
                                 settings_path=self.settings_path,
                                 graph_folder=self.graph_folder,
@@ -162,11 +164,11 @@ class RateCalculator:
                                 max_time=max_time,
                                 p0=p0)
 
-        # $call the rate for each relevant measurement type
-        # $add measurement specific arguments to partial function
+        # call the rate for each relevant measurement type
+        # add measurement specific arguments to partial function
 
         # perform calculations for an abundance based rate
-        # settings.debug_level = 1
+        settings.debug_level = 1
         if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",
@@ -227,14 +229,14 @@ class RateCalculator:
             rate_results.append(pd.DataFrame([i[0] for i in results]))  # CQ
             datapoint_results.append([i[1] for i in results])  # CQ
 
-        # $ from https://stackoverflow.com/questions/44327999/python
-        # $-pandas-merge-multiple-dataframes answer 1 accessed 9/16/2020
-        # $merges any number of dfs into one df
+        # from https://stackoverflow.com/questions/44327999/python
+        # -pandas-merge-multiple-dataframes answer 1 accessed 9/16/2020
+        # merges any number of dfs into one df
         self.rate_model = reduce(lambda left, right: pd.merge(left, right,
                                                               on=['analyte_id', 'analyte_name', "group_name"],
                                                               how='outer'), rate_results)
         self.datapoint_model = pd.concat(datapoint_results[0])
-        # $swap back to normal warning behaviour
+        # swap back to normal warning behaviour
         w.filterwarnings("default")
 
         if not settings.verbose_rate:
@@ -257,7 +259,8 @@ class RateCalculator:
         self.rate_model = self.rate_model[needed_columns]
 
     # function passed into the multiprocessing for calculations
-    def _mp_function(data_tuple, settings_path, fn_col, fn_std_dev, calc_type, manual_bias, std_dev_filter, graph_folder,
+    def _mp_function(data_tuple, settings_path, fn_col, fn_std_dev, calc_type, manual_bias, std_dev_filter,
+                     graph_folder,
                      rate_eq, max_time, p0, biomolecule_type):
         w.filterwarnings("error")
         settings.load(settings_path)
@@ -277,12 +280,12 @@ class RateCalculator:
         else:
             raise Exception("Not a Valid Biomolecule Type")
 
-        # $drop error string could do earlier for more speed, but this is
-        # $clearer and allows errors that affect only one calculation type
+        # drop error string could do earlier for more speed, but this is
+        # clearer and allows errors that affect only one calculation type
         group = RateCalculator._error_trimmer(group, [fn_col, fn_std_dev])
 
-        # $the copy is just to avoid a SettingWithCopy warning in a few
-        # $operations.  if it causes problems remove and suppress warning
+        # the copy is just to avoid a SettingWithCopy warning in a few
+        # operations.  if it causes problems remove and suppress warning
         if not settings.remove_filters:
             group = group[group[fn_std_dev] < std_dev_filter].copy()
 
@@ -331,13 +334,13 @@ class RateCalculator:
         if settings.bias_calculation == "calculated":
             bias = RateCalculator._calc_bias(group, fn_col)
             group[fn_col] = group[fn_col] - bias
-        elif settings.bias_calculation == "manual":  # $ user designated bias
+        elif settings.bias_calculation == "manual":  # user designated bias
             group[fn_col] = group[fn_col] - manual_bias
 
         # set time as the x-axis and fraction new as the y-axis
         xs = np.concatenate(([0], group['time'].to_numpy()))
         ys = np.concatenate(([settings.y_intercept_of_fit], group[fn_col].to_numpy()))
-        
+
         # xdf = pd.DataFrame(xs)
         # ydf = pd.DataFrame(ys)
         # xdf.to_csv("D:\\DR Testing\\Graphing\\x_coords.csv", index=False)
@@ -354,8 +357,8 @@ class RateCalculator:
 
         if biomolecule_type == "Peptide":
             unique_length = len(set(group[settings.unique_sequence_column]))
-            # $for lipids or metabolites or similar, the unique length means
-            # $nothing.  if needed can add the elif
+            # for lipids or metabolites or similar, the unique length means
+            # nothing.  if needed can add the elif
         else:
             unique_length = ""
         num_measurements = len(group.index)
@@ -366,7 +369,7 @@ class RateCalculator:
         # TODO: Handle Num Bio Reps in Stuff
 
         # I think this fixes the issues with technical replicates.
-        # $need to use astype(str) on all or if someone uses numbers for group names or replicate names issues result
+        # need to use astype(str) on all or if someone uses numbers for group names or replicate names issues result
         num_bio_reps = len(set(group["time"].astype(str) + group["sample_group"].astype(str) + group["bio_rep"].astype(str)))
 
         if num_unique_times < settings.minimum_nonzero_points:
@@ -376,14 +379,16 @@ class RateCalculator:
             return result, group
 
         # remove any outliers
-        if settings.use_outlier_removal:
+        if settings.use_outlier_removal and biomolecule_type == "Lipid":
             ys, indices = RateCalculator.mask_outliers(ys)
             xs = xs[indices]
+        elif biomolecule_type == "Peptide":
+            xs, ys, devs = RateCalculator._roll(xs, ys)
 
         # perform fit
         try:
-            # $DO NOT use std dev as the Sigma because it creates influential outliers
-            # $don't use sigma unless we have a different
+            # DO NOT use std dev as the Sigma because it creates influential outliers
+            # don't use sigma unless we have a different
             # popt are the optimal values for the parameters so the sum of the squared residuals of f(xdata, *popt) - ydata is minimized
             # pcov is the estimated approximate covariance of popt.
             # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html for more details
@@ -410,11 +415,11 @@ class RateCalculator:
             # pull results of fit into variables
             rate = popt[0]
             asymptote = popt[1] if len(popt) > 1 else settings.fixed_asymptote_value
-            # TODO$ ci uses degrees of freedom = n-k where n is the number of points and k is the number of parameters estimated
-            # $including intercept in linear regression.  if asymptote is fixed k=1 otherwise k=2 (intercept is fit by equation, not data)
-            # $not counting charge states and different peptides as unique measurements.
-            # $despite the claim in the documentation, according to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]
-            # $is standard error, not std dev, so don't divide by sqrt of n
+            # TODO ci uses degrees of freedom = n-k where n is the number of points and k is the number of parameters estimated
+            # including intercept in linear regression.  if asymptote is fixed k=1 otherwise k=2 (intercept is fit by equation, not data)
+            # not counting charge states and different peptides as unique measurements.
+            # despite the claim in the documentation, according to statistics consultation and every site I checked, the np.sqrt(np.diag(pcov))[0]
+            # is standard error, not std dev, so don't divide by sqrt of n
 
             # try to find confidence interval. Sometimes covariance will be negative, in which case we won't be able to calculate one.
             # If so, we'll set confint to np.NaN and we won't draw any error lines
@@ -423,8 +428,15 @@ class RateCalculator:
             except ValueError as e:
                 confint = np.NaN
 
-            y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
-            r_2 = dur.calculate_r2(ys, y_predicted)
+            try:
+                y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
+                r_2 = dur.calculate_r2(ys, y_predicted)
+            except Exception as e:
+                result = RateCalculator._make_error_message(
+                    "r_2 calculation failed", e, id_name,
+                    common_name, sample_group_name, calc_type, num_measurements,
+                    num_unique_times, unique_length, num_files)
+                return result, group
 
             result = {
                 'analyte_id': id_name,
@@ -444,7 +456,7 @@ class RateCalculator:
                 '{} uniques'.format(calc_type): unique_length,
                 '{} exceptions'.format(calc_type): "",
             }
-            # $ if there is an asymptote need to provide it
+            # if there is an asymptote need to provide it
             if biomolecule_type == "Peptide":
                 graph_name = "{}_{}_{}".format(id_name, sample_group_name,
                                                fn_col)
@@ -455,7 +467,8 @@ class RateCalculator:
                 graph_name = "{}_{}_{}".format(id_name[:-1],
                                                sample_group_name, fn_col)
                 graph_title = "{}_{}_{}\nk={:.3f}, a={:.3f}".format(id_name[:-1],
-                                                                    sample_group_name, fn_col, result[f'{calc_type} rate'],
+                                                                    sample_group_name, fn_col,
+                                                                    result[f'{calc_type} rate'],
                                                                     result['{} rate'.format(calc_type)])
                 if "dietary_lit_n_avg" in list(group.columns):
                     lit_n_str = ""
@@ -474,35 +487,30 @@ class RateCalculator:
                 if settings.graph_output_format == "none":
                     print("No graphs were generated. Change DeuteRater settings if you want graphs to be generated.")
                 elif biomolecule_type == "Lipid":
-                    # if settings.roll_up_rate_calc:
-                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                    #                rate_eq, graph_folder, max_time,
-                    #                settings.asymptote, devs, calc_type=fn_col, full_data=group, title=graph_title)
-                    # else:
                     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
                                rate_eq, graph_folder, max_time,
                                settings.asymptote, calc_type=fn_col, full_data=group, title=graph_title)
                 else:
-                    # if settings.roll_up_rate_calc:
-                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                    #                rate_eq, graph_folder, max_time,
-                    #                settings.asymptote, devs, title=graph_title)
-                    # else:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                               rate_eq, graph_folder, max_time,
-                               settings.asymptote, title=graph_title)
+                    if biomolecule_type == "Peptide":
+                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                                   rate_eq, graph_folder, max_time,
+                                   settings.asymptote, devs, title=graph_title)
+                    else:
+                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                                   rate_eq, graph_folder, max_time,
+                                   settings.asymptote, title=graph_title)
             except Exception as c:
                 print("Graphing failed with the following error: ")
                 print(c)
         except Exception as c:
-            # $"we have a guess but are unsure" warning
+            # "we have a guess but are unsure" warning
             if type(c).__name__ == "OptimizeWarning":
                 current_exception = 'OptimizeWarning: optimal fit could not be found'
-            # $couldn't find the minimum
+            # couldn't find the minimum
             elif type(c).__name__ == "RuntimeError":
                 current_exception = 'fit could not be found'
             else:
-                raise c  # $will stop here so don't need to consider further
+                raise c  # will stop here so don't need to consider further
             result = RateCalculator._make_error_message(
                 "value could not be determined", current_exception, id_name,
                 common_name, sample_group_name, calc_type, num_measurements,
@@ -510,7 +518,7 @@ class RateCalculator:
 
         return result, group
 
-    # $function that does a mad outlier check on a numpy array
+    # function that does a mad outlier check on a numpy array
     @staticmethod
     def mask_outliers(y_values):
         if len(y_values) == 1:
@@ -518,40 +526,49 @@ class RateCalculator:
         med = np.median(y_values)
         differences = abs(y_values - med)
         med_abs_dev = np.median(differences)
+        # print("outlier data: ")
+        # print(y_values)
+        # print(med)
+        # print(differences)
+        # print(med_abs_dev)
         z_values = (differences * .6745) / med_abs_dev
-        good_indices = np.where(z_values < settings.zscore_cutoff)[0]
-        return y_values[good_indices], good_indices
+        # good_indices = np.where(z_values < settings.zscore_cutoff)[0]
+        good_indices = np.asarray(z_values < settings.zscore_cutoff).nonzero()[0]
+        return y_values[good_indices]
 
-    # $rollup time points
+    # rollup time points
     @staticmethod
     def _roll(old_x, old_y):
         new_x = np.unique(old_x)
         new_y, errors = [], []
         for x in new_x:
-            # $ grab indices for the time
+            #  grab indices for the time
             # x_time_indices = np.where(old_x == x)[0]
             x_time_indices = np.asarray(old_x == x).nonzero()[0]
 
-            # $grab only relevant indices of y and outlier check
-            temp_y_values = RateCalculator.mask_outliers(old_y[x_time_indices])
+            # grab only relevant indices of y and outlier check
+            if len(old_y) >= 3:
+                temp_y_values = RateCalculator.mask_outliers(old_y[x_time_indices])
 
-            # $second length check (first is in _mask_outliers) to avoid
-            # $medians and std devs on statistically invalid data
-            if len(temp_y_values) == 1:
-                new_y.extend(temp_y_values)
-                errors.append(settings.error_of_non_replicated_point)
-            else:
-                new_y.append(np.median(temp_y_values))
-                standard_dev = np.std(temp_y_values, ddof=1)
-                # I have seen std dev be 0 which causes problems for the fit, so we'll just force no 0s
-                if standard_dev == 0.0:
-                    errors.append(settings.error_of_zero)
+                # second length check (first is in _mask_outliers) to avoid
+                # medians and std devs on statistically invalid data
+                if len(temp_y_values) == 1:
+                    new_y.extend(temp_y_values)
+                    errors.append(settings.error_of_non_replicated_point)
                 else:
-                    errors.append(standard_dev)
-        return new_x, np.array(new_y), np.array(errors)
+                    new_y.append(np.median(temp_y_values))
+                    standard_dev = np.std(temp_y_values, ddof=1)
+                    # I have seen std dev be 0 which causes problems for the fit, so we'll just force no 0s
+                    if standard_dev == 0.0:
+                        errors.append(settings.error_of_zero)
+                    else:
+                        errors.append(standard_dev)
+                return new_x, np.array(new_y), np.array(errors)
+            else:
+                return old_x, old_y, []
 
-    # $need to calculate median value at time zero in the target column
-    # $already checked for std dev error at this point
+    # need to calculate median value at time zero in the target column
+    # already checked for std dev error at this point
     @staticmethod
     def _calc_bias(df, target_column):
         test_df = df[df["time"] == 0]
@@ -560,12 +577,12 @@ class RateCalculator:
         else:
             return 0
 
-    # $implemented and working
+    # implemented and working
     @staticmethod
     def _halflife(x):
         return np.log(2) / x
 
-    # $just to shorten the code for the error messages
+    # just to shorten the code for the error messages
     @staticmethod
     def _make_error_message(main_error, exception, id_name, common_name, group_name,
                             calc_type, num_m, num_times, unique_length, num_files):
@@ -586,10 +603,9 @@ class RateCalculator:
                   }
         return result
 
-    # $removes errors from a previous analysis step, which are strings
-    # $just cut out those rows
-    # $ df is the dataframe to trim, error columns is a list of columns where
-    # $errors are located. returns the trimmed dataframe
+    # removes errors from a previous analysis step, which are strings
+    # just cut out those rows df is the dataframe to trim, error columns is a list of columns where
+    # errors are located. returns the trimmed dataframe
     @staticmethod
     def _error_trimmer(df, error_columns):
         df[error_columns] = df[error_columns].apply(pd.to_numeric, errors='coerce')

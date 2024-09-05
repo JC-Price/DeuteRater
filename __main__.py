@@ -168,7 +168,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent)
 
-        # $allows a maximize button
+        # allows a maximize button
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint |
                             QtCore.Qt.WindowMaximizeButtonHint)
 
@@ -179,9 +179,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # make_temp_file(default_rate_settings, rate_settings_file)
         self.file_loc = location
 
-        # $set up the id file options
+        # set up the id file options
         self.guide_file_options.addItems(convert_options)
-        # $set the default value for the converter
+        # set the default value for the converter
         index = self.guide_file_options.findText(default_converter)
         self.guide_file_options.setCurrentIndex(index)
 
@@ -189,9 +189,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.RateCalculationButton.clicked.connect(self._calc_rates)
         self.actionSettings.triggered.connect(self.change_settings)
 
-        # $make the logo show up
-        # $use of command from http://stackoverflow.com/questions/8687723/pyqthow-do-i-display-a-image-properly
-        # $first answer accessed 5/27/2016
+        # make the logo show up
+        # use of command from http://stackoverflow.com/questions/8687723/pyqthow-do-i-display-a-image-properly
+        # first answer accessed 5/27/2016
         myPixmap = QtGui.QPixmap(os.path.join(location, "resources", "Logo.PNG"))
         self.Logo.setPixmap(myPixmap)
         self.Logo.setScaledContents(True)
@@ -612,7 +612,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         previous_output_file, biomolecule_type)
                     if not infile_is_good:
                         return
-                # $not sure why this would happen, but we'll put it here to avoid future error
+                # not sure why this would happen, but we'll put it here to avoid future error
                 elif not os.path.exists(previous_output_file):
                     return
                 fnewcalc = FractionNewCalculator(
@@ -764,7 +764,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         for filename in list_of_filenames:
             if os.path.exists(filename):
                 files_to_remove.append(filename)
-        # $let the user decide if we should continue.
+        # let the user decide if we should continue.
         if files_to_remove:
             if ask_permission:
                 proceed = self.large_text_question_for_use("Some files already exist and will be overwritten.",

@@ -96,7 +96,7 @@ ms_level: !!int 1
 # Default = png. Available: png, pdf, svg
 graph_output_format: !!str "png"
 
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
 
 # How many scans should be looked at when performing a gaussian filter
 # on the scan intensities. Must be an odd number. Default is 9
@@ -116,7 +116,7 @@ allowed_peak_variance_min: !!float 0.1
 # Default = 64 for Orbi (proteins)
 allowed_neutromer_peak_variance: !!int 64
 
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$ change based on instrument and settings
 
 # A value used to determine how close to baseline the gaussian fitting algorithm
 # peak widths will be chosen from. Default is .9 (90%)

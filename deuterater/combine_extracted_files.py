@@ -240,7 +240,7 @@ class CombineExtractedFiles:
             #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]), 'high_CI_n_value'] = confidence_interval[1]
             #         elif group_df.shape[0] == 1:
             #             # If there is not 2 replicates of a specific lipid in the highest time course, set n_value as -2
-            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  # $ BN -2 indicates an error where max time n-values fell outside the "good"range
+            #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -2  #  BN -2 indicates an error where max time n-values fell outside the "good"range
             #         else:
             #             # If the replicates of a specific lipid do not have reproducible n-values, set n_value as -3
             #             full_df.loc[(full_df['adduct_molecule_sg'] == group[0]) & (full_df['calculate_n_value'] == "yes"), 'n_value'] = -3

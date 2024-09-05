@@ -44,14 +44,14 @@ data_points_symbol = 'ro'
 MAXIMUM_GRAPH_RATE_ERROR = 5
 MINIMUM_GRAPH_RATE_ERROR = -2
 
-# $the colon is not allowed but seems to make an empty file with a partial name.
-# $either way the check is here to prevent problems if it is necessary
+# the colon is not allowed but seems to make an empty file with a partial name.
+# either way the check is here to prevent problems if it is necessary
 bad_save_file_characters = ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]
 
 
 def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                save_folder_name, maximum, asymptote_option, errors=[], calc_type=None, full_data=None, title=None):
-    # $start naming things
+    # start naming things
     if title is None:
         title = name
     plt.title(title)
@@ -82,8 +82,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         except:
             make_error_lines = False
 
-    # $ if add multiple conditions put each in parentheses  and use | or &
-    # $ unfortunately nans can cause errors.  only seem to occur if using one time and only error in an .exe
+    #  if add multiple conditions put each in parentheses  and use | or &
+    #  unfortunately nans can cause errors.  only seem to occur if using one time and only error in an .exe
     # but may as well sort this out
     plt.plot(fit_line_x, fit_line_y, main_line_symbol)
     if make_error_lines and not np.isnan(fit_line_y_plus_error).any() and not np.isnan(fit_line_y_minus_error).any():
@@ -102,13 +102,13 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         # max and min will be -0.5 and 1.5
         set_y_max = 1.5
         set_y_min = -0.5
-        dp_min = min(y_values)
-        dp_max = max(y_values)
-        
-        if dp_min > set_y_min:
-            set_y_min = dp_min
-        if dp_max < set_y_max:
-            set_y_max = dp_max
+        # dp_min = min(y_values)
+        # dp_max = max(y_values)
+        #
+        # if dp_min > set_y_min:
+        #     set_y_min = dp_min
+        # if dp_max < set_y_max:
+        #     set_y_max = dp_max
         
         plt.ylim(set_y_min, set_y_max)
         plt.plot(x_values, y_values, data_points_symbol)
@@ -182,10 +182,10 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
 
     if make_error_lines:
         plt.fill_between(fit_line_x, fit_line_y_minus_error, fit_line_y_plus_error, color='black', alpha=.15)
-    # $ only if roll up so need error bars
-    if errors:
+    #  only if roll up so need error bars
+    if len(errors) > 0:
         plt.errorbar(x_values, y_values, yerr=errors, elinewidth=1, ecolor='red', linewidth=0)
-    # $save figure and clear it for next time
+    # save figure and clear it for next time
     from matplotlib.font_manager import FontProperties
     font = FontProperties()
     font.set_size("small")
@@ -210,9 +210,9 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
         # elif graph_output_format == "pdf":
         #     plt.savefig(filename[:-4] + ".pdf", format="pdf")
 
-    # $the following characters are not allowed in Windows file names: /\ : * ? " <> |
-    # $replace them with underscores (yes this could erase duplicates, but this is unlikely
-    # $first place, that situation is unlikely problematic enough to bother with)
+    # the following characters are not allowed in Windows file names: /\ : * ? " <> |
+    # replace them with underscores (yes this could erase duplicates, but this is unlikely
+    # first place, that situation is unlikely problematic enough to bother with)
     except OSError:
         for bad_char in bad_save_file_characters:
             name = name.replace(bad_char, "_")

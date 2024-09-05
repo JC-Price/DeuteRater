@@ -59,14 +59,14 @@ ELECTRON_MASS = .00054858
 DUMMY_MASS = -10000000
 
 
-# $allows use of multiple letters for elemental composition
+# allows use of multiple letters for elemental composition
 def new_parser(input_string):
     formmap = {}
     elements_separated = re.findall('[A-Z][^A-Z]*', input_string)
     for e in elements_separated:
         element = e.rstrip('0123456789')
         number = e[len(element):]
-        if number == "": number = 1  # $ need the one to be there if element is alone
+        if number == "": number = 1  #  need the one to be there if element is alone
         formmap[element] = int(number)
     return formmap
 
@@ -213,7 +213,7 @@ def normalizeM0(old_list):
 isotope = namedtuple('isotope', 'mass abundance')
 
 # X starts at normal isotope frequencies(in this case H. X is positions that can be deuterated, not will be TODO:??
-# $ D is a label applied artificially (as in a standard) and does not change
+#  D is a label applied artificially (as in a standard) and does not change
 master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                         isotope(mass=2.0141021, abundance=0.000156)],  # TODO: this is identical to hydrogen?
                   'H': [isotope(mass=1.0078246, abundance=0.999844),
