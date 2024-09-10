@@ -355,8 +355,10 @@ class RateCalculator:
         if settings.use_outlier_removal and biomolecule_type == "Lipid":
             ys, indices = RateCalculator.mask_outliers(ys)
             xs = xs[indices]
-        elif biomolecule_type == "Peptide":
-            xs, ys, devs = RateCalculator._roll(xs, ys)
+        elif biomolecule_type == "Peptide" and settings.use_outlier_removal:
+            # xs, ys, devs = RateCalculator._roll(xs, ys)
+            ys, indices = RateCalculator.mask_outliers(ys)
+            xs = xs[indices]
 
         # Get the number of unique time points, and continue if not enough
         num_unique_times = len(set(group['time']))
@@ -422,10 +424,16 @@ class RateCalculator:
 
             # try to find confidence interval. Sometimes covariance will be negative, in which case we won't be able to calculate one.
             # If so, we'll set confint to np.NaN and we won't draw any error lines
-            try:
-                confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
-            except ValueError as e:
-                confint = np.NaN
+            confint = None
+            for value in np.diag(pcov):
+                if value < 0:
+                    confint = np.NaN
+                    break
+            if confint is None:
+                try:
+                    confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
+                except Exception as e:
+                    confint = np.NaN
 
             try:
                 y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
@@ -443,7 +451,6 @@ class RateCalculator:
                 'group_name': sample_group_name,
                 '{} rate'.format(calc_type): rate,
                 '{} asymptote'.format(calc_type): asymptote,
-                '{} std_error'.format(calc_type): np.sqrt(np.diag(pcov))[0],
                 '{} 95pct_confidence'.format(calc_type): confint,
                 '{} half life'.format(calc_type): RateCalculator._halflife(rate),
                 '{} R2'.format(calc_type): r_2,
@@ -455,6 +462,12 @@ class RateCalculator:
                 '{} uniques'.format(calc_type): unique_length,
                 '{} exceptions'.format(calc_type): "",
             }
+
+            if confint is not np.NaN:
+                result['{} std_error'.format(calc_type)] = np.sqrt(np.diag(pcov))[0]
+            else:
+                result['{} std_error'.format(calc_type)] = np.NaN
+
             # if there is an asymptote need to provide it
             if biomolecule_type == "Peptide":
                 graph_name = "{}_{}_{}".format(id_name, sample_group_name,
@@ -490,14 +503,14 @@ class RateCalculator:
                                rate_eq, graph_folder, max_time,
                                settings.asymptote, calc_type=fn_col, full_data=group, title=graph_title)
                 else:
-                    if biomolecule_type == "Peptide":
-                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                                   rate_eq, graph_folder, max_time,
-                                   settings.asymptote, devs, title=graph_title)
-                    else:
-                        graph_rate(graph_name, xs, ys, rate, asymptote, confint,
-                                   rate_eq, graph_folder, max_time,
-                                   settings.asymptote, title=graph_title)
+                    # if biomolecule_type == "Peptide":
+                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                    #                rate_eq, graph_folder, max_time,
+                    #                settings.asymptote, devs, title=graph_title)
+                    # else:
+                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                               rate_eq, graph_folder, max_time,
+                               settings.asymptote, title=graph_title)
             except Exception as c:
                 print("Graphing failed with the following error: ")
                 print(c)
@@ -533,7 +546,7 @@ class RateCalculator:
         z_values = (differences * .6745) / med_abs_dev
         # good_indices = np.where(z_values < settings.zscore_cutoff)[0]
         good_indices = np.asarray(z_values < settings.zscore_cutoff).nonzero()[0]
-        return y_values[good_indices]
+        return y_values[good_indices], good_indices
 
     # rollup time points
     @staticmethod

@@ -71,10 +71,10 @@ default_guide_settings = os.path.join(location, "resources",
 # so we can check for overwriting (except extract which has dynamic output names)
 # second argument is columns required of the input, so we don't have to check
 # when we're actually doing the calculations.
+
 # TODO: put these columns names in a better order - Ben D
-Extract_object = deuterater_step("", ['Precursor Retention Time (sec)',
-                                      'Precursor m/z', 'Identification Charge', 'Sequence',
-                                      'Protein ID', "cf", "literature_n"],
+Extract_object = deuterater_step("", ['Sequence', 'Protein ID', 'Precursor Retention Time (sec)',
+                                      'Precursor m/z', 'Identification Charge', "cf", "literature_n"],
                                  ['Precursor Retention Time (sec)', 'Precursor m/z',
                                   'Identification Charge', "Lipid Unique Identifier",
                                   "LMP", "Lipid Name", "HMP", "cf", "literature_n"])

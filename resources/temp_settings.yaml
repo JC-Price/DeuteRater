@@ -6,7 +6,7 @@ abundance_type: M0
 adduct_weight: 1.0
 allowed_neutromer_peak_variance: 64
 allowed_peak_variance_min: 0.1
-asymptote: Fixed
+asymptote: Variable
 baseline_lookback: 100
 bias_calculation: none
 chunk_size: 50
@@ -30,7 +30,7 @@ max_fn_standard_deviation: 0.1
 max_valid_angle: 1.2
 maximum_allowed_sequence_rate: 1.5
 min_aa_sequence_length: 6
-min_allowed_n_values: 2
+min_allowed_n_values: 10
 min_envelopes_to_combine: 10
 minimum_allowed_sequence_rate: 0.0
 minimum_nonzero_points: 3
