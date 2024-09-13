@@ -92,24 +92,8 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
 
     # plot lines and points
     if full_data is None:
-        # xdf = pd.DataFrame(x_values)
-        # ydf = pd.DataFrame(y_values)
-        #
-        # xdf.to_csv("D:\\DR Testing\\Abundance\\x_coords_ab.csv", index=False)
-        # ydf.to_csv("D:\\DR Testing\\Abundance\\y_coords_ab.csv", index=False)
-        
-        # find min and max y values to dynamically display y-axis range.
-        # max and min will be -0.5 and 1.5
         set_y_max = 1.5
         set_y_min = -0.5
-        # dp_min = min(y_values)
-        # dp_max = max(y_values)
-        #
-        # if dp_min > set_y_min:
-        #     set_y_min = dp_min
-        # if dp_max < set_y_max:
-        #     set_y_max = dp_max
-        
         plt.ylim(set_y_min, set_y_max)
         plt.plot(x_values, y_values, data_points_symbol)
     else:
@@ -159,21 +143,10 @@ def graph_rate(name, x_values, y_values, rate, asymptote, ci, rate_equation,
                     x = charge_data['time']
                     y = charge_data[calc_type]
                     label = f'{rep}_z{charge}_{adduct} n={n_val}'
-                    
-                    # find min and max y values to dynamically display y-axis range.
-                    # max and min will be -0.5 and 1.5
-                    # we aren't using this right now. If we want to exclude points we probably want to do it during the
-                    # fraction new step or at the very beginning of the rate_calculator
-                    # set_y_max = 1.5
-                    # set_y_min = -0.5
-                    # dp_min = min(y_values)
-                    # dp_max = max(y_values)
-                    #
-                    # if dp_min > set_y_min:
-                    #     set_y_min = dp_min
-                    # if dp_max < set_y_max:
-                    #     set_y_max = dp_max
-                    # plt.ylim(set_y_min, set_y_max)
+
+                    set_y_max = 1.5
+                    set_y_min = -0.5
+                    plt.ylim(set_y_min, set_y_max)
 
                     if should_fill:
                         plt.scatter(x, y, marker=shape, facecolor=color, edgecolor='k', label=label)

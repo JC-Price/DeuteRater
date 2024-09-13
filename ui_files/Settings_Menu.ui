@@ -148,6 +148,58 @@
      </item>
     </widget>
    </item>
+   <item row="20" column="2">
+    <widget class="QLabel" name="label_51">
+     <property name="text">
+      <string>Outlier Removal Z-Score Cutoff</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="20" column="3">
+    <widget class="QDoubleSpinBox" name="zscore_cutoff">
+     <property name="minimum">
+      <double>0.0000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.0000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.0100000</double>
+     </property>
+     <property name="value">
+      <double>1.0000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="2">
+    <widget class="QLabel" name="label_52">
+     <property name="text">
+      <string>R-Squared Threshold</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="3">
+    <widget class="QDoubleSpinBox" name="r2_threshold">
+     <property name="minimum">
+      <double>0.0000000</double>
+     </property>
+     <property name="maximum">
+      <double>1.0000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.0100000</double>
+     </property>
+     <property name="value">
+      <double>0.5000000</double>
+     </property>
+    </widget>
+   </item>
    <item row="17" column="0">
     <widget class="QLabel" name="label_24">
      <property name="text">

@@ -236,3 +236,6 @@ fraction_new_calculation: !!str abundance
 
 # used to filter out n_values that have a high cv ratio (stddev / n_value)
 n_value_cv_limit: !!float 0.10
+
+# used to separate graphs into two folders: 'good' r2 values and 'poor' r2 values
+r2_threshold: !!float 0.5

@@ -162,7 +162,7 @@ spacing_manual_bias: !!float 0.000
 combined_manual_bias: !!float 0.0000
 
 #$whether to use fixed or variable asymptotes
-asymptote: !!str "Variable"
+asymptote: !!str "Fixed"
 
 #$if a point in roll up has 0 error it will skew the graph, when it should
 #$ be looked at skeptically for a lack of replicates
@@ -235,3 +235,6 @@ fraction_new_calculation: !!str combined
 
 # used to filter out n_values that have a high cv ratio (stddev / n_value)
 n_value_cv_limit: !!float 0.10
+
+# used to separate graphs into two folders: 'good' r2 values and 'poor' r2 values
+r2_threshold: !!float 0.5

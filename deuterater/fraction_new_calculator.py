@@ -101,7 +101,7 @@ class FractionNewCalculator:
             # self._n_processors = mp.cpu_count()
         else:
             self._n_processors = settings.n_processors
-        # breaks windows/python interactions if too many cores are used.  very niche application but still relevant
+        # breaks windows/python interactions if too many cores are used. V-ery niche application but still relevant
         if self._n_processors > 60:
             self._n_processors = 60
 

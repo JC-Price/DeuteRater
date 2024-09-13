@@ -135,7 +135,11 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
                                    settings.n_value_cv_limit, False),
             setting_string_info(self.separate_adducts, "separate_adducts",
-                                settings.separate_adducts, True)
+                                settings.separate_adducts, True),
+            setting_numerical_info(self.r2_threshold, "r2_threshold",
+                                   settings.r2_threshold, False),
+            setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
+                                   settings.zscore_cutoff, False)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -267,7 +271,11 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                 setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
                                        settings.n_value_cv_limit, False),
                 setting_string_info(self.separate_adducts, "separate_adducts",
-                                    settings.separate_adducts, True)
+                                    settings.separate_adducts, True),
+                setting_numerical_info(self.r2_threshold, "r2_threshold",
+                                       settings.r2_threshold, False),
+                setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
+                                       settings.zscore_cutoff, False)
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -346,7 +354,11 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
                                    settings.n_value_cv_limit, False),
             setting_string_info(self.separate_adducts, "separate_adducts",
-                                settings.separate_adducts, True)
+                                settings.separate_adducts, True),
+            setting_numerical_info(self.r2_threshold, "r2_threshold",
+                                   settings.r2_threshold, False),
+            setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
+                                   settings.zscore_cutoff, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -425,7 +437,11 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.n_value_cv_limit, "n_value_cv_limit",
                                    settings.n_value_cv_limit, False),
             setting_string_info(self.separate_adducts, "separate_adducts",
-                                settings.separate_adducts, True)
+                                settings.separate_adducts, True),
+            setting_numerical_info(self.r2_threshold, "r2_threshold",
+                                   settings.r2_threshold, False),
+            setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
+                                   settings.zscore_cutoff, False)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -470,7 +486,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "peak_lookahead": settings.peak_lookahead,
             "baseline_lookback": settings.baseline_lookback,
             "min_envelopes_to_combine": settings.min_envelopes_to_combine,
-            "zscore_cutoff": settings.zscore_cutoff,
             "max_valid_angle": settings.max_valid_angle,
             "ms_level": settings.ms_level,
             "intensity_filter": settings.intensity_filter,

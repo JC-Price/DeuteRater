@@ -650,13 +650,15 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 # need to get a graph folders and ensure they exist
                 # don't worry about overwriting files. not deleting all just causes confusion.
-                graphfolder = os.path.join(self.file_loc, "Graph_Folder")
-                self.make_folder(graphfolder)
+                graphfolder_good_r2 = os.path.join(self.file_loc, "Graph_Folder (good r2)")
+                graphfolder_bad_r2 = os.path.join(self.file_loc, "Graph_Folder (poor r2)")
+                self.make_folder(graphfolder_good_r2)
+                self.make_folder(graphfolder_bad_r2)
 
                 ratecalc = RateCalculator(
                     model_path=previous_output_file,
                     out_path=step_object_dict["Rate Calculation"].full_filename,
-                    graph_folder=graphfolder,
+                    graph_folders=[graphfolder_good_r2, graphfolder_bad_r2],
                     settings_path=rate_settings_file,
                     biomolecule_type=biomolecule_type
                 )

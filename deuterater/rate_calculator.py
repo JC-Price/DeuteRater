@@ -55,7 +55,7 @@ group_column = "sample_group"
 
 class RateCalculator:
 
-    def __init__(self, model_path, out_path, graph_folder, settings_path, biomolecule_type):
+    def __init__(self, model_path, out_path, graph_folders, settings_path, biomolecule_type):
         settings.load(settings_path)
         if model_path[-4:] == ".tsv":
             # 'Theoretical Unlabeled Normalized Abundances': str,
@@ -77,7 +77,7 @@ class RateCalculator:
         self.out_path = out_path
         self.rate_model = None
         self.datapoint_model = None  # CQ
-        self.graph_folder = graph_folder
+        self.graph_folders = graph_folders
         self.settings_path = settings_path
 
         # get the number of cores we're using for multiprocessing
@@ -159,7 +159,7 @@ class RateCalculator:
         # they will be added later
         rate_function = partial(RateCalculator._mp_function,
                                 settings_path=self.settings_path,
-                                graph_folder=self.graph_folder,
+                                graph_folders=self.graph_folders,
                                 rate_eq=rate_eq,
                                 max_time=max_time,
                                 p0=p0)
@@ -168,7 +168,7 @@ class RateCalculator:
         # add measurement specific arguments to partial function
 
         # perform calculations for an abundance based rate
-        settings.debug_level = 1
+        # settings.debug_level = 1
         if settings.fraction_new_calculation == "abundance" or settings.fraction_new_calculation == "combined":
             temp_rate_function = partial(rate_function,
                                          calc_type="Abundance",
@@ -260,7 +260,7 @@ class RateCalculator:
 
     # function passed into the multiprocessing for calculations
     def _mp_function(data_tuple, settings_path, fn_col, fn_std_dev, calc_type, manual_bias, std_dev_filter,
-                     graph_folder,
+                     graph_folders,
                      rate_eq, max_time, p0, biomolecule_type):
         w.filterwarnings("error")
         settings.load(settings_path)
@@ -340,18 +340,13 @@ class RateCalculator:
         xs = np.concatenate(([0], group['time'].to_numpy()))
         ys = np.concatenate(([settings.y_intercept_of_fit], group[fn_col].to_numpy()))
 
-        # xdf = pd.DataFrame(xs)
-        # ydf = pd.DataFrame(ys)
-        # xdf.to_csv("D:\\DR Testing\\Graphing\\x_coords.csv", index=False)
-        # ydf.to_csv("D:\\DR Testing\\Graphing\\y_coords.csv", index=False)
-
         # if settings.use_outlier_removal:
         #     # ys = RateCalculator.mask_outliers(ys)
         #     xs, ys, devs = RateCalculator._roll(xs, ys)
         # else:
         #     devs = np.concatenate(([settings.error_of_zero], group[fn_std_dev].to_numpy()))
 
-        # remove any outliers
+        # remove any outliers if we have more than 4 timepoints
         if settings.use_outlier_removal and biomolecule_type == "Lipid":
             ys, indices = RateCalculator.mask_outliers(ys)
             xs = xs[indices]
@@ -378,7 +373,8 @@ class RateCalculator:
 
         # I think this fixes the issues with technical replicates.
         # need to use astype(str) on all or if someone uses numbers for group names or replicate names issues result
-        num_bio_reps = len(set(group["time"].astype(str) + group["sample_group"].astype(str) + group["bio_rep"].astype(str)))
+        num_bio_reps = len(
+            set(group["time"].astype(str) + group["sample_group"].astype(str) + group["bio_rep"].astype(str)))
 
         if num_unique_times < settings.minimum_nonzero_points:
             result = RateCalculator._make_error_message(
@@ -472,16 +468,18 @@ class RateCalculator:
             if biomolecule_type == "Peptide":
                 graph_name = "{}_{}_{}".format(id_name, sample_group_name,
                                                fn_col)
-                graph_title = "{}_{}_{}\nk={}, a={}".format(common_name,
-                                                            sample_group_name, fn_col, result[f'{calc_type} rate'],
-                                                            1.0)
+                graph_title = "{}_{}_{}\nk={}, a={}, r-squared={}, ".format(common_name,
+                                                                            sample_group_name, fn_col,
+                                                                            result[f'{calc_type} rate'],
+                                                                            1.0, round(r_2, 3))
             elif biomolecule_type == "Lipid":
                 graph_name = "{}_{}_{}".format(id_name[:-1],
                                                sample_group_name, fn_col)
-                graph_title = "{}_{}_{}\nk={:.3f}, a={:.3f}".format(id_name[:-1],
-                                                                    sample_group_name, fn_col,
-                                                                    result[f'{calc_type} rate'],
-                                                                    result['{} rate'.format(calc_type)])
+                graph_title = "{}_{}_{}\nk={:.3f}, a={:.3f}, r-squared={}".format(id_name[:-1],
+                                                                                  sample_group_name, fn_col,
+                                                                                  result[f'{calc_type} rate'],
+                                                                                  result['{} rate'.format(calc_type)],
+                                                                                  round(r_2, 3))
                 if "dietary_lit_n_avg" in list(group.columns):
                     lit_n_str = ""
                     if group.iloc[0]["dietary_lit_n_avg"] != 0:
@@ -496,6 +494,10 @@ class RateCalculator:
                 graph_name = None
                 graph_title = None
             try:
+                if r_2 > 0.5:
+                    graph_folder = graph_folders[0]
+                else:
+                    graph_folder = graph_folders[1]
                 if settings.graph_output_format == "none":
                     print("No graphs were generated. Change DeuteRater settings if you want graphs to be generated.")
                 elif biomolecule_type == "Lipid":
@@ -559,7 +561,7 @@ class RateCalculator:
             x_time_indices = np.asarray(old_x == x).nonzero()[0]
 
             # grab only relevant indices of y and outlier check
-            if len(old_y) >= 3:
+            if len(old_y) >= 4:
                 temp_y_values = RateCalculator.mask_outliers(old_y[x_time_indices])
 
                 # second length check (first is in _mask_outliers) to avoid

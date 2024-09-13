@@ -121,6 +121,7 @@ abundance_type: str
 bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
+r2_threshold: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -341,6 +342,9 @@ def load(settings_path):
         global use_outlier_removal
         use_outlier_removal = s["use_outlier_removal"]
 
+        global r2_threshold
+        r2_threshold = s["r2_threshold"]
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -434,7 +438,8 @@ def freeze(path=None, settings_dict = None):
             "y_intercept_of_fit": y_intercept_of_fit,
             "max_fn_standard_deviation": max_fn_standard_deviation,
             "fraction_new_calculation": fraction_new_calculation,
-            "n_value_cv_limit": n_value_cv_limit
+            "n_value_cv_limit": n_value_cv_limit,
+            "r2_threshold": r2_threshold
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
