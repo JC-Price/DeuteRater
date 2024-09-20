@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import sys
 import multiprocessing as mp
+
 import numpy as np
 import csv
 import pandas as pd
@@ -851,12 +852,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         for a in autofill_columns:
             if sum(df[a].isnull()) > 0 or sum(df[a] == "") > 0:
-                perform_autofill = True
+                no_missing_cells = True
                 bad_column = a
                 break
         else:
-            perform_autofill = False
-        if perform_autofill:
+            no_missing_cells = False
+        if no_missing_cells:
             result = self.autofill(df, filename, bad_column)
             if not result:
                 return result

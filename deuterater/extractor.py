@@ -39,7 +39,6 @@ from tqdm import tqdm  # noqa: 401
 from more_itertools import one
 from functools import partial
 import multiprocessing as mp
-from multiprocessing import set_start_method
 import concurrent.futures as cf
 from pathlib import Path  # noqa: 401
 import os

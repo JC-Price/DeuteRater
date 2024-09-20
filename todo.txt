@@ -35,10 +35,10 @@
 
 - fix issue where names are cut off in graph titles
 
-- figure out how to integrate fractional n-values
-
+- make sure we can populate cf and literature_n columns based off sequence column
 - test chromatography division
-- set default settings for peptides and lipids
+    - molecule.py, line 222
+- set default settings for peptides and lipids DONEish
 - run full tests for peptides and lipids
 - test running each step individually
 - rename steps to be more descriptive?
@@ -47,6 +47,7 @@
 - update license in each module
 - package and publish on GitHub
 - reorganize Settings_Menu.ui
+- figure out how to integrate fractional n-values
 - add Ion Mobility
 
 
