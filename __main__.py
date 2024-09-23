@@ -55,6 +55,7 @@ from deuterater.protein_rate_combiner import Peptides_to_Proteins
 from utils.chromatography_division import ChromatographyDivider
 from utils.useful_classes import deuterater_step
 import deuterater.settings as settings
+import deuterater.converter_settings as converter_settings
 from gui_software.Rate_Settings import Rate_Setting_Menu
 
 # location = os.path.dirname(os.path.abspath(sys.executable))
@@ -64,9 +65,9 @@ location = os.path.dirname(os.path.abspath(__file__))
 rate_settings_file = os.path.join(location, "resources", "temp_settings.yaml")
 default_rate_settings = os.path.join(location, "resources", "peptide_settings.yaml")
 guide_settings_file = os.path.join(location, "resources",
-                                   "temp_guide_settings.yaml")
+                                   "temp_auto_fill_settings.yaml")
 default_guide_settings = os.path.join(location, "resources",
-                                      "guide_settings.yaml")
+                                      "auto_fill_settings.yaml")
 
 # each analysis step gets a deuterater_step object.  first argument is the output name,
 # so we can check for overwriting (except extract which has dynamic output names)
@@ -825,6 +826,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         return True
 
     # ensures a folder exists by making it if it does not.
+    @staticmethod
     def make_folder(self, folder, non_graph=False):
         if non_graph:  # don't care about overwriting graph folder, that is necessary.   the main output folder might have necessary things in it the user wants to keep
             if not os.path.isdir(folder):
@@ -874,7 +876,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         aa_label_df = pd.read_csv(converter_settings.aa_label_path, sep='\t')
         aa_label_df.set_index('study_type', inplace=True)
-        # TODO: Find out where to store settings, then decide which 'studytype'
+        # TODO: Find out where to store settings, then decide which 'study type'
         #       to use as default.
         aa_labeling_dict = aa_label_df.loc[converter_settings.study_type,].to_dict()
 
@@ -909,7 +911,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             )
             df.at[i, 'Peptide Theoretical Mass'] = theoretical_mass
             df.at[i, 'literature_n'] = literature_n
-        # now we need to srite out.  since we only needed read permissions elsewhere we may have a problem.
+        # now we need to write out.  since we only needed read permissions elsewhere we may have a problem.
         # but it does ensure we need to pass a df around.
         try:
             df.to_csv(guide_file_location, index=False)
