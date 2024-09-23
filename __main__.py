@@ -652,15 +652,15 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 # need to get a graph folders and ensure they exist
                 # don't worry about overwriting files. not deleting all just causes confusion.
-                graphfolder_good_r2 = os.path.join(self.file_loc, "Graph_Folder (good r2)")
-                graphfolder_bad_r2 = os.path.join(self.file_loc, "Graph_Folder (poor r2)")
-                self.make_folder(graphfolder_good_r2)
-                self.make_folder(graphfolder_bad_r2)
+                graph_folder_good_r2 = os.path.join(self.file_loc, "Graph_Folder (good r2)")
+                graph_folder_bad_r2 = os.path.join(self.file_loc, "Graph_Folder (poor r2)")
+                self.make_folder(graph_folder_good_r2)
+                self.make_folder(graph_folder_bad_r2)
 
                 ratecalc = RateCalculator(
                     model_path=previous_output_file,
                     out_path=step_object_dict["Rate Calculation"].full_filename,
-                    graph_folders=[graphfolder_good_r2, graphfolder_bad_r2],
+                    graph_folders=[graph_folder_good_r2, graph_folder_bad_r2],
                     settings_path=rate_settings_file,
                     biomolecule_type=biomolecule_type
                 )
@@ -827,7 +827,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
     # ensures a folder exists by making it if it does not.
     @staticmethod
-    def make_folder(self, folder, non_graph=False):
+    def make_folder(folder, non_graph=False):
         if non_graph:  # don't care about overwriting graph folder, that is necessary.   the main output folder might have necessary things in it the user wants to keep
             if not os.path.isdir(folder):
                 os.makedirs(folder)

@@ -224,26 +224,26 @@ class Molecule(object):
         self.corresponding_chrom_peaks = peaks_that_appear
 
         # TODO: figure out if this would be useful to include - Ben D
-        # # Remove peaks that switch neutromer peak order when
-        # #   sorted by intensity.
-        # index_to_remove = []
-        # for num in range(len(self.corresponding_chrom_peaks)):
-        #     peak = self.corresponding_chrom_peaks[num]
-        #     if len(peak) < 2:
-        #         continue
-        #     # neutromer_intensity_lists = [[[str(ab.ab) for ab in envelope._peaks[1:4]] for envelope in self.ids[addu]._envelopes[rt_range[0]: rt_range[1] + 1]] for addu, rt_range in peak.items()]
-        #     # unique_orders = np.unique([intensities for intensities in neutromer_intensity_lists])
-        #     unique_order = [np.unique([",".join(np.argsort([ab.ab for ab in envelope._peaks[1:4]]).astype(str))
-        #                                for envelope in self.ids[addu]._envelopes[int((rt_range[1]+rt_range[0])/2 - 3): int((rt_range[1]+rt_range[0])/2 + 4)]]
-        #                               , return_counts=True) for addu, rt_range in peak.items()]
-        #     unique_orders = np.unique([i[0][np.argmax(i[1])] for i in unique_order])
-        #     if len(unique_orders) > 1:
-        #         index_to_remove.insert(0, num)
-        #
-        # for index in index_to_remove:
-        #     self.reps_with_peak.pop(index)
-        #     self.unique_chrom_peaks.pop(index)
-        #     self.corresponding_chrom_peaks.pop(index)
+        # Remove peaks that switch neutromer peak order when
+        #   sorted by intensity.
+        index_to_remove = []
+        for num in range(len(self.corresponding_chrom_peaks)):
+            peak = self.corresponding_chrom_peaks[num]
+            if len(peak) < 2:
+                continue
+            # neutromer_intensity_lists = [[[str(ab.ab) for ab in envelope._peaks[1:4]] for envelope in self.ids[addu]._envelopes[rt_range[0]: rt_range[1] + 1]] for addu, rt_range in peak.items()]
+            # unique_orders = np.unique([intensities for intensities in neutromer_intensity_lists])
+            unique_order = [np.unique([",".join(np.argsort([ab.ab for ab in envelope._peaks[1:4]]).astype(str))
+                                       for envelope in self.ids[addu]._envelopes[int((rt_range[1]+rt_range[0])/2 - 3): int((rt_range[1]+rt_range[0])/2 + 4)]]
+                                      , return_counts=True) for addu, rt_range in peak.items()]
+            unique_orders = np.unique([i[0][np.argmax(i[1])] for i in unique_order])
+            if len(unique_orders) > 1:
+                index_to_remove.insert(0, num)
+
+        for index in index_to_remove:
+            self.reps_with_peak.pop(index)
+            self.unique_chrom_peaks.pop(index)
+            self.corresponding_chrom_peaks.pop(index)
 
         self._find_peak_variance()
 

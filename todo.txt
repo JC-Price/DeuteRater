@@ -32,13 +32,11 @@
 - do we keep outlier removal (add z score setting) DONE (9/13/24)
 - what is the lower limit of points for when we remove outliers? DONE (9/13/24)
 - add r2 filter setting for graph separation DONE (9/13/24)
+- make sure we can populate cf and literature_n columns based off sequence column DONE (9/23/24)
+- set default settings for peptides and lipids DONE
 
-- fix issue where names are cut off in graph titles
-
-- make sure we can populate cf and literature_n columns based off sequence column
 - test chromatography division
     - molecule.py, line 222
-- set default settings for peptides and lipids DONEish
 - run full tests for peptides and lipids
 - test running each step individually
 - rename steps to be more descriptive?
@@ -48,6 +46,7 @@
 - package and publish on GitHub
 - reorganize Settings_Menu.ui
 - figure out how to integrate fractional n-values
+- fix issue where names are cut off in graph titles
 - add Ion Mobility
 
 
