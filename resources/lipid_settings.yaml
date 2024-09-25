@@ -79,7 +79,7 @@ min_aa_sequence_length: !!int 6
 
 # minimum allowed n value. if smaller, the maximum theoretical delta will be
 # too small
-min_allowed_n_values: !!int 10
+min_allowed_n_values: !!int 2
 
 minimum_allowed_sequence_rate: !!float 0.0
 
@@ -195,7 +195,7 @@ proliferation_adjustment: !!float 0.00
 remove_filters: !!bool False
 
 #$whether or not to use the roll up option
-use_outlier_removal: !!bool True
+use_outlier_removal: !!bool False
 
 # The Signal/Noise filter used in Chromatography Division
 s_n_filter: !!float 0
