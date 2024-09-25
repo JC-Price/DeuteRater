@@ -34,14 +34,18 @@
 - add r2 filter setting for graph separation DONE (9/13/24)
 - make sure we can populate cf and literature_n columns based off sequence column DONE (9/23/24)
 - set default settings for peptides and lipids DONE
-
-- test chromatography division
+- remove LMP and HMP columns DONE (9/24/24)
+- test chromatography division DONE
     - molecule.py, line 222
+
 - run full tests for peptides and lipids
 - test running each step individually
 - rename steps to be more descriptive?
 - update ReadMe...
     - add warning about keeping DR open for consecutive runs
+    - update columns and explanations for each step/file
+    - make sure all screenshots match current version
+        - a lot of the error message screenshots say DeuteRater-H etc.
 - update license in each module
 - package and publish on GitHub
 - reorganize Settings_Menu.ui

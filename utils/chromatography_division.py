@@ -213,7 +213,7 @@ class ChromatographyDivider:
                 #                                    total=len(molecule_groups)))
 
             elif settings.debug_level >= 1:
-                for group in tqdm(molecule_groups, desc="dividing chromatography: ", total=len(molecule_groups)):
+                for group in tqdm(molecule_groups, desc="Dividing Chromatography: ", total=len(molecule_groups)):
                     molecules.append(self.handle_molecule(group, self.settings_path))
 
             df = pd.concat(molecules)
@@ -238,14 +238,12 @@ class ChromatographyDivider:
 
                 if settings.debug_level == 0:
                     func = partial(self.handle_molecule, settings_path=self.settings_path)
-                    molecules = self._mp_pool.map(func,
-                                                  tqdm(molecule_groups,
-                                                       desc="dividing chromatography: ",
-                                                       total=len(molecule_groups),
-                                                       leave=False))
+                    with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
+                        molecules = list(tqdm(executor.map(func, molecule_groups), total=len(molecule_groups),
+                                              desc="Dividing Chromatography: "))
 
                 elif settings.debug_level >= 1:
-                    for group in tqdm(molecule_groups, desc="dividing chromatography: ", total=len(molecule_groups),
+                    for group in tqdm(molecule_groups, desc="Dividing Chromatography: ", total=len(molecule_groups),
                                       leave=False):
                         molecules.append(self.handle_molecule(group, self.settings_path))
 

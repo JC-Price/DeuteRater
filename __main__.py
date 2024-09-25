@@ -79,13 +79,13 @@ Extract_object = deuterater_step("", ['Sequence', 'Protein ID', 'Precursor Reten
                                       'Precursor m/z', 'Identification Charge', "cf", "literature_n"],
                                  ['Precursor Retention Time (sec)', 'Precursor m/z',
                                   'Identification Charge', "Lipid Unique Identifier",
-                                  "LMP", "Lipid Name", "HMP", "cf", "literature_n"])
+                                  "Lipid Name", "cf", "literature_n"])
 Time_Enrich_object = deuterater_step("time_enrichment_data.tsv", [
     "Precursor Retention Time (sec)", "Protein ID", "Protein Name", "Precursor m/z",
     "Identification Charge", "Homologous Proteins", "n_isos",
     "Sequence", "cf", "abundances", "mzs", "literature_n"],
                                      ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
-                                      "Identification Charge", "LMP", "HMP", "n_isos",
+                                      "Identification Charge", "n_isos",
                                       "Lipid Name", "cf", "abundances", "mzs", "literature_n"])
 
 Combine_object = deuterater_step("combined_extracted_files_output.tsv",
@@ -96,7 +96,7 @@ delta_by_enrichment = deuterater_step("delta_by_enrichment.tsv", [
     "Identification Charge", "Homologous Proteins", "n_isos", "time", "literature_n",
     "Sequence", "cf", "abundances", "mzs", "sample_group", "enrichment"],
                                       ["Precursor Retention Time (sec)", "Lipid Unique Identifier", "Precursor m/z",
-                                       "Identification Charge", "LMP", "HMP", "n_isos", "n_value",
+                                       "Identification Charge", "n_isos", "n_value",
                                        "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                        "sample_group"])
 fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
@@ -106,7 +106,7 @@ fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
                                            [
                                                "Precursor Retention Time (sec)", "Lipid Unique Identifier",
                                                "Precursor m/z",
-                                               "Identification Charge", "LMP", "HMP", "n_isos", "n_value",
+                                               "Identification Charge", "n_isos", "n_value",
                                                "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                                "sample_group"])
 # TODO: what lipid columns do we need here? - Ben D
@@ -156,10 +156,9 @@ protein_template_example = ['EGIVALR', 'P80317', 'T-complex protein 1 subunit ze
                             'Mus musculus OX=10090',
                             'Cct6a ', '1', '3', 'C33H60N10O10', '3', '15.66']
 lipid_converter_header = ['Lipid Name', 'Lipid Unique Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
-                          "Identification Charge", 'LMP', 'HMP', 'cf', 'neutromers_to_extract', 'n_value',
-                          'Matched_Results_Analysis', 'Matched_Details_Replicates_Used', 'Adduct', 'Adduct_cf']
+                          "Identification Charge", 'cf', 'neutromers_to_extract', 'Adduct', 'Adduct_cf']
 lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
-                          '1', '', '', 'C7H16NO2', '3', '', '', '', 'M+H', 'C7H17NO2']
+                          '1', 'C7H16NO2', '3', '', '', '', 'M+H', 'C7H17NO2']
 
 # prepare the gui
 main_file_ui_location = os.path.join(location, "ui_files", "Main_Menu.ui")
@@ -433,7 +432,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
                 mzml_files = self.collect_multiple_files("Centroided Data",
                                                          analysis_step, "mzML (*.mzML)")
-                if mzml_files == []:
+                if not mzml_files:
                     return
 
                 mzml_filenames = [os.path.basename(filename) for filename in
