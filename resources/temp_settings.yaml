@@ -1,12 +1,12 @@
 ID_weight: 0.7
-aa_labeling_sites_path: C:\Users\benny\PycharmProjects\DeuteRater_v6\resources\aa_labeling_sites.tsv
+aa_labeling_sites_path: C:\Users\Admin\Documents\GitHub\DeuteRater\resources\aa_labeling_sites.tsv
 abundance_agreement_filter: 0.1
 abundance_manual_bias: 0.0
 abundance_type: M0
 adduct_weight: 1.0
 allowed_neutromer_peak_variance: 64
 allowed_peak_variance_min: 0.1
-asymptote: Variable
+asymptote: Fixed
 baseline_lookback: 100
 bias_calculation: none
 chunk_size: 50
@@ -17,7 +17,7 @@ debug_level: 0
 error_of_non_replicated_point: 0.05
 error_of_zero: 0.01
 fixed_asymptote_value: 1.0
-fraction_new_calculation: abundance
+fraction_new_calculation: combined
 graph_output_format: png
 how_divided: combined
 id_file_rt_unit: sec
@@ -61,7 +61,7 @@ time_window: 1.5
 trim_ids_to_mzml_bounds: false
 unique_sequence_column: Sequence
 use_chromatography_division: 'No'
-use_empir_n_value: true
+use_empir_n_value: false
 use_outlier_removal: false
 variance_weight: 1.0
 verbose_rate: true
