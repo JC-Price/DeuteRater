@@ -671,7 +671,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         QtWidgets.QMessageBox.information(self, "Success",
                                           "Analysis completed successfully")
-        print("Analysis completed successfully")
+        print("Analysis completed successfully\n")
 
     # this checks which parts of the worklist table are checked and that there are no blanks    
     def check_table_checklist(self):
@@ -682,7 +682,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 current_worklist.append(str(
                     self.RequestedStepsTable.item(i, 0).text()))
                 error_check.append(i)
-        # the point of the error check is to ensure ther are no gaps in the 
+        # the point of the error check is to ensure there are no gaps in the
         # checklist since then we will be missing critical info for the next
         # step
         if error_check == []:  # max does not work on empty lists

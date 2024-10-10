@@ -42,6 +42,7 @@
 - test running each step individually
 - rename steps to be more descriptive?
 - update ReadMe...
+    - can't upload a settings file you used in another folder (unless you change paths)
     - add warning about keeping DR open for consecutive runs
     - update columns and explanations for each step/file
     - make sure all screenshots match current version
