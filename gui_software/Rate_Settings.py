@@ -139,7 +139,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.r2_threshold, "r2_threshold",
                                    settings.r2_threshold, False),
             setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
-                                   settings.zscore_cutoff, False)
+                                   settings.zscore_cutoff, False),
+            setting_string_info(self.graph_n_value_calculations, "graph_n_value_calculations",
+                                settings.graph_n_value_calculations, True)
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -275,7 +277,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                 setting_numerical_info(self.r2_threshold, "r2_threshold",
                                        settings.r2_threshold, False),
                 setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
-                                       settings.zscore_cutoff, False)
+                                       settings.zscore_cutoff, False),
+                setting_string_info(self.graph_n_value_calculations, "graph_n_value_calculations",
+                                    settings.graph_n_value_calculations, True)
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -358,7 +362,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.r2_threshold, "r2_threshold",
                                    settings.r2_threshold, False),
             setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
-                                   settings.zscore_cutoff, False)
+                                   settings.zscore_cutoff, False),
+            setting_string_info(self.graph_n_value_calculations, "graph_n_value_calculations",
+                                settings.graph_n_value_calculations, True)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -441,7 +447,9 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             setting_numerical_info(self.r2_threshold, "r2_threshold",
                                    settings.r2_threshold, False),
             setting_numerical_info(self.zscore_cutoff, "zscore_cutoff",
-                                   settings.zscore_cutoff, False)
+                                   settings.zscore_cutoff, False),
+            setting_string_info(self.graph_n_value_calculations, "graph_n_value_calculations",
+                                settings.graph_n_value_calculations, True)
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

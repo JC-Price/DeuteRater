@@ -2,6 +2,8 @@ try:
     from utils.n_value_calc_emass import emass
 except:
     from n_value_calc_emass import emass
+
+from functools import partial
 import pandas as pd
 import re
 import time
@@ -18,11 +20,12 @@ timepoints_statement = ["no valid time points", "no valid time points", "no vali
 
 
 class NValueCalculator:
-    def __init__(self, dataframe, settings_path, biomolecule_type):
+    def __init__(self, dataframe, settings_path, biomolecule_type, out_path, graphs_location=None):
         # this DataFrame should only contain the correct columns
         settings.load(settings_path)
         self.settings_path = settings_path
         self.biomolecule_type = biomolecule_type
+        self.out_path = out_path
         if settings.recognize_available_cores is True:
             # BD: Issue with mp.cpu_count() finding too many cores available
             self._n_processors = round(mp.cpu_count() * 0.75)
@@ -35,6 +38,9 @@ class NValueCalculator:
         self.full_df = dataframe
         self.output_columns = output_columns
         self.prepared_df = None
+
+        if settings.graph_n_value_calculations:
+            self.graph_folder = graphs_location
 
     def prepare_model(self):
         if "Adduct_cf" in self.full_df.columns:
@@ -75,21 +81,31 @@ class NValueCalculator:
 
         groups = self.prepared_df.groupby('divider', sort=False)
 
+        nv_function = partial(NValueCalculator.analyze_group, self)
+
         results = list()
-        # settings.debug_level = 1
+        n_value_data = list()
+        if settings.graph_n_value_calculations:
+            settings.debug_level = 1
+
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                 results = list(
-                    tqdm(executor.map(NValueCalculator.analyze_group, groups), total=len(groups),
+                    tqdm(executor.map(nv_function, groups), total=len(groups),
                          desc="Calculating n-values: ",
                          leave=True))
 
         elif settings.debug_level >= 1:
-            for group in tqdm(groups, desc="Calculating n-values:", total=len(groups)):
-                data = NValueCalculator.analyze_group(group)
+            for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
+                data, group_nv_info = NValueCalculator.analyze_group(self, group)
                 results.append(data)
+                n_value_data.append(group_nv_info)
 
         prepared_df = pd.concat(results)
+        if settings.graph_n_value_calculations:
+            n_value_df = pd.DataFrame(n_value_data[0], columns=["Index", "cf", "sample_group", "n_value", "std_dev",
+                                                             "all_std_dev", "all_n_D_values"])
+            n_value_df.to_csv(self.out_path[:-35]+"n_value_data.tsv", sep='\t')
 
         prepared_df = prepared_df.set_index('index')
         prepared_df = prepared_df.sort_index()
@@ -99,8 +115,7 @@ class NValueCalculator:
                                           left_index=True,
                                           right_index=True)
 
-    @staticmethod
-    def analyze_group(partition):
+    def analyze_group(self, partition):
         """
         Generates emass information for each chemical formula and then sends each possible charge state to analyze_row()
 
@@ -139,6 +154,7 @@ class NValueCalculator:
 
             # calculate n-values for appropriate rows, once we get to a row that has 'no' in the calculate_n_value column,
             # we break out of the for loop and average the n-values we have
+            n_value_data = []
             for row in partition[1].itertuples(index=False):
                 if row.calculate_n_value.lower() == 'no':
                     break
@@ -155,9 +171,14 @@ class NValueCalculator:
                         print("Chemical Formula ", row.cf, " contains unsupported molecules")
                 emass_results = emass_results_dict[enrichment]
 
-                # Calculate n-value and standard deviation
+                # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
-                    nvalues.append(NValueCalculator.analyze_row(row, emass_results))
+                    n_value, stddev, n_value_info = NValueCalculator.analyze_row(self, row, emass_results)
+                    nvalues.append([n_value, stddev])
+
+                    if settings.graph_n_value_calculations:
+                        n_value_data.append(n_value_info)
+
                 except Exception as e:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
@@ -199,16 +220,22 @@ class NValueCalculator:
                 try:
                     results.append(data)
                 except Exception as e:
+                    print(e)
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
-            return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)], axis=1)
+            if settings.graph_n_value_calculations:
+                return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
+                                 axis=1), n_value_data
+            else:
+                return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
+                                 axis=1)
         except IOError as e:
             # print(e)
             return pd.concat(
-                [partition[1].reset_index(drop=True), pd.DataFrame(data=error_statement, columns=output_columns)], axis=1)
+                [partition[1].reset_index(drop=True), pd.DataFrame(data=error_statement, columns=output_columns)],
+                axis=1), []
 
-    @staticmethod
-    def analyze_row(row, emass_results):
+    def analyze_row(self, row, emass_results):
         """
         Calculates n-value for each row
 
@@ -405,20 +432,27 @@ class NValueCalculator:
         dIt_unfiltered_fraction_new, dIt_n_value, dIt_stddev, dIt_peaks_included = n_value_dIt_filter(
             unfiltered_fraction_new, dIt_data)
 
-        # import matplotlib.pyplot as plt
-        # plt.plot(unfiltered_fraction_new['stddev'], label="normal n")
-        # plt.title(str.format("{}_{}\n n_value = {}", row.chemical_formula, row.sample_group, int(n_value)))
-        # plt.legend()
-        # plt.savefig(str.format("{}_{}_{}.png", row.chemical_formula, row.sample_group, row.index))
-        # plt.clf()
-        # if not np.isnan(dIt_n_value):
-        # 	plt.plot(dIt_unfiltered_fraction_new['stddev'], label="dIt n")
-        # 	plt.title(str.format("{}_{}\n dIt_n_value = {}", row.chemical_formula, row.sample_group, int(dIt_n_value)))
-        # 	plt.legend()
-        # 	plt.savefig(str.format("{}_{}_dIt_{}.png", row.chemical_formula, row.sample_group, row.index))
-        # 	plt.clf()
+        n_value_info = []
+        if settings.graph_n_value_calculations:
+            import matplotlib.pyplot as plt
+            if not np.isnan(dIt_n_value):
+                plt.plot(dIt_unfiltered_fraction_new['n_value_stddev'], label="dIt n")
+                plt.title(
+                    str.format("{}_{}\n dIt_n_value = {}, dIt_std_dev = {}", row.chemical_formula, row.sample_group,
+                               int(dIt_n_value), int(dIt_stddev)))
+                plt.legend()
+                plt.xlabel("Number of Deuteriums")
+                plt.ylabel("Standard Deviation")
+                plt.plot(dIt_n_value, dIt_stddev, marker="o", markeredgecolor="red")
+                plt.savefig(str.format(self.graph_folder + "\\{}_{}_dIt_{}.png", row.chemical_formula, row.sample_group,
+                                       row.index))
+                plt.clf()
 
-        return dIt_n_value, dIt_stddev
+                n_value_info = [row.index, row.chemical_formula, row.sample_group, dIt_n_value,
+                                dIt_stddev, dIt_unfiltered_fraction_new['n_value_stddev'].values,
+                                dIt_unfiltered_fraction_new['n_D'].values]
+
+        return dIt_n_value, dIt_stddev, n_value_info
 
     @staticmethod
     def parse_cf(cf):

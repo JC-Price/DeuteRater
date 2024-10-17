@@ -53,14 +53,14 @@
      </property>
     </widget>
    </item>
-   <item row="14" column="0">
+   <item row="15" column="0">
     <widget class="QLabel" name="label_31">
      <property name="text">
-      <string>Retention Time proximity filter (min)</string>
+      <string>Retention Time Proximity Filter (min)</string>
      </property>
     </widget>
    </item>
-   <item row="14" column="1">
+   <item row="15" column="1">
     <widget class="QDoubleSpinBox" name="rt_prox_filter">
      <property name="minimum">
       <double>0.010000000000000</double>
@@ -207,7 +207,7 @@
      </property>
     </widget>
    </item>
-   <item row="13" column="1">
+   <item row="14" column="1">
     <widget class="QSpinBox" name="mz_prox_filter">
      <property name="minimum">
       <number>1</number>
@@ -223,10 +223,10 @@
      </property>
     </widget>
    </item>
-   <item row="13" column="0">
+   <item row="14" column="0">
     <widget class="QLabel" name="label_27">
      <property name="text">
-      <string>mz proximity filter (ppm)</string>
+      <string>mz Proximity Filter (ppm)</string>
      </property>
     </widget>
    </item>
@@ -656,7 +656,7 @@
      </item>
     </widget>
    </item>
-   <item row="12" column="0">
+   <item row="13" column="0">
     <widget class="QLabel" name="label_">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -712,6 +712,36 @@
      </property>
     </widget>
    </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="label_53">
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Make N-Value Graphs</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1">
+    <widget class="QComboBox" name="graph_n_value_calculations">
+     <item>
+      <property name="text">
+       <string>No</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Yes</string>
+      </property>
+     </item>
+    </widget>
+   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_9">
      <property name="text">
@@ -754,7 +784,6 @@
      </item>
     </widget>
    </item>
-
    <item row="4" column="2">
     <widget class="QLabel" name="label_29">
      <property name="text">

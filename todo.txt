@@ -38,8 +38,10 @@
 - test chromatography division DONE
     - molecule.py, line 222
 
-- compare with Rusty's data (from paper)
+- add filter to n-values to remove nan discontinuities
 - graph and save n-value calculation graphs and data into spreadsheet
+    - add setting for n_value graphs and data
+- compare with Rusty's data (from paper)
 - run full tests for peptides and lipids
 - test running each step individually
 - rename steps to be more descriptive?
@@ -55,6 +57,7 @@
 - figure out how to integrate fractional n-values
 - fix issue where names are cut off in graph titles
 - add Ion Mobility
+- fix time and enrichment, so it doesn't quit if copy/paste failed
 
 
 - n values, essential vs non-essential amino acid n-values and how they change with conditions (diets - high/low protein)

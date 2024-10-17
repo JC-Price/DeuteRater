@@ -65,12 +65,13 @@ literature_n_name = "literature_n"
 
 # as with all the calculation steps this is a class for consistent calls in the main
 class CombineExtractedFiles:
-    def __init__(self, enrichment_path, out_path, settings_path, needed_columns, biomolecule_type):
+    def __init__(self, enrichment_path, out_path, settings_path, needed_columns, biomolecule_type, graph_folder):
         settings.load(settings_path)
         self.settings_path = settings_path
         self.enrichment_path = Path(enrichment_path)
         self.needed_columns = needed_columns
         self.biomolecule_type = biomolecule_type
+        self.graph_folder = graph_folder
 
         settings.use_empir_n_value = True
 
@@ -191,7 +192,7 @@ class CombineExtractedFiles:
 
             # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
             # n_val_df = self.model
-            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type)
+            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
             calculator.run()
             self.model = calculator.full_df
 

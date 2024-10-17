@@ -238,3 +238,7 @@ n_value_cv_limit: !!float 0.10
 
 # used to separate graphs into two folders: 'good' r2 values and 'poor' r2 values
 r2_threshold: !!float 0.5
+
+# used to make graphs visualizing the empirical n-value calculation process
+# Recommend you use this rarely as it will greatly increase runtime
+graph_n_value_calculations: !!bool False

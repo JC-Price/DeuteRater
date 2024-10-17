@@ -539,6 +539,12 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 elif not os.path.exists(previous_output_file):
                     return
 
+                # create graph folder for n-value graphs
+                n_value_folder = None
+                if settings.graph_n_value_calculations:
+                    n_value_folder = os.path.join(self.file_loc, "N-Value Calculation Graphs")
+                    self.make_folder(n_value_folder)
+
                 # final check to see if all the files in the input table
                 # still exist.  don't want to error out in the middle of 
                 # multiprocessing
@@ -552,7 +558,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         out_path=step_object_dict[analysis_step].full_filename,
                         settings_path=rate_settings_file,
                         needed_columns=step_object_dict["Combine Extracted Files"].peptide_required_columns,
-                        biomolecule_type=biomolecule_type
+                        biomolecule_type=biomolecule_type,
+                        graph_folder=n_value_folder
                     )
                 else:
                     combiner = CombineExtractedFiles(
@@ -560,7 +567,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         out_path=step_object_dict[analysis_step].full_filename,
                         settings_path=rate_settings_file,
                         needed_columns=step_object_dict["Combine Extracted Files"].lipid_required_columns,
-                        biomolecule_type=biomolecule_type
+                        biomolecule_type=biomolecule_type,
+                        graph_folder=n_value_folder
                     )
                 combiner.prepare()
                 combiner.write()

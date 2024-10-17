@@ -13,3 +13,4 @@ deuteconvert/__pycache__/
 .idea/
 __pycache__/
 /utils/frac_new_analysis.py
+n_value_data.tsv

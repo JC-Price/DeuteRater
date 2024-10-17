@@ -122,6 +122,7 @@ bias_calculation: str
 verbose_rate: bool
 y_intercept_of_fit: float
 r2_threshold: float
+graph_n_value_calculations: bool
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -345,6 +346,9 @@ def load(settings_path):
         global r2_threshold
         r2_threshold = s["r2_threshold"]
 
+        global graph_n_value_calculations
+        graph_n_value_calculations = s['graph_n_value_calculations']
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -439,7 +443,8 @@ def freeze(path=None, settings_dict = None):
             "max_fn_standard_deviation": max_fn_standard_deviation,
             "fraction_new_calculation": fraction_new_calculation,
             "n_value_cv_limit": n_value_cv_limit,
-            "r2_threshold": r2_threshold
+            "r2_threshold": r2_threshold,
+            "graph_n_value_calculations": graph_n_value_calculations
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
