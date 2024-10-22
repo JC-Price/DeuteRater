@@ -1,5 +1,5 @@
 ID_weight: 0.7
-aa_labeling_sites_path: C:\Users\benny\PycharmProjects\DeuteRater_v6\resources\aa_labeling_sites.tsv
+aa_labeling_sites_path: C:\Users\admin\Desktop\DR_v6\resources\aa_labeling_sites.tsv
 abundance_agreement_filter: 0.1
 abundance_manual_bias: 0.0
 abundance_type: M0
@@ -18,7 +18,7 @@ error_of_non_replicated_point: 0.05
 error_of_zero: 0.01
 fixed_asymptote_value: 1.0
 fraction_new_calculation: combined
-graph_n_value_calculations: false
+graph_n_value_calculations: true
 graph_output_format: png
 how_divided: combined
 id_file_rt_unit: sec
@@ -39,7 +39,6 @@ ms_level: 1
 mz_proximity_tolerance: 100
 n_processors: 2
 n_value_cv_limit: 0.1
-n_value_fn_cutoff: 0.05
 peak_lookahead: 1
 peak_lookback: 1
 peak_ratio_denominator: 10

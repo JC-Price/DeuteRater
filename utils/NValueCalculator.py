@@ -291,18 +291,19 @@ class NValueCalculator:
             stddev_dataframe = fraction_new.copy()
 
             # Find how many valid peaks exist
-            stddev_dataframe = stddev_dataframe[
-                ['n_D'] + [col for col in stddev_dataframe.columns if 'I' in col]]
+            stddev_dataframe = stddev_dataframe[['n_D'] + [col for col in stddev_dataframe.columns if 'I' in col]]
             stddev_dataframe['num_non_null'] = (stddev_dataframe.count(axis='columns') - 1)
 
             # rearrange columns to allow for proper std_dev calculation
-            stddev_dataframe = stddev_dataframe[
-                ['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
+            stddev_dataframe = stddev_dataframe[['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
 
             # Calculate stddev for valid rows
             stddev_dataframe['n_value_stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
+
+            # used to be >= MINIMUM_PEAKS, but changed it to >= MINIMUM_PEAKS-1 to allow calculating std dev for rows with only 2 peaks
+            # consider changing this if it hurts results/statistics - Ben D
             stddev_dataframe.loc[:, 'n_value_stddev'] = stddev_dataframe['n_value_stddev'].where(
-                stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS, np.nan)
+                stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS-1, np.nan)
 
             return stddev_dataframe
 
@@ -417,7 +418,7 @@ class NValueCalculator:
 
         # Generate fraction_new and dIt data
         for peak, ie in enumerate(row.intensities):
-            # calculate fraction new for theoretical emass distribtions
+            # calculate fraction new for theoretical emass distributions
             unfiltered_fraction_new['I' + str(peak)] = (
                     (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - ie) /
                     (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - emass_labeled_intensities['I' + str(peak)])

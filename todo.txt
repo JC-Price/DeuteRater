@@ -34,11 +34,11 @@
 - add r2 filter setting for graph separation DONE (9/13/24)
 - make sure we can populate cf and literature_n columns based off sequence column DONE (9/23/24)
 - set default settings for peptides and lipids DONE
-- remove LMP and HMP columns DONE (9/24/24)
+- remove LMP and HMP columns DONE (9/24/24)A
 - test chromatography division DONE
     - molecule.py, line 222
+- add filter to n-values to remove nan discontinuities DONE
 
-- add filter to n-values to remove nan discontinuities
 - graph and save n-value calculation graphs and data into spreadsheet
     - add setting for n_value graphs and data
 - compare with Rusty's data (from paper)
