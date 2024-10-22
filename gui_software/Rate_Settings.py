@@ -521,5 +521,6 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
             "spacing_agreement_filter": settings.spacing_agreement_filter,
             "unique_sequence_column": settings.unique_sequence_column,
             "y_intercept_of_fit": settings.y_intercept_of_fit,
+            "n_value_fn_cutoff": settings.n_value_fn_cutoff
         }
         return unalterable_settings

@@ -88,6 +88,7 @@ class NValueCalculator:
         if settings.graph_n_value_calculations:
             settings.debug_level = 1
 
+        settings.debug_level = 1
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
                 results = list(
@@ -416,22 +417,26 @@ class NValueCalculator:
 
         # Generate fraction_new and dIt data
         for peak, ie in enumerate(row.intensities):
+            # calculate fraction new for theoretical emass distribtions
             unfiltered_fraction_new['I' + str(peak)] = (
                     (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - ie) /
                     (emass_unlabeled_intensities['I' + str(peak)].iloc[0] - emass_labeled_intensities['I' + str(peak)])
             )
 
+            # calculates deltas for theoretical emass distributions, later used in n_value_dIt_filter to remove peaks
+            # that have deltas less than 0.05
             dIt_data['I' + str(peak)] = (
                 np.abs((emass_labeled_intensities['I' + str(peak)] - emass_unlabeled_intensities['I' + str(peak)].iloc[
                     0])))
 
         # Calculate n-value with no filters (using stddev)
-        # TODO: Do we need a setting to choose whether we want to use the filtered or unfiltered n value/standard deviation?
         unfiltered_fraction_new, n_value, stddev, peaks_included = n_value_by_stddev(unfiltered_fraction_new)
-
+        
+        # filters out peaks that have a delta of less than 0.05
         dIt_unfiltered_fraction_new, dIt_n_value, dIt_stddev, dIt_peaks_included = n_value_dIt_filter(
             unfiltered_fraction_new, dIt_data)
 
+        # if setting is turned on, we'll graph out a visualization of how we calculate n-values
         n_value_info = []
         if settings.graph_n_value_calculations:
             import matplotlib.pyplot as plt
