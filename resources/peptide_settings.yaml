@@ -242,3 +242,6 @@ r2_threshold: !!float 0.5
 # used to make graphs visualizing the empirical n-value calculation process
 # Recommend you use this rarely as it will greatly increase runtime
 graph_n_value_calculations: !!bool False
+
+# setting to turn on the n-value calculation data .tsv output
+save_n_value_data: !!bool False

@@ -123,6 +123,7 @@ verbose_rate: bool
 y_intercept_of_fit: float
 r2_threshold: float
 graph_n_value_calculations: bool
+save_n_value_data: bool
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -349,6 +350,9 @@ def load(settings_path):
         global graph_n_value_calculations
         graph_n_value_calculations = s['graph_n_value_calculations']
 
+        global save_n_value_data
+        save_n_value_data = s['save_n_value_data']
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -444,7 +448,8 @@ def freeze(path=None, settings_dict = None):
             "fraction_new_calculation": fraction_new_calculation,
             "n_value_cv_limit": n_value_cv_limit,
             "r2_threshold": r2_threshold,
-            "graph_n_value_calculations": graph_n_value_calculations
+            "graph_n_value_calculations": graph_n_value_calculations,
+            "save_n_value_data": save_n_value_data
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

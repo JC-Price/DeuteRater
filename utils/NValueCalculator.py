@@ -98,15 +98,18 @@ class NValueCalculator:
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
-                data, group_nv_info = NValueCalculator.analyze_group(self, group)
+                data, n_data = NValueCalculator.analyze_group(self, group)
                 results.append(data)
-                n_value_data.append(group_nv_info)
+                if n_data:
+                    n_value_data.append(n_data[0])
 
-        prepared_df = pd.concat(results)
-        if settings.graph_n_value_calculations:
-            n_value_df = pd.DataFrame(n_value_data[0], columns=["Index", "cf", "sample_group", "n_value", "std_dev",
+        if n_value_data:
+            prepared_df = pd.concat(results)
+            n_value_df = pd.DataFrame(n_value_data, columns=["Index", "cf", "sample_group", "n_value", "std_dev",
                                                              "all_std_dev", "all_n_D_values"])
-            n_value_df.to_csv(self.out_path[:-35]+"n_value_data.tsv", sep='\t')
+            n_value_df.to_csv(self.out_path[:-35] + "n_value_data.tsv", sep='\t')
+        else:
+            prepared_df = pd.concat(results)
 
         prepared_df = prepared_df.set_index('index')
         prepared_df = prepared_df.sort_index()
@@ -115,6 +118,7 @@ class NValueCalculator:
                                           how='outer',
                                           left_index=True,
                                           right_index=True)
+        print("merged")
 
     def analyze_group(self, partition):
         """
@@ -174,11 +178,11 @@ class NValueCalculator:
 
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
-                    n_value, stddev, n_value_info = NValueCalculator.analyze_row(self, row, emass_results)
+                    n_value, stddev, n_data = NValueCalculator.analyze_row(self, row, emass_results)
                     nvalues.append([n_value, stddev])
 
                     if settings.graph_n_value_calculations:
-                        n_value_data.append(n_value_info)
+                        n_value_data.append(n_data)
 
                 except Exception as e:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
@@ -224,14 +228,10 @@ class NValueCalculator:
                     print(e)
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
-            if settings.graph_n_value_calculations:
-                return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                                 axis=1), n_value_data
-            else:
-                return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                                 axis=1)
+            return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
+                             axis=1), n_value_data
         except IOError as e:
-            # print(e)
+            print(e)
             return pd.concat(
                 [partition[1].reset_index(drop=True), pd.DataFrame(data=error_statement, columns=output_columns)],
                 axis=1), []
@@ -295,7 +295,8 @@ class NValueCalculator:
             stddev_dataframe['num_non_null'] = (stddev_dataframe.count(axis='columns') - 1)
 
             # rearrange columns to allow for proper std_dev calculation
-            stddev_dataframe = stddev_dataframe[['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
+            stddev_dataframe = stddev_dataframe[
+                ['num_non_null'] + [col for col in stddev_dataframe.columns if col != 'num_non_null']]
 
             # Calculate stddev for valid rows
             stddev_dataframe['n_value_stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
@@ -303,7 +304,7 @@ class NValueCalculator:
             # used to be >= MINIMUM_PEAKS, but changed it to >= MINIMUM_PEAKS-1 to allow calculating std dev for rows with only 2 peaks
             # consider changing this if it hurts results/statistics - Ben D
             stddev_dataframe.loc[:, 'n_value_stddev'] = stddev_dataframe['n_value_stddev'].where(
-                stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS-1, np.nan)
+                stddev_dataframe['num_non_null'] >= MINIMUM_PEAKS - 1, np.nan)
 
             return stddev_dataframe
 
@@ -432,7 +433,7 @@ class NValueCalculator:
 
         # Calculate n-value with no filters (using stddev)
         unfiltered_fraction_new, n_value, stddev, peaks_included = n_value_by_stddev(unfiltered_fraction_new)
-        
+
         # filters out peaks that have a delta of less than 0.05
         dIt_unfiltered_fraction_new, dIt_n_value, dIt_stddev, dIt_peaks_included = n_value_dIt_filter(
             unfiltered_fraction_new, dIt_data)

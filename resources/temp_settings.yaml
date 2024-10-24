@@ -53,6 +53,7 @@ remove_filters: false
 rt_proximity_tolerance: 1.0
 s_n_filter: 0.0
 sampling_rate: 9
+save_n_value_data: false
 separate_adducts: false
 smoothing_order: 3
 smoothing_width: 49
