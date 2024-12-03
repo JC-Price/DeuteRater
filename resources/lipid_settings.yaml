@@ -232,7 +232,7 @@ max_fn_standard_deviation: 0.1
 
 # determines what type of fraction new calculation DeuteRater will use
 # will affect fraction new calculations and rate calculations/graphing
-fraction_new_calculation: !!str abundance
+fraction_new_calculation: !!str combined
 
 # used to filter out n_values that have a high cv ratio (stddev / n_value)
 n_value_cv_limit: !!float 0.10
