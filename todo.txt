@@ -43,12 +43,13 @@
 - make sure extractor can look for more than 3 peaks, test with large lipids DONE (10/25/24)
 - make n-value delta filter only accept rows that have more than 3 valid peaks DONE (10/25/24)
 - added rate datapoints to verbose rate output DONE (10/29/24)
+- move everything over to the dev branch DONE (12/3/24)
+- change default Fraction new calculation type for lipids DONE (12/3/24)
 
 ### CHANGES/ADDITIONS ###
-- check rt_prox_filter, does this do anything...?
-- change default Fraction new calculation type for lipids...?
-- check error_graph_option, does this do anything...?
-- standardize setting captilization and update ReadMe
+- create executable and compare results with DR v5
+- standardize setting capitalization and update ReadMe
+- finish going through settings in ReadMe
 
 ### TESTING AND PACKAGING ###
 - compare with Rusty's data (from paper)
