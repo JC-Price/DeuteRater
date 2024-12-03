@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2024 Bradley Naylor, Christian Andersen, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
+    Coleman Nielsen, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -30,13 +31,10 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+"""
+class and functions for supporting the extractor
+"""
 
-
-# TODO: Eventually look into ctypes or numba for streamlining the memory
-#       of this class
-# NOTE: This implementation of deuterater does not actually need the 'i'
-#       attribute of this class. Consult the program logic in the extract
-#       function in extract.py to see why.
 
 
 class Peak(object):

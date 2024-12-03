@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2024 Bradley Naylor, Christian Andersen, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
+    Coleman Nielsen, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -30,13 +31,19 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
+"""
+class and functions for supporting the extractor
+"""
 import numpy as np
 import warnings
+
 try:
     import deuterater.settings as settings
 except:
     import DeuteRater.deuterater.settings as settings
 from .id import ID
+
 
 class Molecule(object):
     __slots__ = (
@@ -76,7 +83,7 @@ class Molecule(object):
         """
         self.ids[rep] = id
         if self.center_scan is None:
-            self.center_scan = len(id._envelopes)/2
+            self.center_scan = len(id._envelopes) / 2
         if id.is_valid:
             self.has_valid = True
 
@@ -88,12 +95,12 @@ class Molecule(object):
             unique_chrom_peaks and reps_with_peak attributes.
         
         min_window_width: int
-            The minimum number of scans a rt window can be compoased of.
+            The minimum number of scans a rt window can be composed of.
         """
         allowed_neutromer_peak_variance = settings.allowed_neutromer_peak_variance
 
         # Looking at MassHunter across files, it appears a chromatographic peak
-        #   has at most.2 minutes of variance in the RT between the most intense
+        #   has at most 2 minutes of variance in the RT between the most intense
         #   scans. We will use this and use it as a decider on if peaks should
         #   be treated as the same or different peaks across EIC's
         allowed_peak_variance_min = settings.allowed_peak_variance_min
@@ -102,8 +109,8 @@ class Molecule(object):
         distance_between_scans = whole_rt_range / len(rt_list)
         allowed_scan_variance = int(allowed_peak_variance_min / distance_between_scans)
 
-        # Grab peaks from all of the ids for comparison. Also, remove any peaks
-        #   that are at the beginning or ending scan of the 3 minute window.
+        # Grab peaks from all the ids for comparison. Also, remove any peaks
+        #   that are at the beginning or ending scan of the 3-minute window.
         from copy import deepcopy, copy
         available_chrom_peaks = list()
         id_neutromer_peak_indexes = list()
@@ -118,7 +125,7 @@ class Molecule(object):
             available_chrom_peaks[-1].insert(0, rep)
             chrom_peak_indexes[-1].insert(0, rep)
 
-            # Remove any peaks that has it's center at the end or beginning of 3 minute window.
+            # Remove any peaks that has its center at the end or beginning of 3-minute window.
             if len(id.rt_peak_index) > 1:
                 end_range = None
                 start_range = None
@@ -148,17 +155,19 @@ class Molecule(object):
                     id = self.ids[rep_list[id_num]]
                 except:
                     continue
-                
-                # For a peak to be considered, it must be comprised of all 3 neuromer peaks, and the
+
+                # For a peak to be considered, it must be comprised of all 3 neutromer peaks, and the
                 #   peak of each neutromer's elution curve must be within +-5 scans of the combined peak.
                 all_neutromers_exist = all(
                     [any(
                         [peak_window[0] <= neutromer_peaks[neutromer_num][p] <= peak_window[1] and
                          peak_max - allowed_neutromer_peak_variance <= neutromer_peaks[neutromer_num][p]
                          <= peak_max + allowed_neutromer_peak_variance
-                            for p in range(len(neutromer_peaks[neutromer_num]))]
+                         for p in range(len(neutromer_peaks[neutromer_num]))]
                     ) for neutromer_num in range(len(neutromer_peaks))])
-                num_valid_in_window = len([envelope.is_valid for envelope in id._envelopes[peak_window[0]:peak_window[1]] if envelope.is_valid])
+                num_valid_in_window = len(
+                    [envelope.is_valid for envelope in id._envelopes[peak_window[0]:peak_window[1]] if
+                     envelope.is_valid])
                 if num_valid_in_window < min_window_width or not all_neutromers_exist:
                     available_chrom_peaks[id_num].remove(peak_windows[peak_num])
                     chrom_peak_indexes[id_num].remove(peak_maximums[peak_num])
@@ -190,21 +199,22 @@ class Molecule(object):
                 current_index = index_checking_list[list_index][1]
                 # If the peak has a starting position that is larger than current end of the peak,
                 #   it is a new one and should be skipped.
-                if right_positions[-1] < current_window[0] or (min(index_positions) + allowed_scan_variance) < current_index:
+                if right_positions[-1] < current_window[0] or (
+                        min(index_positions) + allowed_scan_variance) < current_index:
                     continue
 
                 # If the end of the peak is at a later RT but has a starting RT within the current window,
                 #   just expand the RT end.
                 elif left_positions[-1] < current_window[0] and right_positions[-1] < current_window[1]:
                     right_positions[-1] = current_window[1]
-                    
+
                 # Add the current rep to the list of reps the peak appears in
                 where_peak_appears[-1].append(window_checking_list[list_index][0])
                 peaks_that_appear[-1][window_checking_list[list_index][0]] = current_window
                 index_positions.append(current_index)
                 window_checking_list[list_index].remove(current_window)
                 index_checking_list[list_index].remove(current_index)
-                
+
             # Remove all empty lists:
             window_checking_list = [peak_list for peak_list in window_checking_list if len(peak_list) > 1]
             index_checking_list = [peak_list for peak_list in index_checking_list if len(peak_list) > 1]
@@ -213,31 +223,32 @@ class Molecule(object):
         self.reps_with_peak = where_peak_appears
         self.unique_chrom_peaks = unique_peaks
         self.corresponding_chrom_peaks = peaks_that_appear
-        
-        # # Remove peaks that switch neutromer peak order when
-        # #   sorted by intensity.
-        # index_to_remove = []
-        # for num in range(len(self.corresponding_chrom_peaks)):
-        #     peak = self.corresponding_chrom_peaks[num]
-        #     if len(peak) < 2:
-        #         continue
-        #     # neutromer_intensity_lists = [[[str(ab.ab) for ab in envelope._peaks[1:4]] for envelope in self.ids[addu]._envelopes[rt_range[0]: rt_range[1] + 1]] for addu, rt_range in peak.items()]
-        #     # unique_orders = np.unique([intensities for intensities in neutromer_intensity_lists])
-        #     unique_order = [np.unique([",".join(np.argsort([ab.ab for ab in envelope._peaks[1:4]]).astype(str))
-        #                                for envelope in self.ids[addu]._envelopes[int((rt_range[1]+rt_range[0])/2 - 3): int((rt_range[1]+rt_range[0])/2 + 4)]]
-        #                               , return_counts=True) for addu, rt_range in peak.items()]
-        #     unique_orders = np.unique([i[0][np.argmax(i[1])] for i in unique_order])
-        #     if len(unique_orders) > 1:
-        #         index_to_remove.insert(0, num)
-        #
-        # for index in index_to_remove:
-        #     self.reps_with_peak.pop(index)
-        #     self.unique_chrom_peaks.pop(index)
-        #     self.corresponding_chrom_peaks.pop(index)
-            
+
+        # TODO: figure out if this would be useful to include - Ben D
+        # Remove peaks that switch neutromer peak order when
+        #   sorted by intensity.
+        index_to_remove = []
+        for num in range(len(self.corresponding_chrom_peaks)):
+            peak = self.corresponding_chrom_peaks[num]
+            if len(peak) < 2:
+                continue
+            # neutromer_intensity_lists = [[[str(ab.ab) for ab in envelope._peaks[1:4]] for envelope in self.ids[addu]._envelopes[rt_range[0]: rt_range[1] + 1]] for addu, rt_range in peak.items()]
+            # unique_orders = np.unique([intensities for intensities in neutromer_intensity_lists])
+            unique_order = [np.unique([",".join(np.argsort([ab.ab for ab in envelope._peaks[1:4]]).astype(str))
+                                       for envelope in self.ids[addu]._envelopes[int((rt_range[1]+rt_range[0])/2 - 3): int((rt_range[1]+rt_range[0])/2 + 4)]]
+                                      , return_counts=True) for addu, rt_range in peak.items()]
+            unique_orders = np.unique([i[0][np.argmax(i[1])] for i in unique_order])
+            if len(unique_orders) > 1:
+                index_to_remove.insert(0, num)
+
+        for index in index_to_remove:
+            self.reps_with_peak.pop(index)
+            self.unique_chrom_peaks.pop(index)
+            self.corresponding_chrom_peaks.pop(index)
+
         self._find_peak_variance()
-        
-        # Store max height of each chromatogrpahic peak.
+
+        # Store max height of each chromatographic peak.
         stored_intensities = list()
         for peak in self.corresponding_chrom_peaks:
             curr_id_list = dict()
@@ -293,7 +304,7 @@ class Molecule(object):
                 for i in range(id.n_isos):
                     current_neutromer_peak = current_neutromer_peaks[i]
                     if current_unique_peak[0] < current_neutromer_peak < current_unique_peak[1]:
-                        # The neutromer peak is inside of the window.
+                        # The neutromer peak is inside the window.
                         continue
                     elif current_unique_peak[0] > current_neutromer_peak:
                         # The current window is later than the current neutromer peak,
@@ -329,10 +340,12 @@ class Molecule(object):
                     neutromer_peak_variance = current_neutromer_peaks
                     peak_variance.append(neutromer_peak_variance)
                     current_unique_peak_index = current_unique_peak_index + 1
-                    current_neutromer_peaks_index = [current_neutromer_peaks_index[i] + 1 for i in range(len(current_neutromer_peaks_index))]
+                    current_neutromer_peaks_index = [current_neutromer_peaks_index[i] + 1 for i in
+                                                     range(len(current_neutromer_peaks_index))]
                     if current_unique_peak_index == len(unique_peaks):
                         break
-                    if any([current_neutromer_peaks_index[i] == total_peaks_per_neutromer[i] + 1 for i in range(id.n_isos)]):
+                    if any([current_neutromer_peaks_index[i] == total_peaks_per_neutromer[i] + 1 for i in
+                            range(id.n_isos)]):
                         break
 
             # Make note that future peaks don't occur in the current rep.
@@ -346,31 +359,41 @@ class Molecule(object):
             return
         # Grab the earliest peak (default)
         chosen_peak = 0
-        
+
         num_reps_with_peak = np.array([-len(peak) for peak in self.reps_with_peak])
         most_peaks = max([len(peak) for peak in self.reps_with_peak])
-        num_reps_percentage = np.array([len(peak)/most_peaks for peak in self.reps_with_peak])
+        num_reps_percentage = np.array([len(peak) / most_peaks for peak in self.reps_with_peak])
         with warnings.catch_warnings():
             # nanmean will return a RuntimeWarning if I am calculating a mean on all np.nan.
             #   There is no other reason for a RuntimeWarning here, so I will suppress it
             #   because the warning is telling me something I already know and am handling correctly.
             warnings.simplefilter("ignore", category=RuntimeWarning)
+
             def stat_range(a):
                 return max(a) - min(a)
+
             def stat_range_percent(a):
-                return 1 - (max(a) - min(a))/settings.allowed_neutromer_peak_variance
-            variance_totals = np.array([np.nanmean([stat_range(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
-            variance_percentages = np.array([np.nanmean([stat_range_percent(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
-        dist_from_center = np.array([abs(((peak[0] + peak[1])/2) - self.center_scan) for peak in self.unique_chrom_peaks])
-        dist_from_center_percentage = np.array([1 - abs(((peak[0] + peak[1])/2) - self.center_scan)/self.center_scan for peak in self.unique_chrom_peaks])
+                return 1 - (max(a) - min(a)) / settings.allowed_neutromer_peak_variance
+
+            variance_totals = np.array([np.nanmean(
+                [stat_range(rep[peak]) for rep in self.rt_peak_variance.values() if not all(np.isnan(rep[peak]))]) for
+                                        peak in range(len(self.unique_chrom_peaks))])
+            variance_percentages = np.array([np.nanmean(
+                [stat_range_percent(rep[peak]) for rep in self.rt_peak_variance.values() if
+                 not all(np.isnan(rep[peak]))]) for peak in range(len(self.unique_chrom_peaks))])
+        dist_from_center = np.array(
+            [abs(((peak[0] + peak[1]) / 2) - self.center_scan) for peak in self.unique_chrom_peaks])
+        dist_from_center_percentage = np.array(
+            [1 - abs(((peak[0] + peak[1]) / 2) - self.center_scan) / self.center_scan for peak in
+             self.unique_chrom_peaks])
 
         stored_intensities = self.corresponding_chrom_peak_max_intensities
         combined_intensities = [sum(peak.values()) for peak in stored_intensities]
-        intensity_percentage = np.array([number/max(combined_intensities) for number in combined_intensities])
+        intensity_percentage = np.array([number / max(combined_intensities) for number in combined_intensities])
 
         try:
             combined_percentages = settings.adduct_weight * num_reps_percentage + \
-                                   settings.variance_weight * variance_percentages +\
+                                   settings.variance_weight * variance_percentages + \
                                    settings.ID_weight * dist_from_center_percentage + \
                                    settings.intensity_weight * intensity_percentage
         except:

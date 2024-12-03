@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Kyle Cutler, J.C. Price, and Brigham Young University
+Copyright (c) 2024 Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -84,8 +84,6 @@ class EmptyIdChunkWarning(RuntimeWarning):
     def __init__(self, msg, original_e=None):
         super(EmptyIdChunkWarning, self).__init__(msg + (': %s' % original_e))
         self.original_exception = original_e
-
-
 
 
 class OutOfMZMLTimeBoundsWarning(RuntimeWarning):

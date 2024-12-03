@@ -50,9 +50,8 @@ Russell Denton as of 15 March 2019
 from collections import namedtuple
 from copy import deepcopy
 import pandas as pd
-import numpy as np  # noqa: 401
+import numpy as np # noqa: 401
 import re
-
 
 # name comes from Super Atom Data in the original emass program,
 # this is the master list that holds all data throughout the calculations
@@ -68,50 +67,22 @@ DUMMY_MASS = -10000000
 
 # takes a sequence string(C2H5 for example) and turns it into a dictionary
 # ( {'C':2, 'H':5} )
-#does allow multiple letter symbols like Cu
-#does NOT check the number of letters or if the letters are a valid chemical
-#$does NOT allow leaving out 1 so if there is one sulfur 
-#$that must be S1 not S
+# does allow multiple letter symbols like Cu
+# does NOT check the number of letters or if the letters are a valid chemical
+# does NOT allow leaving out 1 so if there is one sulfur 
+# that must be S1 not S
 def new_parser(input_string):
     formmap = {}
-    elements_separated = re.findall('[A-Z][^A-Z]*',input_string) 
+    elements_separated = re.findall('[A-Z][^A-Z]*', input_string)
     for e in elements_separated:
         element = e.rstrip('0123456789')
         number = e[len(element):]
-        if number == "": number = 1  # need the one to be there if element is alone
+        if number == "":
+            #  need the one to be there if element is alone
+            number = 1
         formmap[element] = int(number)
     return formmap
-"""
-# takes a sequence string(C2H5 for example) and turns it into a dictionary
-# ( {'C':2, 'H':5} )
-def parser(elem_comp):
-    #NOTE: cannot handle multiple letter symbols like Al or Se.
-    #Modify if such is needed
-    # initialize values
-    letter = ''
-    num = -100
-    numstr = ''
-    formmap = {}  # formula map.  holdover from original program.
-    for e in elem_comp:
-        # if e is a letter we are done with numbers for the previous 3 letter
-        if e.isalpha():
-            # no point putting '':-100 into the dictionary
-            if letter != '' and num >= 0:
-                formmap[letter] = num
-                num = -100
-            letter = e
 
-        # str was unicode (python 3 changed unicode to str)
-        elif str(e).isnumeric():
-            if num < 0:
-                numstr = e
-            else:
-                numstr += e
-            num = float(numstr)
-    # won't put last value in without this last command
-    formmap[letter] = num
-    return formmap
-"""
 
 # combines two patterns (lists of peaks).
 # The idea is that small groups of atoms are combined into large atoms.
@@ -191,7 +162,7 @@ def print_pattern(result, digits):
     return mass_list, amount_list
 
 
-# this function calculates the isotope pattern by using convolute basic a
+# this function calculates the isotope pattern by using convolute_basic a
 # bunch of times.
 # tmp is an empty list for calculations(swapped with result when added to).fm
 def calculate(result, fm, limit, charge):
@@ -229,12 +200,12 @@ def calculate(result, fm, limit, charge):
 # (sum of values will be one, as opposed to normalizing to the maximum value).
 def normalize(old_list):
     s = sum(old_list)
-    return [float(val)/s for val in old_list]
+    return [float(val) / s for val in old_list]
 
 
 def normalizeM0(old_list):
     M0 = old_list[0]
-    return [float(val)/M0 for val in old_list]
+    return [float(val) / M0 for val in old_list]
 
 
 # stores isotope data
@@ -242,7 +213,7 @@ isotope = namedtuple('isotope', 'mass abundance')
 
 # X starts at normal isotope frequencies(in this case H.
 # X is positions that can be deuterated, not will be TODO:??
-#$ D is a label applied artificially (as in a standard) and does not change
+#  D is a label applied artificially (as in a standard) and does not change
 master_isotope = {
     'X': [isotope(mass=1.0078246, abundance=0.999844),
           isotope(mass=2.0141021, abundance=0.000156)],
@@ -261,26 +232,26 @@ master_isotope = {
           isotope(mass=33.967866, abundance=0.0429),
           isotope(mass=-1000000, abundance=0),
           isotope(mass=35.967080, abundance=0.0002)],
-    # CQ Added to account for Flourine occurring in Lipids
+    # CQ Added to account for Fluorine occurring in Lipids
     'F': [isotope(mass=18.99840322, abundance=1.0)],
-    'D': [isotope(mass = 2.0141021, abundance=0.000156)],
-    'Cl':[isotope(mass= 34.9688527, abundance=0.7576),
-          isotope(mass=-1000000, abundance=0),
-          isotope(mass= 36.9659026, abundance=0.2424)],
-    'Br':[isotope(mass= 78.9183376, abundance=0.5069),
-          isotope(mass=-1000000, abundance=0),
-          isotope(mass= 80.9162897, abundance=0.4931)],
+    'D': [isotope(mass=2.0141021, abundance=0.000156)],
+    'Cl': [isotope(mass=34.9688527, abundance=0.7576),
+           isotope(mass=-1000000, abundance=0),
+           isotope(mass=36.9659026, abundance=0.2424)],
+    'Br': [isotope(mass=78.9183376, abundance=0.5069),
+           isotope(mass=-1000000, abundance=0),
+           isotope(mass=80.9162897, abundance=0.4931)],
     'I': [isotope(mass=126.9044719, abundance=1.0)],
-    'Si':[isotope(mass=27.9769265, abundance=0.92223),
-          isotope(mass=28.9764946, abundance=0.04685),
-          isotope(mass=29.9737701, abundance=0.03092)],
-    'Na':[isotope(mass=22.98976928, abundance=1.0)]
+    'Si': [isotope(mass=27.9769265, abundance=0.92223),
+           isotope(mass=28.9764946, abundance=0.04685),
+           isotope(mass=29.9737701, abundance=0.03092)]
 }
 
 # TODO: What are these values and why are they here?
 limit = 0
 digits = 6
 charge = 0
+
 
 # will run emass return a list of relative abundances (4 or 5 things long) and
 # a list of m/z(same peaks)
@@ -292,7 +263,28 @@ charge = 0
 # Phosphotidyl Serine elemental composition C46H77N1O10P1, mw = 834.stuff
 
 
-def emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
+def emass(cf, num_peaks, utfile=None):
+    """
+    Parameters
+    ----------
+    cf : str
+        The chemical formula of the analyte
+    num_peaks : int
+        The number of expected isotope peaks
+    Returns
+    -------
+    intensity list for the for num_peaks peaks with no enrichment
+    """
+    trunc_len = num_peaks  # This variable is for truncating lists.
+
+    formatted_cf = new_parser(cf)
+    result = calculate([isotope(0, 1)], formatted_cf, limit, charge)
+    mz_list, intensity_list = print_pattern(result, digits)
+    intensity_list = normalize(intensity_list[:trunc_len])
+
+    return intensity_list
+
+def fn_emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
           testing=False, outfile=None):
     """
     Parameters
@@ -336,23 +328,26 @@ def emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
                 master_isotope['H'][1].abundance + pct
             )
         ]
-        for n in n_list:
-            #rounding is needed or the int in emass will do it 
-            #which will likely be wrong
-            #at least here we control it
-            rounded_n = round(n)
 
-            # Used to handle n-values that are impossible to actually calculate
-            if rounded_n > n_H:
-                rounded_n = n_H
-        
-            chem_format = new_parser(parsed_cf.format(
-                (n_H - rounded_n), rounded_n))
-            result = calculate([isotope(0, 1)], chem_format, limit, charge)
-            mz_list, intensity_list = print_pattern(result, digits)
-            # the lengths of these lists are 11+ before truncating
-            mz_lists.append([n] + mz_list[:trunc_len])
-            intensity_lists.append([n] + normalize(intensity_list[:trunc_len]))
+        # TODO: Make sure changes actually work
+        for n in n_list:
+            if n != np.nan:
+                #rounding is needed or the int in emass will do it
+                #which will likely be wrong
+                #at least here we control it
+                rounded_n = round(n)
+
+                # Used to handle n-values that are impossible to actually calculate
+                if rounded_n > n_H:
+                    rounded_n = n_H
+
+                chem_format = new_parser(parsed_cf.format(
+                    (n_H - rounded_n), rounded_n))
+                result = calculate([isotope(0, 1)], chem_format, limit, charge)
+                mz_list, intensity_list = print_pattern(result, digits)
+                # the lengths of these lists are 11+ before truncating
+                mz_lists.append([n] + mz_list[:trunc_len])
+                intensity_lists.append([n] + normalize(intensity_list[:trunc_len]))
 
             # Added for testing purposes ~ Chad Quilling
             # M0_intensity_lists.append(
@@ -415,7 +410,6 @@ def emass(parsed_cf, n_list, n_H, low_pct, high_pct, num_peaks,
     labeled_dfs = populate_dataframes(high_pct, testing)
     return unlabeled_dfs, labeled_dfs
 
-
 def parse_cf(cf):
     d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
     num_h = int(d['H'])
@@ -427,25 +421,11 @@ def parse_cf(cf):
 
 
 def main():
-    # uncomment lines below to step through the execution in a debugging tool
-    # and/or print example to console
-    unlabeled_dfs, labeled_dfs = emass(
-        "C46H{}N1O10P1X{}",
-        5, 79, 0, .053, 4,
-    )  # TODO: fix for new emass
-    (df_unlabeled_mzs, df_unlabeled_intensities) = unlabeled_dfs
-    (df_labeled_mzs, df_labeled_intensities) = labeled_dfs
-    print(df_unlabeled_intensities.to_string())
+    intensity_values, true_m0 = emass(
+        "C46H79N1O10P1", 5)
+    print(intensity_values)
+    print(true_m0)
     print("This is an auxiliary file to the n-value calculator, and should be treated as a library module")  # noqa
-
-    # uncomment lines below to get outputs: Normalized by M0 and not truncated
-    # # TODO: fix for new emass parameters
-    # unlabeled_dfs, labeled_dfs = emass("C46H{}N1O10P1X{}", 5, 79, 0, .053, 4, step=1, testing=True)  # noqa
-    # (df_unlabeled_mzs, df_unlabeled_intensities, df_M0_unlabeled_intensities, df_full_unlabeled_mzs, df_full_unlabeled_intensities, df_full_unlabeled_M0_intensities) = unlabeled_dfs  # noqa
-    # (df_labeled_mzs, df_labeled_intensities, df_M0_labeled_intensities, df_full_labeled_mzs, df_full_labeled_intensities, df_full_labeled_M0_intensities) = labeled_dfs  # noqa
-    # print(df_unlabeled_intensities.to_string())  # noqa
-    # print("This is an auxiliary file to the n-value calculator, and should be treated as a library module")  # noqa
-
     return
 
 

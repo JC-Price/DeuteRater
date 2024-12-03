@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2016-2020 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
+Copyright (c) 2016-2024 Bradley Naylor, Michael Porter, Kyle Cutler, Chad Quilling, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
 with or without modification, are permitted provided
@@ -30,13 +30,14 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+"""
+supports the extractor
+"""
 
 
 import pymzml  # noqa: 401
-import warnings  # noqa: 401
 from math import floor
 
-from utils.exc import OutOfMZMLTimeBoundsWarning  # noqa: 401
 
 
 def retention_time_search(mzml_fp, index_to_ID, search_rt):
@@ -48,21 +49,12 @@ def retention_time_search(mzml_fp, index_to_ID, search_rt):
 
     if (search_rt < mzml_fp[index_to_ID[left]].scan_time_in_minutes() or
             search_rt > mzml_fp[index_to_ID[right]].scan_time_in_minutes()):
-        # warnings.warn(OutOfMZMLTimeBoundsWarning(
-        #     '{} not within mzml\'s retention time span'.format(
-        #         search_rt
-        #     )
-        # ))
         return -1
     else:
-        # TODO: loop problem, check each chunk
         while right - left > 1:
             mid = floor((left + right) / 2)
-            # mid_rt = None
-            # while mid_rt is None:
-            # try:
+
             mid_rt = mzml_fp[index_to_ID[mid]].scan_time_in_minutes()
-            # except Exception:
 
             if mid_rt < search_rt:
                 left = mid
@@ -89,5 +81,3 @@ def get_bounds(mzml_fp, index_to_ID):
     }
 
 
-# def mz_search():
-#     pass

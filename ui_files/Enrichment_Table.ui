@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>600</height>
+    <width>744</width>
+    <height>520</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>1250</width>
-    <height>0</height>
-   </size>
   </property>
   <property name="font">
    <font>
@@ -25,7 +19,7 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="0" column="0" colspan="2">
     <spacer name="horizontalSpacer_2">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -38,7 +32,7 @@
      </property>
     </spacer>
    </item>
-   <item row="0" column="1">
+   <item row="0" column="2" colspan="2">
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
@@ -46,14 +40,14 @@
       </font>
      </property>
      <property name="text">
-      <string>Time and Enrichment Table</string>
+      <string>Enrichment Table</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
+   <item row="0" column="4" colspan="2">
     <spacer name="horizontalSpacer_3">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -67,13 +61,41 @@
     </spacer>
    </item>
    <item row="1" column="0" colspan="3">
-    <widget class="QTableWidget" name="TimeEnrichmentTable">
-     <property name="minimumSize">
-      <size>
-       <width>783</width>
-       <height>0</height>
-      </size>
+    <widget class="QLabel" name="label_2">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
      </property>
+     <property name="text">
+      <string>Number of Enrichment Measurements per Subject</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3" colspan="2">
+    <widget class="QSpinBox" name="enrichments_for_subject">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="minimum">
+      <number>4</number>
+     </property>
+     <property name="value">
+      <number>5</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="5">
+    <widget class="QPushButton" name="UpdateTableButton">
+     <property name="text">
+      <string>Update Table</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="6">
+    <widget class="QTableWidget" name="EnrichmentTable">
      <property name="font">
       <font>
        <pointsize>14</pointsize>
@@ -83,20 +105,20 @@
       <number>15</number>
      </property>
      <property name="columnCount">
-      <number>6</number>
+      <number>3</number>
      </property>
      <attribute name="horizontalHeaderCascadingSectionResizes">
       <bool>true</bool>
      </attribute>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>200</number>
+      <number>180</number>
      </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>true</bool>
      </attribute>
      <column>
       <property name="text">
-       <string>Filename</string>
+       <string>Subject ID</string>
       </property>
      </column>
      <column>
@@ -106,27 +128,12 @@
      </column>
      <column>
       <property name="text">
-       <string>Enrichment</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Sample Group</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Biological Replicate</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Calculate_N_Value</string>
+       <string>Enrichment (in Decimal)</string>
       </property>
      </column>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QPushButton" name="CancelButton">
      <property name="font">
       <font>
@@ -141,7 +148,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="3" column="1" colspan="4">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -154,7 +161,7 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="2">
+   <item row="3" column="5">
     <widget class="QPushButton" name="ProceedButton">
      <property name="font">
       <font>

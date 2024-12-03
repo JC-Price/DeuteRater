@@ -58,16 +58,19 @@ ELECTRON_MASS = .00054858
 # obvious error mass to indicate issues
 DUMMY_MASS = -10000000
 
-#$allows use of multiple letters for elemental composition
+
+# allows use of multiple letters for elemental composition
 def new_parser(input_string):
     formmap = {}
-    elements_separated = re.findall('[A-Z][^A-Z]*',input_string) 
+    elements_separated = re.findall('[A-Z][^A-Z]*', input_string)
     for e in elements_separated:
         element = e.rstrip('0123456789')
         number = e[len(element):]
-        if number == "": number =1 #$ need the one to be there if element is alone
+        if number == "": number = 1  #  need the one to be there if element is alone
         formmap[element] = int(number)
     return formmap
+
+
 """
 # takes a sequence string(C2H5 for example) and turns it into a dictionary ( {'C':2, 'H':5} )
 def parser(elem_comp):
@@ -95,6 +98,7 @@ def parser(elem_comp):
     formmap[letter] = num
     return formmap
 """
+
 
 # combines two patterns (lists of peaks).
 # The idea is that small groups of atoms are combined into large atoms.
@@ -197,18 +201,19 @@ def calculate(result, fm, limit, charge):
 # (sum of values will be one, as opposed to normalizing to the maximum value).
 def normalize(old_list):
     s = sum(old_list)
-    return [float(val)/s for val in old_list]
+    return [float(val) / s for val in old_list]
+
 
 def normalizeM0(old_list):
     M0 = old_list[0]
-    return [float(val)/M0 for val in old_list]
+    return [float(val) / M0 for val in old_list]
 
 
 # stores isotope data
 isotope = namedtuple('isotope', 'mass abundance')
 
 # X starts at normal isotope frequencies(in this case H. X is positions that can be deuterated, not will be TODO:??
-#$ D is a label applied artificially (as in a standard) and does not change
+#  D is a label applied artificially (as in a standard) and does not change
 master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                         isotope(mass=2.0141021, abundance=0.000156)],  # TODO: this is identical to hydrogen?
                   'H': [isotope(mass=1.0078246, abundance=0.999844),
@@ -227,25 +232,26 @@ master_isotope = {'X': [isotope(mass=1.0078246, abundance=0.999844),
                         isotope(mass=-1000000, abundance=0),
                         isotope(mass=35.967080, abundance=0.0002)],
                   'F': [isotope(mass=18.99840322, abundance=1.0)],
-                  'D': [isotope(mass = 2.0141021, abundance=1.0)],
-                  'Cl':[isotope(mass= 34.9688527, abundance=0.7576),
-                        isotope(mass=-1000000, abundance=0),
-                        isotope(mass= 36.9659026, abundance=0.2424)],
-                  'Br':[isotope(mass= 78.9183376, abundance=0.5069),
-                        isotope(mass=-1000000, abundance=0),
-                        isotope(mass= 80.9162897, abundance=0.4931)],
+                  'D': [isotope(mass=2.0141021, abundance=1.0)],
+                  'Cl': [isotope(mass=34.9688527, abundance=0.7576),
+                         isotope(mass=-1000000, abundance=0),
+                         isotope(mass=36.9659026, abundance=0.2424)],
+                  'Br': [isotope(mass=78.9183376, abundance=0.5069),
+                         isotope(mass=-1000000, abundance=0),
+                         isotope(mass=80.9162897, abundance=0.4931)],
                   'I': [isotope(mass=126.9044719, abundance=1.0)],
-                  'Si':[isotope(mass=27.9769265, abundance=0.92223),
-                        isotope(mass=28.9764946, abundance=0.04685),
-                        isotope(mass=29.9737701, abundance=0.03092)],
-                  'Na':[isotope(mass=22.98976928, abundance=1.0)],
-                  
-                  } # CQ Added to account for Flourine occurring in Lipids
+                  'Si': [isotope(mass=27.9769265, abundance=0.92223),
+                         isotope(mass=28.9764946, abundance=0.04685),
+                         isotope(mass=29.9737701, abundance=0.03092)],
+                  'Na': [isotope(mass=22.98976928, abundance=1.0)],
+
+                  }  # CQ Added to account for Flourine occurring in Lipids
 
 # TODO: What are these values and why are they here?
 limit = 0
 digits = 6
 charge = 0
+
 
 # will run emass return a list of relative abundances (4 or 5 things long) and a list of m/z(same peaks)
 # note that these m/z values are essentially 'neutral' masses having their endogenous charge.
@@ -332,10 +338,10 @@ def emass(chemical_formula, n_begin, n_end, low_pct, high_pct, num_peaks, step=1
             #                 pd.DataFrame(data=shrunk_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(shrunk_num)])
 
             return (pd.DataFrame(data=mz_lists, columns=['n_D'] + ['mz' + str(i) for i in range(trunc_len)]),
-            # CHOOSE IF YOU WANT TO OUTPUT NORMALIZATION BY SUM OR M0:
+                    # CHOOSE IF YOU WANT TO OUTPUT NORMALIZATION BY SUM OR M0:
 
-            # SUM
-                            pd.DataFrame(data=intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
+                    # SUM
+                    pd.DataFrame(data=intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
 
             # M0 Uncomment from above as well
             # pd.DataFrame(data=M0_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]))
@@ -346,7 +352,8 @@ def emass(chemical_formula, n_begin, n_end, low_pct, high_pct, num_peaks, step=1
                     pd.DataFrame(data=M0_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]),
                     pd.DataFrame(data=full_mz_lists, columns=['n_D'] + ['mz' + str(i) for i in range(trunc_len)]),
                     pd.DataFrame(data=full_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)]),
-                    pd.DataFrame(data=full_M0_intensity_lists, columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)])
+                    pd.DataFrame(data=full_M0_intensity_lists,
+                                 columns=['n_D'] + ['I' + str(i) for i in range(trunc_len)])
                     )
 
     # print("cf == ", chemical_formula)  # logging purposes
@@ -372,6 +379,7 @@ def main():
     # print("This is an auxiliary file to the n-value calculator, and should be treated as a library module")
 
     return
+
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,75 @@
+- replace rate_calculator.py DONE
+- bring in n-value calculator DONE
+- simplify time and enrichment input table, add option for calculating n-values DONE
+- remove converters and other templates DONE
+- add option to gui for selecting peptide or lipid default settings DONE
+- add fraction new calculator module DONE
+- add columns for empirical n-values and literature n-values DONE
+- fix fraction_new_calculator n-value column issue DONE
+- check quality filter for extraction scans (intensity filter, testing peaks for internal minimum, min of 10 scans - max of 60) DONE
+- Fix spinbox settings for: extraction time window, retention time proximity filter, minimum allowed rate, and maximum allowed rate. DONE
+- add setting to change standard deviation filter in graphing/rates DONE
+- remove combine sequence rates settings DONE
+- change stddev column name to n_value_stddev DONE
+- change multiprocessing processors DONE (8/9/24)
+- when input files don't have required columns, show users what columns are missing DONE (8/9/24)
+- add fraction new calculation type setting DONE (8/9/24)
+    - change use abundance setting to a different name DONE (8/9/24)
+    - remove use neutromer spacing setting/combine it with fraction new calculation DONE (8/9/24)
+    - fix/add logic related to these settings DONE (8/13/24)
+- fix issue with loading existing settings.yaml file DONE (8/13/24)
+- integrate new standard deviation into fraction new calculations DONE (8/13/24)
+- fix n_value calculations (are we only using day 32 data to calculate n_values?) DONE (8/16/24)
+- add filter for n-values (throw out any that have a cv above value - stddev/n_value, 0.10) add it for fraction new step DONE (8/16/24)
+- figure out this issue: Graphing failed with the following error: unsupported operand type(s) for +: 'float' and 'str' DONE (8/21/24)
+- add a setting for separating lipid adducts for rate calculation and graphing DONE (8/22/24)
+- add flexibility to graph y-axis height DONE (8/22/24)
+- roll_up to outlier_removal (MAD test) DONE (8/23/24)
+- if covariance is negative, display confidence interval as N/A and don't draw error lines DONE (8/23/24)
+- Fix overloaded exp issue and problem with converting columns to floats (need more filters to avoid rows that have text) DONE (8/28/24)
+- figure out graph fitting issues (try abundance/neutromer spacing/combined for lipids, look at peptide data, check molecule.py file from DR++) DONEish... (8/28/24)
+- add r2 value to graph DONE (9/12/24)
+- do we keep outlier removal (add z score setting) DONE (9/13/24)
+- what is the lower limit of points for when we remove outliers? DONE (9/13/24)
+- add r2 filter setting for graph separation DONE (9/13/24)
+- make sure we can populate cf and literature_n columns based off sequence column DONE (9/23/24)
+- set default settings for peptides and lipids DONE
+- remove LMP and HMP columns DONE (9/24/24)A
+- test chromatography division DONE
+    - molecule.py, line 222
+- add filter to n-values to remove nan discontinuities DONE (10/23/24)
+- graph and save n-value calculation graphs and data into spreadsheet DONE (10/23/24)
+- add separate settings for n_value graphs and data DONE (10/25/24)
+- make sure extractor can look for more than 3 peaks, test with large lipids DONE (10/25/24)
+- make n-value delta filter only accept rows that have more than 3 valid peaks DONE (10/25/24)
+- added rate datapoints to verbose rate output DONE (10/29/24)
+
+### CHANGES/ADDITIONS ###
+- check rt_prox_filter, does this do anything...?
+- change default Fraction new calculation type for lipids...?
+- check error_graph_option, does this do anything...?
+- standardize setting captilization and update ReadMe
+
+### TESTING AND PACKAGING ###
+- compare with Rusty's data (from paper)
+- run full tests for peptides and lipids
+- test running each step individually
+- rename steps to be more descriptive?
+- update ReadMe...
+    - can't upload a settings file you used in another folder (unless you change paths)
+    - add warning about keeping DR open for consecutive runs
+    - update columns and explanations for each step/file
+    - make sure all screenshots match current version
+        - a lot of the error message screenshots say DeuteRater-H etc.
+- update license in each module
+- package and publish on GitHub
+
+### NEXT STEPS ###
+- reorganize Settings_Menu.ui
+- figure out how to integrate fractional n-values
+- fix issue where names are cut off in graph titles
+- add Ion Mobility
+- fix time and enrichment, so it doesn't quit if copy/paste failed
+
+
+- n values, essential vs non-essential amino acid n-values and how they change with conditions (diets - high/low protein)
