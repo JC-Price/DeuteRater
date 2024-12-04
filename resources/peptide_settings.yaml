@@ -67,12 +67,6 @@ min_envelopes_to_combine: !!int 10
 
 zscore_cutoff: !!float 1
 
-# given in minutes
-rt_proximity_tolerance: !!float 1
-
-# given in parts per million
-mz_proximity_tolerance: !!int 100
-
 # min sequence allowed for peptides
 min_aa_sequence_length: !!int 6
 
@@ -245,3 +239,5 @@ graph_n_value_calculations: !!bool False
 
 # setting to turn on the n-value calculation data .tsv output
 save_n_value_data: !!bool False
+
+max_allowed_enrichment: !!float 1.0

@@ -27,6 +27,7 @@ intensity_weight: 0.6
 label_key: tissue
 lipid_analyte_id_column: Lipid Unique Identifier
 lipid_analyte_name_column: Lipid Name
+max_allowed_enrichment: 1.0
 max_fn_standard_deviation: 0.1
 max_valid_angle: 1.2
 maximum_allowed_sequence_rate: 1.5
@@ -36,7 +37,6 @@ min_envelopes_to_combine: 10
 minimum_allowed_sequence_rate: 0.0
 minimum_nonzero_points: 3
 ms_level: 1
-mz_proximity_tolerance: 100
 n_processors: 2
 n_value_cv_limit: 0.1
 peak_lookahead: 1
@@ -50,7 +50,6 @@ r2_threshold: 0.5
 recognize_available_cores: true
 rel_height: 0.9
 remove_filters: false
-rt_proximity_tolerance: 1.0
 s_n_filter: 0.0
 sampling_rate: 9
 save_n_value_data: false

@@ -174,7 +174,7 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="2">
+   <item row="6" column="2">
     <widget class="QLabel" name="label_52">
      <property name="text">
       <string>R-Squared Threshold</string>
@@ -184,7 +184,7 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="3">
+   <item row="6" column="3">
     <widget class="QDoubleSpinBox" name="r2_threshold">
      <property name="minimum">
       <double>0.0000000</double>
@@ -837,7 +837,7 @@
    <item row="5" column="2">
     <widget class="QLabel" name="label_30">
      <property name="text">
-      <string>Maximum allowed rate</string>
+      <string>Maximum Allowed Rate</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -851,35 +851,6 @@
      </property>
      <property name="singleStep">
       <double>0.010000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="3">
-    <widget class="QComboBox" name="error_graph_option">
-     <item>
-      <property name="text">
-       <string>none</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>approximate</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>exact</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="6" column="2">
-    <widget class="QLabel" name="label_40">
-     <property name="text">
-      <string>Error Graph Option</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
      </property>
     </widget>
    </item>

@@ -80,8 +80,6 @@ baseline_lookback: int
 min_envelopes_to_combine: int
 peak_ratio_denominator: int
 zscore_cutoff: int
-mz_proximity_tolerance: int
-rt_proximity_tolerance: float
 min_aa_sequence_length: int
 min_allowed_n_values: int
 minimum_allowed_sequence_rate: float
@@ -133,6 +131,7 @@ y_intercept_of_fit: float
 r2_threshold: float
 graph_n_value_calculations: bool
 save_n_value_data: bool
+max_allowed_enrichment: float
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -202,12 +201,6 @@ def load(settings_path):
 
         global zscore_cutoff
         zscore_cutoff = s['zscore_cutoff']
-        
-        global mz_proximity_tolerance
-        mz_proximity_tolerance = s["mz_proximity_tolerance"]
-        
-        global rt_proximity_tolerance
-        rt_proximity_tolerance = s["rt_proximity_tolerance"]
         
         global min_aa_sequence_length
         min_aa_sequence_length = s["min_aa_sequence_length"]
@@ -362,6 +355,9 @@ def load(settings_path):
         global save_n_value_data
         save_n_value_data = s['save_n_value_data']
 
+        global max_allowed_enrichment
+        max_allowed_enrichment = s['max_allowed_enrichment']
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -407,8 +403,6 @@ def freeze(path=None, settings_dict = None):
             'peak_ratio_denominator': peak_ratio_denominator,
             'zscore_cutoff': zscore_cutoff,
             "min_aa_sequence_length": min_aa_sequence_length,
-            "mz_proximity_tolerance":mz_proximity_tolerance,
-            "rt_proximity_tolerance":rt_proximity_tolerance,
             "min_allowed_n_values": min_allowed_n_values,
             "minimum_allowed_sequence_rate": minimum_allowed_sequence_rate,
             "maximum_allowed_sequence_rate": maximum_allowed_sequence_rate,
@@ -458,7 +452,8 @@ def freeze(path=None, settings_dict = None):
             "n_value_cv_limit": n_value_cv_limit,
             "r2_threshold": r2_threshold,
             "graph_n_value_calculations": graph_n_value_calculations,
-            "save_n_value_data": save_n_value_data
+            "save_n_value_data": save_n_value_data,
+            "max_allowed_enrichment": max_allowed_enrichment,
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

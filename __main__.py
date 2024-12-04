@@ -463,7 +463,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     previous_output_file = step_object_dict[
                         "Provide Time and Enrichment"].full_filename
 
-                    self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
+                    self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file, max_enrichment=settings.max_allowed_enrichment)
                     self.get_data_table.exec_()
 
                     # don't make the table twice
@@ -520,7 +520,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 # the table will handle the output
                 previous_output_file = step_object_dict[
                     analysis_step].full_filename
-                self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file)
+                self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file, max_enrichment=settings.max_allowed_enrichment)
                 self.get_data_table.exec_()
 
             # now we need to merge the various extracted files into one file

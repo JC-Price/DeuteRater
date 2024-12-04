@@ -45,11 +45,15 @@
 - added rate datapoints to verbose rate output DONE (10/29/24)
 - move everything over to the dev branch DONE (12/3/24)
 - change default Fraction new calculation type for lipids DONE (12/3/24)
+- add back in the dr_enrichment filter setting DONE (12/4/24)
+- remove list of unused settings DONE (12/4/24)
 
 ### CHANGES/ADDITIONS ###
 - create executable and compare results with DR v5
+- include a peptide n-value calculation option along with v6 (talk to Ariel)
 - standardize setting capitalization and update ReadMe
 - finish going through settings in ReadMe
+    - include note that we aren't checking for peptides with extremely similar mz and rt
 
 ### TESTING AND PACKAGING ###
 - compare with Rusty's data (from paper)

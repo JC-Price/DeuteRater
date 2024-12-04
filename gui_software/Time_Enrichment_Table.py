@@ -13,6 +13,7 @@ import csv
 import pandas as pd
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
+import gui_software.general_table_functions as gtf
 
 # when compiling/building for an executable, set all of these to True, otherwise leave as False
 # copy "exe_mode = False" and search using ctrl+shift+f to find each instance
@@ -32,7 +33,7 @@ current_columns = ["Filename", "Time", "Enrichment", "Sample_Group", "Biological
 
 
 class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
-    def __init__(self, parent=None, filenames=[], outfile=None):
+    def __init__(self, parent=None, filenames=[], outfile=None, max_enrichment=None):
         super(TimeEnrichmentWindow, self).__init__(parent)
         # allows a maximize button
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint |
@@ -41,6 +42,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
 
         self.outfile = outfile
 
+        self.max_enrichment = max_enrichment
         self.originalFileNames = filenames
         self.set_up_table(filenames)
         self.CancelButton.clicked.connect(self.close)
@@ -103,12 +105,19 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
                 test_value = TimeEnrichmentWindow._basic_number_error_check(
                     self.TimeEnrichmentTable.item(r, i).text(),
                     current_columns[i], r)
-                if type(test_value) == str:
+                if type(test_value) is str:
                     QtWidgets.QMessageBox.information(self, "Error", test_value)
                     return
                 if test_value == "inf":
                     from numpy import inf
                     test_value = inf
+                # need to block enrichment over 100%
+                enrichment_string = self.TimeEnrichmentTable.item(r, 2).text()
+                enrichment_value = gtf.basic_number_error_check(enrichment_string, current_columns[2], r, self.max_enrichment, True)
+                for value in [test_value, enrichment_value]:
+                    if type(value) is str:
+                        QtWidgets.QMessageBox.information(self, "Error", value)
+                        return
                 current_row.append(test_value)
             # get the sample group name and bio rep name (no need for it to be )
             for i in range(current_columns.index("Sample_Group"), len(current_columns)):
@@ -149,7 +158,7 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         if no_names:
             columns = [c for c in columns if c != 0]
         if all_data:
-            # only get unique rows and colums and sort them (set is unsorted)
+            # only get unique rows and columns and sort them (set is unsorted)
             rows = sorted(list(set(rows)))
             columns = sorted(list(set(columns)))
             return rows, columns
