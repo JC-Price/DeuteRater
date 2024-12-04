@@ -13,3 +13,9 @@ deuteconvert/__pycache__/
 .idea/
 __pycache__/
 /utils/frac_new_analysis.py
+convert.ps1
+template.spec
+__main__.spec
+/PYMZML
+/build
+/dist
