@@ -87,7 +87,7 @@ class FractionNewCalculator:
         self.settings_path = settings_path
         if biomolecule_type == "Peptide":
             itertuple_renamer = copy(protein_itertuple_renamer)
-            settings.use_empir_n_value = False
+            # settings.use_empir_n_value = False
         else:
             itertuple_renamer = None
 

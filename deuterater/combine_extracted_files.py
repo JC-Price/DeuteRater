@@ -74,14 +74,14 @@ class CombineExtractedFiles:
         self.biomolecule_type = biomolecule_type
         self.graph_folder = graph_folder
 
-        settings.use_empir_n_value = True
+        # settings.use_empir_n_value = True
 
         # collect necessary components to determine n_value from amino acids
         if self.biomolecule_type == "Peptide":
             aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
             aa_label_df.set_index('study_type', inplace=True)
             self.aa_labeling_dict = aa_label_df.loc[settings.label_key,].to_dict()
-            settings.use_empir_n_value = False
+            # settings.use_empir_n_value = False
         
         # since the multiple sub tables can have different length, get rid
         # of the rows that are empty
@@ -186,10 +186,15 @@ class CombineExtractedFiles:
 
             # Used this for the human version to exclude rows that had really low intensities
             # self.model = self.model.loc[self.model["no_fn"] == ""]
-
-            column_list = list(self.model.columns[self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence"])])
-            column_list.sort()
-            self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
+            if self.biomolecule_type == 'Peptide':
+                column_list = list(self.model.columns[self.model.columns.isin(
+                    ["sample_group", "Sequence", 'Protein ID'])])
+                column_list.sort()
+                self.model["molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
+            else:
+                column_list = list(self.model.columns[self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence", 'Protein ID'])])
+                column_list.sort()
+                self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
 
             # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
             # n_val_df = self.model
@@ -200,8 +205,8 @@ class CombineExtractedFiles:
             full_df = self.model.copy()
 
             # Determine what the highest time point is and only look at those rows
-            highest_timepoint = max(full_df['time'].unique())
-            lipid_groups = full_df.groupby(by='adduct_molecule_sg')
+            # highest_timepoint = max(full_df['time'].unique())
+            # lipid_groups = full_df.groupby(by='adduct_molecule_sg')
 
             # TODO: Since we already have calculated the average n-value, what aspects of this reproducibility code do we need? - Ben D
             # # Compare reproducibility across reps

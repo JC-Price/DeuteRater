@@ -47,9 +47,11 @@
 - change default Fraction new calculation type for lipids DONE (12/3/24)
 - add back in the dr_enrichment filter setting DONE (12/4/24)
 - remove list of unused settings DONE (12/4/24)
+- create executable and compare results with DR v5 DONE (12/10/24)
 
 ### CHANGES/ADDITIONS ###
-- create executable and compare results with DR v5
+- multiprocessing/memory issue with modified mzMLs (ask Coleman for suspect mzMLs)
+- look at issue with rate output with columns with _x_x, _x_y etc.
 - include a peptide n-value calculation option along with v6 (talk to Ariel)
 - standardize setting capitalization and update ReadMe
 - finish going through settings in ReadMe

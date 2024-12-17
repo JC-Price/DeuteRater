@@ -81,7 +81,7 @@ class theoretical_enrichment_calculator(object):
             aa_label_df = pd.read_csv(settings.aa_labeling_sites_path, sep='\t')
             aa_label_df.set_index('study_type', inplace=True)
             self.aa_labeling_dict = aa_label_df.loc[settings.label_key,].to_dict()
-            settings.use_empir_n_value = False
+            # settings.use_empir_n_value = False
 
         if self.prepared_data_path.suffix == '.tsv':
             self.data_df = pd.read_csv(

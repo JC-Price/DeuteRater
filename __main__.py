@@ -320,10 +320,10 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         if self.PeptideButton.isChecked():
             biomolecule_type = "Peptide"
-            settings.use_empir_n_value = False
+            # settings.use_empir_n_value = False
         else:
             biomolecule_type = "Lipid"
-            settings.use_empir_n_value = True
+            # settings.use_empir_n_value = True
 
         # first we need to check which steps are checked 
         worklist = self.check_table_checklist()

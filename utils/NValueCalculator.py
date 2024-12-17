@@ -104,7 +104,10 @@ class NValueCalculator:
                  'bio_rep', 'calculate_n_value']]
 
         # TODO: should we divide by genotype (sample_group), not bio_rep? - Ben Driggs
-        df.loc[:, "divider"] = df['chemical_formula'] + df['adduct_chemical_formula'] + df['sample_group']
+        if self.biomolecule_type == "Peptide":
+            df.loc[:, "divider"] = df['chemical_formula'] + df['sample_group']
+        else:
+            df.loc[:, "divider"] = df['chemical_formula'] + df['adduct_chemical_formula'] + df['sample_group']
         df.sort_values(by="divider")
 
         self.prepared_df = df
@@ -123,7 +126,7 @@ class NValueCalculator:
         if settings.graph_n_value_calculations or settings.save_n_value_data:
             settings.debug_level = 1
 
-        # settings.debug_level = 1
+        settings.debug_level = 1
         n_data = []
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
@@ -134,9 +137,9 @@ class NValueCalculator:
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
-                data, n = NValueCalculator.analyze_group(self, group, settings.save_n_value_data, settings.graph_n_value_calculations)
-                results.append(data)
-                n_data.append(n)
+                data = NValueCalculator.analyze_group(self, group, settings.save_n_value_data, settings.graph_n_value_calculations)
+                results.append(data[0])
+                n_data.append(data[1])
                 
             for x in n_data:
                 if x:
@@ -180,12 +183,18 @@ class NValueCalculator:
             # f" seconds", end='\r') Each chemical formula has only 1 enrichment value Because adducts can occur,
             # we need to only look at hydrogen that would be in the actual molecule. I need to ask Rusty if I should
             # just choose the smaller cf, or which cf we want to use.
-            num_h_adduct, cf, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
-            num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+            if self.biomolecule_type == "Peptide":
+                num_h_adduct = np.inf
+                num_h_no_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+            else:
+                num_h_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
+                num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+
             if num_h_no_adduct < num_h_adduct:
                 num_h = num_h_no_adduct
             else:
                 num_h = num_h_adduct
+
             # num_h, cf, _ = NValueCalculator.parse_cf(partition[0])
             n_begin = 0
             low_pct = 0
@@ -209,10 +218,13 @@ class NValueCalculator:
                 if enrichment not in emass_results_dict:
                     high_pct = enrichment
                     try:
-                        emass_results = emass(cf, n_begin, num_h, low_pct, high_pct, num_peaks)
+                        emass_results = emass(chem_f, n_begin, num_h, low_pct, high_pct, num_peaks)
                         emass_results_dict[enrichment] = emass_results
                     except Exception as e:
-                        print("Chemical Formula ", row.cf, " contains unsupported molecules")
+                        try:
+                            print("Chemical Formula ", row.cf, " contains unsupported molecules")
+                        finally:
+                            print("Chemical Formula ", row.chemical_formula, " contains unsupported molecules")
                 emass_results = emass_results_dict[enrichment]
 
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
@@ -272,7 +284,7 @@ class NValueCalculator:
                                  axis=1), n_value_data
             else:
                 return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                                 axis=1)
+                                 axis=1), []
         except IOError as e:
             print(e)
             return pd.concat(
