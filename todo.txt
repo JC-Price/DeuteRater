@@ -50,9 +50,11 @@
 - create executable and compare results with DR v5 DONE (12/10/24)
 
 ### CHANGES/ADDITIONS ###
-- multiprocessing/memory issue with modified mzMLs (ask Coleman for suspect mzMLs)
 - look at issue with rate output with columns with _x_x, _x_y etc.
 - include a peptide n-value calculation option along with v6 (talk to Ariel)
+    - test
+    - look for duplicates ending up in theory generation step
+    - add it to DR
 - standardize setting capitalization and update ReadMe
 - finish going through settings in ReadMe
     - include note that we aren't checking for peptides with extremely similar mz and rt
