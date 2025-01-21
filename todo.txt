@@ -55,6 +55,7 @@
     - test
     - look for duplicates ending up in theory generation step
     - add it to DR
+    - make a similar script for lipids
 - standardize setting capitalization and update ReadMe
 - finish going through settings in ReadMe
     - include note that we aren't checking for peptides with extremely similar mz and rt
@@ -74,6 +75,7 @@
 - package and publish on GitHub
 
 ### NEXT STEPS ###
+- add batch capability/setting to run multiple ID files (aka. one ID per mzML)
 - reorganize Settings_Menu.ui
 - figure out how to integrate fractional n-values
 - fix issue where names are cut off in graph titles
