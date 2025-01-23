@@ -148,18 +148,12 @@ autofill_lipid_columns = []  # TODO: are there any columns for lipids that need 
 default_converter = "Peptide Template"
 # TODO: may need to adjust the header or shove in the n-value calculator
 protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start',
-                            'rt_end', 'rt_width', 'Precursor m/z',
-                            'Peptide Theoretical Mass', 'Identification Charge', 'ptm', 'avg_ppm', 'start_loc',
-                            'end_loc',
-                            'num_peptides',
-                            'num_unique', 'accessions', 'species', 'gene_name', 'protein_existence', 'sequence_version',
-                            'cf',
-                            'neutromers_to_extract', 'literature_n']
+                            'rt_end', 'rt_width', 'Precursor m/z', 'Peptide Theoretical Mass', 'Identification Charge',
+                            'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides', 'num_unique', 'accessions',
+                            'species', 'gene_name', 'protein_existence', 'sequence_version', 'cf', 'neutromers_to_extract', 'literature_n']
 protein_template_example = ['EGIVALR', 'P80317', 'T-complex protein 1 subunit zeta', '1210.8', '1194.6', '1255.8',
-                            '61.2', '152.297375',
-                            '756.4493882', '5', '', '-0.8', '308', '314', '24', '17', '[\'P80317\']',
-                            'Mus musculus OX=10090',
-                            'Cct6a ', '1', '3', 'C33H60N10O10', '3', '15.66']
+                            '61.2', '152.297375', '756.4493882', '5', '', '-0.8', '308', '314', '24', '17',
+                            '[\'P80317\']', 'Mus musculus OX=10090', 'Cct6a ', '1', '3', 'C33H60N10O10', '3', '15.66']
 lipid_converter_header = ['Lipid Name', 'Lipid Unique Identifier', 'Precursor m/z', 'Precursor Retention Time (sec)',
                           "Identification Charge", 'cf', 'neutromers_to_extract', 'Adduct', 'Adduct_cf', 'literature_n']
 lipid_template_example = ['EXAMPLE DATA: Acetylcholine_Man', 'Acetylcholine_Man_3.601', '147.1253246', '216.0646154',
