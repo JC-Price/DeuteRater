@@ -191,10 +191,13 @@ class TimeEnrichmentWindow(QtWidgets.QDialog, loaded_ui):
         if start_column == 0:
             return
         text = str(QtWidgets.QApplication.clipboard().text())
+        if text == "":
+            return
         text_lines = text.split("\n")
         text_grid = [line.split("\t") for line in text_lines]
         # excel sometimes adds whitespace to end of clipboard.  must remove
-        if text_grid[-1] == ['']: del text_grid[-1]
+        if text_grid[-1] == ['']:
+            del text_grid[-1]
         line_lengths = [len(text_list) for text_list in text_grid]
         needed_columns = max(line_lengths)
         needed_rows = len(text_grid)

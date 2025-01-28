@@ -229,7 +229,7 @@ class ChromatographyDivider:
                 df = pd.read_csv(infile, sep='\t')
                 df['filename'] = outfile
                 df = df.dropna(subset=["mzs_list"])
-                possible_rows = list(set(df.columns).intersection({"Adduct", "z", "mzml_name"}))
+                possible_rows = list(set(df.columns).intersection({"Adduct", "z", "mzml_path"}))
                 possible_rows.sort()
                 df['name_check'] = df.apply(lambda x: "_".join(x.loc[possible_rows].astype(str)), axis=1)
                 molecule_groups = df.groupby(by=df.columns[0])

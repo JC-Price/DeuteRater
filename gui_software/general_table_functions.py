@@ -107,7 +107,7 @@ def Copy_to_Clipboard(table_object):
     clipboard.setText(string_for_clipboard[:-1])
 
 
-# paste clipboard into the table. pastes nothng if the thing to be pasted is too large to fit
+# paste clipboard into the table. pastes nothing if the thing to be pasted is too large to fit
 def Paste(table_object):
     start_row, start_column = HighlightedCells(table_object, no_names=False)
     #  do not paste over the first column
@@ -116,7 +116,7 @@ def Paste(table_object):
     text = str(QtWidgets.QApplication.clipboard().text())
     text_lines = text.split("\n")
     text_grid = [line.split("\t") for line in text_lines]
-    #excel sometimes adds whitespace to end of clipboard.  must remove 
+    # excel sometimes adds whitespace to end of clipboard. Must remove
     if text_grid[-1] == ['']: del text_grid[-1]
     line_lengths = [len(text_list) for text_list in text_grid]
     needed_columns = max(line_lengths)

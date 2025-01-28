@@ -457,7 +457,7 @@ class Molecule(object):
             try:
                 row_index = row.iloc[0]['row_num']
             except:
-                print("There is an errror")
+                print("Error updating output file")
                 continue
             if id.condensed_envelope:
                 mzs, abundances = id.condensed_envelope.to_obs()
