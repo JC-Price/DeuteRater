@@ -242,3 +242,6 @@ graph_n_value_calculations: !!bool False
 save_n_value_data: !!bool False
 
 max_allowed_enrichment: !!float 1.0
+
+# Set to true when you want ot use unique retention times across mzML files
+use_individual_rts: !!bool False

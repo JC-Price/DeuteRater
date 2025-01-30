@@ -187,13 +187,28 @@ class Extractor:  # TODO name change
             If the file does not contain the appropriate information.
 
         """
-        self.ids = pd.read_csv(self.id_path)
-        if self._id_rt_unit == 'sec':
-            self.ids['rt'] = self.ids['Precursor Retention Time (sec)'].apply(lambda x: x / 60.0)
-        elif self._id_rt_unit == 'min':
-            self.ids['rt'] = self.ids['Precursor Retention Time (sec)']
-        self.ids.sort_values(by=['rt'], inplace=True)
-        self.ids.reset_index(inplace=True, drop=True)
+
+        if settings.use_individual_rts:
+            # This is the block I am interested in.
+            mzml_file_name = os.path.splitext(os.path.basename(self.mzml_path))[
+                0]  # Get the file name without extension
+            column_name = f'{mzml_file_name}_RT_sec'
+            print(column_name)
+            self.ids = pd.read_csv(self.id_path)
+            if self._id_rt_unit == 'sec':
+                self.ids['rt'] = self.ids[column_name].apply(lambda x: x / 60.0)
+            elif self._id_rt_unit == 'min':
+                self.ids['rt'] = self.ids[column_name]
+            self.ids.sort_values(by=['rt'], inplace=True)
+            self.ids.reset_index(inplace=True, drop=True)
+        else:
+            self.ids = pd.read_csv(self.id_path)
+            if self._id_rt_unit == 'sec':
+                self.ids['rt'] = self.ids['Precursor Retention Time (sec)'].apply(lambda x: x / 60.0)
+            elif self._id_rt_unit == 'min':
+                self.ids['rt'] = self.ids['Precursor Retention Time (sec)']
+            self.ids.sort_values(by=['rt'], inplace=True)
+            self.ids.reset_index(inplace=True, drop=True)
 
         # determines the mass cutoffs for the number of isotopes to extract
         def num_peaks_by_mass(mass):
