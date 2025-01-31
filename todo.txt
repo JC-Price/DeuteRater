@@ -51,9 +51,10 @@
 - compare with Rusty's data (from paper) DONE
 - run full tests for peptides and lipids DONE
 - test running each step individually DONE
+- look at issue with rate output with columns with _x_x, _x_y etc. DONE (1/31/25)
+- fix time and enrichment, so it doesn't quit if copy/paste failed DONE (1/31/25)
 
 ### CHANGES/ADDITIONS ###
-- look at issue with rate output with columns with _x_x, _x_y etc.
 - include a peptide n-value calculation option along with v6 (talk to Ariel)
     - setting for retention time (30 sec), charge state range, and delta mass.
     - average together retention times if they fall in window
@@ -78,7 +79,6 @@
 - figure out how to integrate fractional n-values
 - fix issue where names are cut off in graph titles
 - add Ion Mobility
-- fix time and enrichment, so it doesn't quit if copy/paste failed
 
 
 - n values, essential vs non-essential amino acid n-values and how they change with conditions (diets - high/low protein)
