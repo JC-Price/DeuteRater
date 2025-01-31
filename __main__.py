@@ -115,7 +115,7 @@ fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
                                                "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                                "sample_group"])
 # TODO: what lipid columns do we need here? - Ben D
-rate_calculation = deuterater_step("rate_by_sequence.csv", ["Protein_ID", "Protein_Name",
+rate_calculation = deuterater_step("rate_by_sequence.tsv", ["Protein_ID", "Protein_Name",
                                                             "Sequence", "n_isos", "time", "sample_group", "enrichment",
                                                             "abundances", "Theoretical Unlabeled Normalized Abundances",
                                                             "n_isos", "n_value"], [])

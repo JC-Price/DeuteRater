@@ -456,8 +456,8 @@ class RateCalculator:
                 '{} num_time_points'.format(calc_type): num_unique_times,
                 '{} uniques'.format(calc_type): unique_length,
                 '{} exceptions'.format(calc_type): "",
-                "rate_graph_time_points_x": "; ".join(map(str, list(xs))),
-                "normed_isotope_data_y": "; ".join(map(str, list(ys)))
+                f"{calc_type}_rate_graph_time_points": "; ".join(map(str, list(xs))),
+                f"{calc_type}_normed_isotope_data": "; ".join(map(str, list(ys)))
             }
 
             if confint is not np.NaN:
@@ -495,7 +495,7 @@ class RateCalculator:
                 graph_name = None
                 graph_title = None
             try:
-                if r_2 > 0.5:
+                if r_2 >= 0.5:
                     graph_folder = graph_folders[0]
                 else:
                     graph_folder = graph_folders[1]
