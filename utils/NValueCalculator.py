@@ -100,14 +100,13 @@ class NValueCalculator:
             df.at[row.Index, 'intensities'] = [float(i) / s for i in temp]
 
         df = df.reset_index(drop=False)
-        df = df[['index', 'chemical_formula', 'adduct_chemical_formula', 'intensities', 'enrichment', 'sample_group',
+        df = df[['index', 'Lipid Unique Identifier', 'Protein ID', 'chemical_formula', 'adduct_chemical_formula', 'intensities', 'enrichment', 'sample_group',
                  'bio_rep', 'calculate_n_value']]
 
-        # TODO: should we divide by genotype (sample_group), not bio_rep? - Ben Driggs
         if self.biomolecule_type == "Peptide":
-            df.loc[:, "divider"] = df['chemical_formula'] + df['sample_group']
+            df.loc[:, "divider"] = df['Protein ID'] + df['sample_group']
         else:
-            df.loc[:, "divider"] = df['chemical_formula'] + df['adduct_chemical_formula'] + df['sample_group']
+            df.loc[:, "divider"] = df['Lipid Unique Identifier'] + df['sample_group']
         df.sort_values(by="divider")
 
         self.prepared_df = df
