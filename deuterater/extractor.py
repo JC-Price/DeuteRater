@@ -227,6 +227,7 @@ class Extractor:  # TODO name change
             return row
 
         self.ids = self.ids.apply(autofill, axis=1)
+        self.ids = self.ids.copy()  # helps avoid memory issues
         self.ids['n_isos'] = self.ids['neutromers_to_extract'].astype(np.int8)  # TODO: Temp value, see note at top of files
         # self.ids['n_isos'] = self.ids['Peptide Theoretical Mass'].apply(num_peaks_by_mass)
 
