@@ -137,8 +137,9 @@ class theoretical_enrichment_calculator(object):
 
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
-                final_df = pd.concat(tqdm(executor.map(func, df_split), total=len(df_split), desc="Calculating Initial Intensities: "),
-                                     axis=1).drop_duplicates(keep='first')
+                final_df = pd.concat(
+                    tqdm(executor.map(func, df_split), total=len(df_split), desc="Calculating Initial Intensities: "),
+                    axis=1).drop_duplicates(keep='first')
         elif settings.debug_level >= 1:
             dfs = []
             for dframe in tqdm(df_split, desc="Calculating Initial Intensities: "):
@@ -155,7 +156,8 @@ class theoretical_enrichment_calculator(object):
 
     # actually runs the relevant calculation.
     @staticmethod
-    def _individual_process(df, new_columns, minimum_n_value, minimum_sequence_length, biomolecule_type, use_empir_n_value):
+    def _individual_process(df, new_columns, minimum_n_value, minimum_sequence_length, biomolecule_type,
+                            use_empir_n_value):
         variable_list = []
         for row in df.itertuples():
             output_series = pd.Series(index=new_columns, dtype="object")
@@ -171,16 +173,21 @@ class theoretical_enrichment_calculator(object):
                     variable_list.append(_error_message_results("Error: see n_value column", output_series))
                     continue
 
-            # drop rows we will not use before doing any compiles calculations
-            if biomolecule_type == "Peptide" and len(row.Sequence) < minimum_sequence_length:
-                variable_list.append(_error_message_results(
-                    f"Sequence is less than {minimum_sequence_length} amino acids", output_series))
+            try:
+                # drop rows we will not use before doing any compiles calculations
+                if biomolecule_type == "Peptide" and len(row.Sequence) < minimum_sequence_length:
+                    variable_list.append(_error_message_results(
+                        f"Sequence is less than {minimum_sequence_length} amino acids", output_series))
+                    continue
+                if biomolecule_type == "Lipid" and float(row.n_value) < minimum_n_value:
+                    variable_list.append(_error_message_results(
+                        f"less than {minimum_n_value} labeling sites",
+                        output_series))
+                    continue
+            except:
+                # n-value column already has error message, so we just continue with the calculations
                 continue
-            if biomolecule_type == "Lipid" and float(row.n_value) < minimum_n_value:
-                variable_list.append(_error_message_results(
-                    f"less than {minimum_n_value} labeling sites",
-                    output_series))
-                continue
+
             intensity_values = _fit_emass(row.cf, row.n_isos)
 
             output_series["Theoretical Unlabeled Normalized Abundances"] = ", ".join(intensity_values)
