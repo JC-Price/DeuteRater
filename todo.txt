@@ -55,9 +55,6 @@
 - fix time and enrichment, so it doesn't quit if copy/paste failed DONE (1/31/25)
 
 ### CHANGES/ADDITIONS ###
-- include a peptide n-value calculation option along with v6 (talk to Ariel)
-    - setting for retention time (30 sec), charge state range, and delta mass.
-    - average together retention times if they fall in window
 - standardize DR setting capitalization and update ReadMe
 
 ### TESTING AND PACKAGING ###
