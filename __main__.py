@@ -931,8 +931,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
             return False
 
 
-# since we have to load settings in each file, and need a way to adjust
-# settings, we'll 
+# since we have to load settings in each file, and need a way to adjust settings
 def make_temp_file(filename, new_filename):
     copyfile(filename, new_filename)
 
