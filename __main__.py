@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import sys
 import multiprocessing as mp
+import time
 
 import numpy as np
 import csv
@@ -309,6 +310,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
     # calls the various functions to calculate turnover rates
     def run_rate_workflow(self):
+        start = time.time()
         # load the settings so we can use them
         settings.load(rate_settings_file)
 
@@ -678,7 +680,9 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
         QtWidgets.QMessageBox.information(self, "Success",
                                           "Analysis completed successfully")
-        print("Analysis completed successfully\n")
+        end = time.time()
+        total_time = round((end - start) / 60, 2)
+        print(f"Analysis completed successfully in {total_time} minutes\n")
 
     # this checks which parts of the worklist table are checked and that there are no blanks    
     def check_table_checklist(self):
