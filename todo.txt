@@ -71,6 +71,8 @@
 - package and publish on GitHub
 
 ### NEXT STEPS ###
+- memory issue with extraction?
+- CPU not being limited in some machines
 - rename steps to be more descriptive?
 - add batch capability/setting to run multiple ID files (aka. one ID per mzML)
 - reorganize Settings_Menu.ui
