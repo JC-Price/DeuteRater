@@ -199,8 +199,8 @@ class CombineExtractedFiles:
 
             # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
             # n_val_df = self.model
-            # calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
-            calculator = envct.Experimental_NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
+            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
+            # calculator = envct.Experimental_NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
             calculator.run()
             self.model = calculator.full_df
 

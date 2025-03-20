@@ -325,9 +325,15 @@ class NValueCalculator:
                 truth_count = [np.sum(truth_values.iloc[:, x]) for x in range(truth_values.shape[1])]
                 peaks_included = ' '.join(str(x) for x in truth_count)
             else:
-                min_index = stddev_dataframe['n_value_stddev'].idxmin()
+                # std devs tend to follow a 1/x trend.
+                # multiply each stddev by x (# of deuterium) to amplify local minima - Ben Driggs
+                stddev_dataframe['n_value_stddev_amp'] = stddev_dataframe['n_value_stddev'] * stddev_dataframe['n_D']
+                
+                # min_index = stddev_dataframe['n_value_stddev'].idxmin()
+                min_index = stddev_dataframe['n_value_stddev_amp'].idxmin()
                 filtered_nValue_min = stddev_dataframe.loc[min_index, 'n_D']
-                filtered_stddev_min = stddev_dataframe['n_value_stddev'].min()
+                # filtered_stddev_min = stddev_dataframe['n_value_stddev'].min()
+                filtered_stddev_min = stddev_dataframe['n_value_stddev_amp'].min()
 
                 data_mask = stddev_dataframe.iloc[min_index].notna().reset_index(drop=True)[2:-1]
                 peaks_included = pd.Series(stddev_dataframe.columns)[2:-1][data_mask] \
