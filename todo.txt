@@ -58,6 +58,7 @@
 - standardize DR setting capitalization and update ReadMe
 
 ### TESTING AND PACKAGING ###
+- check column names for sequence and make them generic
 - update ReadMe...
     - can't upload a settings file you used in another folder (unless you change paths) DONE
     - add warning about keeping DR open for consecutive runs DONE

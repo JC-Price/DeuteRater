@@ -103,12 +103,11 @@ class NValueCalculator:
 
         if self.biomolecule_type == "Peptide":
             df = df[['index', 'Protein ID', 'chemical_formula', 'intensities', 'enrichment', 'sample_group',
-                     'bio_rep', 'calculate_n_value']]
+                     'bio_rep', 'calculate_n_value', 'time']]
             df.loc[:, "divider"] = df['Protein ID'] + df['sample_group']
         else:
             df = df[['index', 'Lipid Unique Identifier', 'chemical_formula', 'adduct_chemical_formula',
-                     'intensities', 'enrichment', 'sample_group',
-                     'bio_rep', 'calculate_n_value']]
+                     'intensities', 'enrichment', 'sample_group', 'bio_rep', 'calculate_n_value', 'time']]
             df.loc[:, "divider"] = df['Lipid Unique Identifier'] + df['sample_group']
         df.sort_values(by="divider")
 

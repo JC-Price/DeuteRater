@@ -696,7 +696,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # the point of the error check is to ensure there are no gaps in the
         # checklist since then we will be missing critical info for the next
         # step
-        if error_check == []:  # max does not work on empty lists
+        if not error_check:  # max does not work on empty lists
             return current_worklist
         proper_length = max(error_check) - min(error_check) + 1
         if len(current_worklist) < proper_length:
