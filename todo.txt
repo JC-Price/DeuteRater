@@ -53,6 +53,7 @@
 - test running each step individually DONE
 - look at issue with rate output with columns with _x_x, _x_y etc. DONE (1/31/25)
 - fix time and enrichment, so it doesn't quit if copy/paste failed DONE (1/31/25)
+- add setting options for interpolated n-values DONE (4/25/25)
 
 ### CHANGES/ADDITIONS ###
 - standardize DR setting capitalization and update ReadMe
