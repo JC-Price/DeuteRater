@@ -24,6 +24,7 @@ how_divided: combined
 id_file_rt_unit: sec
 intensity_filter: 20000
 intensity_weight: 0.6
+interpolate_n_values: false
 label_key: tissue
 lipid_analyte_id_column: Lipid Unique Identifier
 lipid_analyte_name_column: Lipid Name
@@ -62,7 +63,7 @@ time_window: 1.5
 trim_ids_to_mzml_bounds: false
 unique_sequence_column: Sequence
 use_chromatography_division: 'No'
-use_empir_n_value: true
+use_empir_n_value: false
 use_individual_rts: false
 use_outlier_removal: false
 variance_weight: 1.0

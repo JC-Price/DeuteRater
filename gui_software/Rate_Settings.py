@@ -146,6 +146,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.save_n_value_data, True),
             setting_string_info(self.use_individual_rts, "use_individual_rts",
                                 settings.use_individual_rts, True),
+            setting_string_info(self.interpolate_n_values, "interpolate_n_values",
+                                settings.interpolate_n_values, True),
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -280,6 +282,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                     settings.save_n_value_data, True),
                 setting_string_info(self.use_individual_rts, "use_individual_rts",
                                     settings.use_individual_rts, True),
+                setting_string_info(self.interpolate_n_values, "interpolate_n_values",
+                                    settings.interpolate_n_values, True),
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -361,6 +365,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.save_n_value_data, True),
             setting_string_info(self.use_individual_rts, "use_individual_rts",
                                 settings.use_individual_rts, True),
+            setting_string_info(self.interpolate_n_values, "interpolate_n_values",
+                                settings.interpolate_n_values, True),
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -442,6 +448,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.save_n_value_data, True),
             setting_string_info(self.use_individual_rts, "use_individual_rts",
                                 settings.use_individual_rts, True),
+            setting_string_info(self.interpolate_n_values, "interpolate_n_values",
+                                settings.interpolate_n_values, True),
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

@@ -245,3 +245,6 @@ max_allowed_enrichment: !!float 1.0
 
 # Set to true when you want ot use unique retention times across mzML files
 use_individual_rts: !!bool False
+
+# toggle whether you want to interpolate n-values in n-value calculation module
+interpolate_n_values: !!bool False

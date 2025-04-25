@@ -328,7 +328,8 @@ class NValueCalculator:
                         filtered_out_nv.append(nv.pop(i))
                         filtered_out_FN_stddev.append(FN_stddev.pop(i))
                         filtered_out_times.append(time_points.pop(i))
-                        reason_for_filtering.append('outside 2 stddev')'''
+                        reason_for_filtering.append('outside 2 stddev')
+                '''
 
                 threshold = 3.5
                 scale = 0.6745 * mad_nv  # rescales MAD to σ‑equivalent
@@ -687,8 +688,8 @@ class NValueCalculator:
         (emass_unlabeled_mz, emass_unlabeled_intensities) = emass_unlabeled_data
         (emass_labeled_mz, emass_labeled_intensities) = emass_labeled_data
 
-        emass_labeled_intensities = interpolate_n_values(emass_labeled_intensities)
-        emass_labeled_mz = interpolate_mz_values(emass_labeled_mz)
+        if settings.interpolate_n_values:
+            emass_labeled_intensities = interpolate_n_values(emass_labeled_intensities)
 
         # Get the length of emass_labeled_data
         target_length = len(emass_labeled_intensities)

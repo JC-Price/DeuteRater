@@ -133,6 +133,7 @@ graph_n_value_calculations: bool
 save_n_value_data: bool
 max_allowed_enrichment: float
 use_individual_rts: bool
+interpolate_n_values: bool
 
 
 # TODO: add quick explanation of how this works, inc. 'global' doc link
@@ -362,6 +363,9 @@ def load(settings_path):
         global use_individual_rts
         use_individual_rts = s['use_individual_rts']
 
+        global interpolate_n_values
+        interpolate_n_values = s['interpolate_n_values']
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -459,6 +463,7 @@ def freeze(path=None, settings_dict=None):
             "save_n_value_data": save_n_value_data,
             "max_allowed_enrichment": max_allowed_enrichment,
             "use_individual_rts": use_individual_rts,
+            "interpolate_n_values": interpolate_n_values,
         }
     if path:
         with open(path, 'w') as frozen_settings_file:
