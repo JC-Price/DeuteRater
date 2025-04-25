@@ -87,7 +87,7 @@ def bootstrap_median_ci(data, n_iterations=1000, ci=95, seed=None):
     return lower_margin, upper_margin
 
 
-class NValueCalculator:
+class Experimental_NValueCalculator:
     def __init__(self, dataframe, settings_path, biomolecule_type, out_path, graphs_location=None):
         # this DataFrame should only contain the correct columns
         settings.load(settings_path)
@@ -156,8 +156,8 @@ class NValueCalculator:
 
         groups = self.prepared_df.groupby('divider', sort=False)
 
-        nv_function = partial(NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
-                              make_graphs=settings.graph_n_value_calculations)
+        nv_function = partial(Experimental_NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
+                              make_graphs=settings.graph_n_value_calculations, interpolate_n_values=settings.interpolate_n_values)
 
         results = list()
         n_value_data = list()
@@ -166,18 +166,20 @@ class NValueCalculator:
         if settings.graph_n_value_calculations or settings.save_n_value_data:
             settings.debug_level = 1
 
+        # uncomment this if you need to debug processes that usually use multiprocessing
         # settings.debug_level = 1
         n_data = []
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
-                results = list(
+                results, _ = list(
                     tqdm(executor.map(nv_function, groups), total=len(groups),
                          desc="Calculating n-values: ",
                          leave=True))
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
-                data, n = NValueCalculator.analyze_group(self, group, settings.save_n_value_data, settings.graph_n_value_calculations)
+                data, n = Experimental_NValueCalculator.analyze_group(self, group, settings.save_n_value_data,
+                                                                      settings.graph_n_value_calculations, settings.interpolate_n_values)
                 results.append(data)
                 n_data.append(n)
 
@@ -201,7 +203,7 @@ class NValueCalculator:
                                           left_index=True,
                                           right_index=True)
 
-    def analyze_group(self, partition, save_data, make_graphs):
+    def analyze_group(self, partition, save_data, make_graphs, interpolate_n_values):
         """
         Generates emass information for each chemical formula and then sends each possible charge state to analyze_row()
 
@@ -227,10 +229,10 @@ class NValueCalculator:
             # just choose the smaller cf, or which cf we want to use.
             if self.biomolecule_type == "Peptide":
                 num_h_adduct = np.inf
-                num_h_no_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+                num_h_no_adduct, chem_f, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
             else:
-                num_h_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
-                num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+                num_h_adduct, chem_f, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
+                num_h_no_adduct, _, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
 
             if num_h_no_adduct < num_h_adduct:
                 num_h = num_h_no_adduct
@@ -268,14 +270,14 @@ class NValueCalculator:
 
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
-                    n_value, stddev, n_data, med_first_derivative, time_point = NValueCalculator.analyze_row(self, row,
-                                                                                                             emass_results, save_data, make_graphs)
+                    n_value, stddev, n_data, med_first_derivative, time_point = (
+                        Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs))
 
                     # Only allow the append if the stddev is less than .02
                     # if stddev <= 0.02: #make this a setting? Coleman 2025
                     if med_first_derivative >= 0.2 and stddev <= 0.05:
 
-                        nvalues.append([n_value, stddev, time_point]) # remove time_point from here if it does not work - Coleman
+                        nvalues.append([n_value, stddev, time_point])  # remove time_point from here if it does not work - Coleman
                     else:
                         # Determine reason(s) for filtering
                         reasons = []
@@ -300,7 +302,7 @@ class NValueCalculator:
             # append error message if no valid time points could be used
             if len(nvalues) == 0:
                 has_error = True
-                data = timepoints_statement
+                nv_data = timepoints_statement
 
             if not has_error:
                 # calculate standard deviation of n values and exclude any outliers - Ben D
@@ -376,7 +378,7 @@ class NValueCalculator:
                                  axis=1), n_value_data
             else:
                 return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                                 axis=1)
+                                 axis=1), []
         except IOError as e:
             print(e)
             return pd.concat(
@@ -573,65 +575,6 @@ class NValueCalculator:
         # could speed up by forgoing mzs, but mzs will be needed down the line
         emass_unlabeled_data, emass_labeled_data = emass_results
 
-        def interpolate_mz_values(df):
-            interpolated_rows = []
-
-            try:
-                # Ensure the original dataframe's n_D column is converted to float (handles string integers)
-                df['n_D'] = df['n_D'].astype(float)
-            except Exception as e:
-                print(f"Error converting 'n_D' to float: {e}")
-                return df  # Return original DataFrame if conversion fails
-
-            try:
-                # Loop through each pair of adjacent n_D values
-                for i in range(len(df) - 1):
-                    try:
-                        # Accessing by column names (strings), not by index positions
-                        n1, n2 = df.iloc[i]['n_D'], df.iloc[i + 1]['n_D']
-                        mz_0_1 = df.iloc[i]['mz0']  # mz_0 stays the same
-                        mz_1_1, mz_1_2 = df.iloc[i]['mz1'], df.iloc[i + 1]['mz1']
-                        mz_2_1, mz_2_2 = df.iloc[i]['mz2'], df.iloc[i + 1]['mz2']
-                    except KeyError as e:
-                        print(f"Missing column: {e}")
-                        return df
-                    except Exception as e:
-                        print(f"Error accessing row {i}: {e}")
-                        return df
-
-                    # Create interpolated values for n = n1.1 to n = n2.9
-                    for j in range(1, 10):  # for n = n1.1 to n1.9, then n2.0 to n2.9
-                        try:
-                            alpha = j / 10.0  # alpha goes from 0.1 to 0.9
-                            n_interpolated = n1 + alpha
-
-                            # Keep mz_0 constant and interpolate mz_1 and mz_2
-                            mz_0_interpolated = mz_0_1
-                            mz_1_interpolated = (1 - alpha) * mz_1_1 + alpha * mz_1_2
-                            mz_2_interpolated = (1 - alpha) * mz_2_1 + alpha * mz_2_2
-
-                            interpolated_rows.append(
-                                [n_interpolated, mz_0_interpolated, mz_1_interpolated, mz_2_interpolated])
-                        except Exception as e:
-                            print(f"Error interpolating at n_D={n1} (step {j}): {e}")
-                            continue  # Skip this interpolation step if it fails
-
-            except Exception as e:
-                print(f"Unexpected error in interpolation loop: {e}")
-                return df
-
-            try:
-                # Convert the list of interpolated rows into a new DataFrame
-                interpolated_df = pd.DataFrame(interpolated_rows, columns=['n_D', 'mz0', 'mz1', 'mz2'])
-
-                # Concatenate and sort
-                result_df = pd.concat([df, interpolated_df], ignore_index=True).sort_values(by='n_D').reset_index(
-                    drop=True)
-                return result_df
-            except Exception as e:
-                print(f"Error creating the final DataFrame: {e}")
-                return df
-
         def interpolate_n_values(df):
             interpolated_rows = []
 
@@ -688,7 +631,7 @@ class NValueCalculator:
         (emass_unlabeled_mz, emass_unlabeled_intensities) = emass_unlabeled_data
         (emass_labeled_mz, emass_labeled_intensities) = emass_labeled_data
 
-        if settings.interpolate_n_values:
+        if interpolate_n_values:
             emass_labeled_intensities = interpolate_n_values(emass_labeled_intensities)
 
         # Get the length of emass_labeled_data
@@ -751,7 +694,8 @@ class NValueCalculator:
         n_value_info = []
 
         # if the make_graphs and stddev < 0.02: #remove the 0.2 filter for now
-        if med_first_derivative >= 0.2 and stddev <= 0.05:  # are we being too conservative here? 3/12/2025 -coleman
+        # if med_first_derivative >= 0.2 and stddev <= 0.05 and make_graphs:  # are we being too conservative here? 3/12/2025 -coleman
+        if make_graphs:
             if not np.isnan(n_value):
                 # Plotting the unfiltered data
                 plt.plot(unfiltered_fraction_new['n_D'], unfiltered_fraction_new['n_value_corrected_stddev'],
@@ -817,7 +761,7 @@ def main():
     filename = "../n_value_debug_data.tsv"
     settings_path = "../resources/temp_settings.yaml"
     df = pd.read_csv(filename, sep='\t')
-    calculator = NValueCalculator(df, settings_path, "Lipid", "../n_value_test")
+    calculator = Experimental_NValueCalculator(df, settings_path, "Lipid", "../n_value_test")
     calculator.run()
     calculator.full_df.to_csv(filename[:-4] + "_nvalue.tsv", sep='\t')
 
