@@ -33,26 +33,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 try:
     from utils.n_value_calc_emass import emass
-except ModuleNotFoundError:
+except ModuleNotFoundError as e:
     from n_value_calc_emass import emass
 
 from functools import partial
 import pandas as pd
-import re
 import multiprocessing as mp
 import concurrent.futures as cf
 from tqdm import tqdm
 import deuterater.settings as settings
 import numpy as np
 import traceback
+import re
 import matplotlib.pyplot as plt
 
 output_columns = ['n_value', 'n_value_stddev', "num_nv_time_points", "cv", 'Median_FN_stddev', 'n_val_lower_margin',
                   'n_val_upper_margin', 'All_n_values', 'N_value_time_points', 'Filtered_out_N_values',
                   'Filtered_out_N_value_time_points', 'Reason_for_filtering']
 error_statement = ["error occurred", "error occurred", "error occurred", "error occurred", "error occurred",
-                   "error occurred", "error occurred", "error occurred", "error occurred", "error occurred",
-                   "error occurred", "error occurred"]
+                   "error occurred", "error occurred", "error occurred", "error occurred", "error occurred", "error occurred",
+                   "error occurred"]
+timepoints_statement = ["no valid time points", 'n_value_stddev', "num_nv_time_points", "cv", 'Median_FN_stddev',
+                        'n_val_lower_margin', 'n_val_upper_margin', 'All_n_values', 'N_value_time_points',
+                        'Filtered_out_N_values', 'Filtered_out_N_value_time_points', 'Reason_for_filtering']
 
 
 def bootstrap_median_ci(data, n_iterations=1000, ci=95, seed=None):
@@ -84,7 +87,7 @@ def bootstrap_median_ci(data, n_iterations=1000, ci=95, seed=None):
     return lower_margin, upper_margin
 
 
-class Experimental_NValueCalculator:
+class NValueCalculator:
     def __init__(self, dataframe, settings_path, biomolecule_type, out_path, graphs_location=None):
         # this DataFrame should only contain the correct columns
         settings.load(settings_path)
@@ -106,17 +109,19 @@ class Experimental_NValueCalculator:
 
         if settings.graph_n_value_calculations:
             self.graph_folder = graphs_location
+        else:
+            self.graph_folder = None
 
     def prepare_model(self):
         if "Adduct_cf" in self.full_df.columns:
-            df = self.full_df.rename(columns={  # TODO: Verify Column Names
+            df = self.full_df.rename(columns={
                 'Adduct_cf': 'adduct_chemical_formula',
                 'cf': 'chemical_formula',
                 'abundances': 'intensities',
                 'labeling': 'enrichment'})
         else:
             # Renames columns to proper names depending on if a lipid or protein is being passed in
-            df = self.full_df.rename(columns={  # TODO: Verify Column Names
+            df = self.full_df.rename(columns={
                 'cf': 'chemical_formula',
                 'abundances': 'intensities',
                 'labeling': 'enrichment'})
@@ -141,6 +146,7 @@ class Experimental_NValueCalculator:
             df = df[['index', 'Lipid Unique Identifier', 'chemical_formula', 'adduct_chemical_formula',
                      'intensities', 'enrichment', 'sample_group', 'bio_rep', 'calculate_n_value', 'time']]
             df.loc[:, "divider"] = df['Lipid Unique Identifier'] + df['sample_group']
+
         df.sort_values(by="divider")
 
         self.prepared_df = df
@@ -150,7 +156,8 @@ class Experimental_NValueCalculator:
 
         groups = self.prepared_df.groupby('divider', sort=False)
 
-        nv_function = partial(Experimental_NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data, make_graphs=settings.graph_n_value_calculations)
+        nv_function = partial(NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
+                              make_graphs=settings.graph_n_value_calculations)
 
         results = list()
         n_value_data = list()
@@ -159,7 +166,7 @@ class Experimental_NValueCalculator:
         if settings.graph_n_value_calculations or settings.save_n_value_data:
             settings.debug_level = 1
 
-        settings.debug_level = 1
+        # settings.debug_level = 1
         n_data = []
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
@@ -170,7 +177,7 @@ class Experimental_NValueCalculator:
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
-                data, n = Experimental_NValueCalculator.analyze_group(self, group, settings.save_n_value_data, settings.graph_n_value_calculations)
+                data, n = NValueCalculator.analyze_group(self, group, settings.save_n_value_data, settings.graph_n_value_calculations)
                 results.append(data)
                 n_data.append(n)
 
@@ -215,22 +222,21 @@ class Experimental_NValueCalculator:
         reason_for_filtering = []
 
         try:
-            # print(f"Started group #" + str(partition[1].index[0]) + f" at: " + str(time.perf_counter() - start) +
-            # f" seconds", end='\r') Each chemical formula has only 1 enrichment value Because adducts can occur,
+            # Each chemical formula has only 1 enrichment value Because adducts can occur,
             # we need to only look at hydrogen that would be in the actual molecule. I need to ask Rusty if I should
             # just choose the smaller cf, or which cf we want to use.
             if self.biomolecule_type == "Peptide":
                 num_h_adduct = np.inf
-                num_h_no_adduct, chem_f, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+                num_h_no_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
             else:
-                num_h_adduct, chem_f, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
-                num_h_no_adduct, _, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+                num_h_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
+                num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
 
             if num_h_no_adduct < num_h_adduct:
                 num_h = num_h_no_adduct
             else:
                 num_h = num_h_adduct
-            # num_h, cf, _ = NValueCalculator.parse_cf(partition[0])
+
             n_begin = 0
             low_pct = 0
             num_peaks = max(partition[1].intensities.str.len())
@@ -253,7 +259,7 @@ class Experimental_NValueCalculator:
                 if enrichment not in emass_results_dict:
                     high_pct = enrichment
                     try:
-                        # set n_begin to zero, Coleman 2025. This is a distribution. Come back
+                        # set n_begin to zero, Coleman 2025. This is a distribution.
                         emass_results = emass(chem_f, 0, num_h, low_pct, high_pct, num_peaks)
                         emass_results_dict[enrichment] = emass_results
                     except ValueError as e:
@@ -262,13 +268,14 @@ class Experimental_NValueCalculator:
 
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
-                    n_value, stddev, n_data, med_first_derivative, time_point = Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs)
+                    n_value, stddev, n_data, med_first_derivative, time_point = NValueCalculator.analyze_row(self, row,
+                                                                                                             emass_results, save_data, make_graphs)
 
                     # Only allow the append if the stddev is less than .02
                     # if stddev <= 0.02: #make this a setting? Coleman 2025
                     if med_first_derivative >= 0.2 and stddev <= 0.05:
 
-                        nvalues.append([n_value, stddev, time_point])  # remove time_point from here if it does not work - Coleman
+                        nvalues.append([n_value, stddev, time_point]) # remove time_point from here if it does not work - Coleman
                     else:
                         # Determine reason(s) for filtering
                         reasons = []
@@ -288,6 +295,12 @@ class Experimental_NValueCalculator:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
             has_error = False
+            nv_data = None
+
+            # append error message if no valid time points could be used
+            if len(nvalues) == 0:
+                has_error = True
+                data = timepoints_statement
 
             if not has_error:
                 # calculate standard deviation of n values and exclude any outliers - Ben D
@@ -299,15 +312,24 @@ class Experimental_NValueCalculator:
                 filtered_out_times = [n[2] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
 
                 nv_std = np.std(nv, dtype=np.float64)
-                avg_nv = np.median(nv)
+                avg_nv = np.median(nv)  # change this to median, Coleman
                 avg_FN_std = np.median(FN_stddev)
-                mad_nv = np.median(np.abs(nv-avg_nv))  # MAD about the median
+                mad_nv = np.median(np.abs(nv - avg_nv))  # MAD about the median
 
                 # Guard against the (rare) case where all nv are identical
                 if mad_nv == 0:
                     mad_nv = np.finfo(float).eps  # smallest positive float
 
                 # below, instead of removing outliers, we use the median
+                '''
+                for i, value in enumerate(nv):
+                    # remove any n values that aren't within 1 standard deviation - Ben D   Return this if necessary, Coleman 
+                    if value > avg_nv + (2*nv_std) or value < avg_nv - (2* nv_std):
+                        filtered_out_nv.append(nv.pop(i))
+                        filtered_out_FN_stddev.append(FN_stddev.pop(i))
+                        filtered_out_times.append(time_points.pop(i))
+                        reason_for_filtering.append('outside 2 stddev')'''
+
                 threshold = 3.5
                 scale = 0.6745 * mad_nv  # rescales MAD to σ‑equivalent
 
@@ -321,30 +343,29 @@ class Experimental_NValueCalculator:
                         reason_for_filtering.append('|modified z| > 3.5 (MAD)')
 
                 # if there aren't any values left, append error message
-                if len(nv) == 0:
-                    # descriptive placeholders
-                    avg_nv = cv = nv_std = avg_FN_std = "no valid time points"
-                    lower_margin = upper_margin = "no valid time points"
-                    num_points = 0  # ← missing before
-                else:
+                if not nv:
+                    has_error = True
+                    nv_data = timepoints_statement
+
+                if not has_error:
                     # recalculate average n-value and standard deviation with outliers removed - Ben Driggs
-                    avg_nv = float(np.median(nv))
-                    nv_std = float(np.std(nv, dtype=np.float64))
-                    num_points = int(len(nv))
-                    avg_FN_std = float(np.median(FN_stddev))
+                    avg_nv = np.median(nv)
+                    nv_std = np.std(nv, dtype=np.float64)
+                    num_points = len(nv)
+                    avg_FN_std = np.median(FN_stddev)
                     lower_margin, upper_margin = bootstrap_median_ci(nv)  # remove this if it breaks things coleman 2025
-                    lower_margin = float(lower_margin)
-                    upper_margin = float(upper_margin)
+
                     # calculate cv (confidence value - stddev/n-value)
                     cv = float(nv_std / avg_nv)
 
-                data = [avg_nv, nv_std, num_points, cv, avg_FN_std, lower_margin, upper_margin, nv, time_points,
-                        filtered_out_nv, filtered_out_times, reason_for_filtering]  # added the median of the FN_std
+                    # added the median of the FN_std
+                    nv_data = [float(avg_nv), float(nv_std), int(num_points), float(cv), float(avg_FN_std), float(lower_margin),
+                               float(upper_margin), nv, time_points, filtered_out_nv, filtered_out_times, reason_for_filtering]
 
             # apply average n value to each time point - Ben D
             for row in partition[1].itertuples(index=False):
                 try:
-                    results.append(data)
+                    results.append(nv_data)
                 except Exception as e:
                     print(e)
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
@@ -354,7 +375,7 @@ class Experimental_NValueCalculator:
                                  axis=1), n_value_data
             else:
                 return pd.concat([partition[1].reset_index(drop=True), pd.DataFrame(data=results, columns=output_columns)],
-                                 axis=1), []
+                                 axis=1)
         except IOError as e:
             print(e)
             return pd.concat(
@@ -387,7 +408,9 @@ class Experimental_NValueCalculator:
                 stddev_dataframe = calc_stddev(fraction_new, MINIMUM_PEAKS)
 
                 # Ensure n_D values are finite and exclude NaNs
-                valid_entries = stddev_dataframe
+                valid_entries = stddev_dataframe  # temp Coleman
+                # valid_entries = stddev_dataframe[['n_D', 'n_value_stddev']].dropna()
+                # valid_entries = valid_entries[np.isfinite(valid_entries['n_D'])]
 
                 if valid_entries.empty:
                     filtered_nValue_min = np.nan
@@ -418,6 +441,7 @@ class Experimental_NValueCalculator:
         def n_value_dIt_filter(unfiltered_fraction_new, dIt_data, MINIMUM_PEAKS=3):
             # Generate dIt filtered fraction_new DataFrame
             filtered_fraction_new = dIt_filter(unfiltered_fraction_new, dIt_data)
+
             try:
                 filtered_fraction_new.drop('n_value_stddev', axis=1, inplace=True)
                 filtered_fraction_new.drop('num_non_null', axis=1, inplace=True)
@@ -438,7 +462,7 @@ class Experimental_NValueCalculator:
 
             # Calculate stddev for valid rows
             stddev_dataframe['n_value_stddev'] = stddev_dataframe.loc[:, 'I0'::].std(axis='columns')
-            stddev_dataframe['n_value_corrected_stddev'] = stddev_dataframe['n_value_stddev']* stddev_dataframe['n_D']
+            stddev_dataframe['n_value_corrected_stddev'] = stddev_dataframe['n_value_stddev'] * stddev_dataframe['n_D']
 
             # used to be >= MINIMUM_PEAKS, but changed it to >= MINIMUM_PEAKS-1 to allow calculating std dev for rows with only 2 peaks
             # consider changing this if it hurts results/statistics - Ben D
@@ -470,9 +494,9 @@ class Experimental_NValueCalculator:
         def n_value_s_n_filter(empirical_intensities, noise, fraction_new_values, NOISE_FILTER=100.0):
             valid_intensities = s_n_filter(empirical_intensities, noise, NOISE_FILTER)
             filtered_fraction_new = fraction_new_values.copy()
-            for peak, ie in enumerate(valid_intensities):
-                if (np.isnan(ie)):
-                    filtered_fraction_new['I' + str(peak)] = np.nan
+            for p, i in enumerate(valid_intensities):
+                if np.isnan(i):
+                    filtered_fraction_new['I' + str(p)] = np.nan
             return n_value_by_stddev(filtered_fraction_new)
 
         def n_value_using_angles(empirical_intensities, emass_labeled_intensities, MIN_DIMENSION=2):
@@ -713,7 +737,7 @@ class Experimental_NValueCalculator:
 
         # Calculate first derivative and its absolute value
         first_derivative = abs(np.gradient(filtered_data['n_value_corrected_stddev'], filtered_data['n_D']))
-        med_first_derivative = np.nanmedian(first_derivative)  # Coleman 2025
+        med_first_derivative = np.median(first_derivative)  # Coleman 2025
 
         # filters out peaks that have a delta of less than 0.05
         dIt_unfiltered_fraction_new, dIt_n_value, dIt_stddev, dIt_peaks_included = n_value_dIt_filter(unfiltered_fraction_new, dIt_data)
@@ -724,6 +748,8 @@ class Experimental_NValueCalculator:
 
             # if setting is turned on, we'll graph out a visualization of how we calculate n-values
         n_value_info = []
+
+        # if the make_graphs and stddev < 0.02: #remove the 0.2 filter for now
         if med_first_derivative >= 0.2 and stddev <= 0.05:  # are we being too conservative here? 3/12/2025 -coleman
             if not np.isnan(n_value):
                 # Plotting the unfiltered data
@@ -767,10 +793,8 @@ class Experimental_NValueCalculator:
         return n_value, stddev, n_value_info, med_first_derivative, row.time
 
     @staticmethod
-    def parse_cf(cf):
-
-
-        d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
+    def parse_cf(chem_f):
+        d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', chem_f))
 
         num_h = int(d.get('H', '0'))  # Default to 0 if 'H' is not present
         num_d = int(d.get('D', '0'))  # Default to 0 if 'D' is not present
@@ -785,21 +809,6 @@ class Experimental_NValueCalculator:
 
         cf_string = ''.join(f"{k}{v}" for k, v in d.items())
 
-
-        """
-        d = dict(re.findall(r'([A-Z][a-z]*)(\d*)', cf))
-        num_h = int(d['H'])
-
-        num_d = 0
-        # Makes the cf not distinguish between Deuterium and Hydrogen
-        if d['D']:
-            num_h += int(d['D'])
-            del d['D']
-
-        blank = '{}'
-        d.update({'H': blank, 'X': blank})  # H = # of Hydrogen, X = # labeled sites
-        cf_string = ''.join('%s%s' % (k, v) for k, v in d.items())
-        """
         return num_h, cf_string, num_d
 
 
@@ -807,7 +816,7 @@ def main():
     filename = "../n_value_debug_data.tsv"
     settings_path = "../resources/temp_settings.yaml"
     df = pd.read_csv(filename, sep='\t')
-    calculator = Experimental_NValueCalculator(df, settings_path, "Lipid")
+    calculator = NValueCalculator(df, settings_path, "Lipid", "../n_value_test")
     calculator.run()
     calculator.full_df.to_csv(filename[:-4] + "_nvalue.tsv", sep='\t')
 
