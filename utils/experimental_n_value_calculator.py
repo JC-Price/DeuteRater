@@ -99,6 +99,7 @@ class Experimental_NValueCalculator:
             self._n_processors = round(mp.cpu_count() * 0.75)
         else:
             self._n_processors = settings.n_processors
+            
         # breaks windows/python interactions if too many cores are used.  very niche application but still relevant
         if self._n_processors > 60:
             self._n_processors = 60
@@ -171,7 +172,7 @@ class Experimental_NValueCalculator:
         n_data = []
         if settings.debug_level == 0:
             with cf.ProcessPoolExecutor(max_workers=self._n_processors) as executor:
-                results, _ = list(
+                results = list(
                     tqdm(executor.map(nv_function, groups), total=len(groups),
                          desc="Calculating n-values: ",
                          leave=True))
@@ -193,6 +194,7 @@ class Experimental_NValueCalculator:
                                                              "all_std_dev", "all_n_D_values"])
             n_value_df.to_csv(self.out_path[:-35] + "n_value_data.tsv", sep='\t')
         else:
+            results = [r[0] for r in results]
             prepared_df = pd.concat(results)
 
         prepared_df = prepared_df.set_index('index')
@@ -212,6 +214,7 @@ class Experimental_NValueCalculator:
                 multiple rows, each representing a different isotopic envelope.
             save_data (bool): whether we will create n-value calculation data .tsv output
             make_graphs (bool): whether we will create graphs showing n-value calculation process
+            interpolate_n_values (bool): whether to interpolate and calculate non-integer n-values.
 
         Returns:
             pd.DataFrame: A DataFrame containing the n-value and associated standard deviation and detailed n-value calculation
@@ -271,7 +274,7 @@ class Experimental_NValueCalculator:
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
                     n_value, stddev, n_data, med_first_derivative, time_point = (
-                        Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs))
+                        Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs, interpolate_n_values))
 
                     # Only allow the append if the stddev is less than .02
                     # if stddev <= 0.02: #make this a setting? Coleman 2025
@@ -297,7 +300,6 @@ class Experimental_NValueCalculator:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
             has_error = False
-            nv_data = None
 
             # append error message if no valid time points could be used
             if len(nvalues) == 0:
@@ -385,7 +387,7 @@ class Experimental_NValueCalculator:
                 [partition[1].reset_index(drop=True), pd.DataFrame(data=error_statement, columns=output_columns)],
                 axis=1), []
 
-    def analyze_row(self, row, emass_results, save_data, make_graphs):
+    def analyze_row(self, row, emass_results, save_data, make_graphs, interpolate_n_values):
         """
         Calculates n-value for each row
 
@@ -575,7 +577,7 @@ class Experimental_NValueCalculator:
         # could speed up by forgoing mzs, but mzs will be needed down the line
         emass_unlabeled_data, emass_labeled_data = emass_results
 
-        def interpolate_n_values(df):
+        def interpolate(df):
             interpolated_rows = []
 
             try:
@@ -632,7 +634,7 @@ class Experimental_NValueCalculator:
         (emass_labeled_mz, emass_labeled_intensities) = emass_labeled_data
 
         if interpolate_n_values:
-            emass_labeled_intensities = interpolate_n_values(emass_labeled_intensities)
+            emass_labeled_intensities = interpolate(emass_labeled_intensities)
 
         # Get the length of emass_labeled_data
         target_length = len(emass_labeled_intensities)

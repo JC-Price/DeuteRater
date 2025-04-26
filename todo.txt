@@ -60,6 +60,8 @@
 
 ### TESTING AND PACKAGING ###
 - check column names for sequence and make them generic
+- fix warnings during n-value calculations
+- fix issue with removing graph folder (main.py 846)
 - update ReadMe...
     - can't upload a settings file you used in another folder (unless you change paths) DONE
     - add warning about keeping DR open for consecutive runs DONE
