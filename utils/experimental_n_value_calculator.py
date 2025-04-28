@@ -47,15 +47,12 @@ import traceback
 import re
 import matplotlib.pyplot as plt
 
-output_columns = ['n_value', 'n_value_stddev', "num_nv_time_points", "cv", 'Median_FN_stddev', 'n_val_lower_margin',
-                  'n_val_upper_margin', 'All_n_values', 'N_value_time_points', 'Filtered_out_N_values',
-                  'Filtered_out_N_value_time_points', 'Reason_for_filtering']
-error_statement = ["error occurred", "error occurred", "error occurred", "error occurred", "error occurred",
-                   "error occurred", "error occurred", "error occurred", "error occurred", "error occurred", "error occurred",
-                   "error occurred"]
-timepoints_statement = ["no valid time points", 'n_value_stddev', "num_nv_time_points", "cv", 'Median_FN_stddev',
-                        'n_val_lower_margin', 'n_val_upper_margin', 'All_n_values', 'N_value_time_points',
-                        'Filtered_out_N_values', 'Filtered_out_N_value_time_points', 'Reason_for_filtering']
+output_columns = ["n_value", "n_value_stddev", "median_first_derivatives", "num_nv_time_points", "cv", "Median_FN_stddev",
+                  "n_val_lower_margin", "n_val_upper_margin", "All_n_values", "N_value_time_points", "Filtered_out_N_values",
+                  "Filtered_out_stddevs", "Filtered_out_median_first_derivatives", "Filtered_out_N_value_time_points",
+                  "Reason_for_filtering"]
+
+error_statement = ["error occurred" for _ in range(len(output_columns))]
 
 
 def bootstrap_median_ci(data, n_iterations=1000, ci=95, seed=None):
@@ -158,12 +155,13 @@ class Experimental_NValueCalculator:
         groups = self.prepared_df.groupby('divider', sort=False)
 
         nv_function = partial(Experimental_NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
-                              make_graphs=settings.graph_n_value_calculations, interpolate_n_values=settings.interpolate_n_values)
+                              make_graphs=settings.graph_n_value_calculations, interpolate_n_values=settings.interpolate_n_values,
+                              median_derivative_limit=settings.med_derivative_limit)
 
         results = list()
         n_value_data = list()
 
-        # if either of these settings are turned on, we need to run this step through debug mode so we can get all the results back
+        # if either of these settings are turned on, we need to run this step through debug mode, so we can get all the results back
         if settings.graph_n_value_calculations or settings.save_n_value_data:
             settings.debug_level = 1
 
@@ -180,7 +178,8 @@ class Experimental_NValueCalculator:
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
                 data, n = Experimental_NValueCalculator.analyze_group(self, group, settings.save_n_value_data,
-                                                                      settings.graph_n_value_calculations, settings.interpolate_n_values)
+                                                                      settings.graph_n_value_calculations,
+                                                                      settings.interpolate_n_values, settings.med_derivative_limit)
                 results.append(data)
                 n_data.append(n)
 
@@ -205,7 +204,7 @@ class Experimental_NValueCalculator:
                                           left_index=True,
                                           right_index=True)
 
-    def analyze_group(self, partition, save_data, make_graphs, interpolate_n_values):
+    def analyze_group(self, partition, save_data, make_graphs, interpolate_n_values, median_derivative_limit):
         """
         Generates emass information for each chemical formula and then sends each possible charge state to analyze_row()
 
@@ -278,13 +277,12 @@ class Experimental_NValueCalculator:
 
                     # Only allow the append if the stddev is less than .02
                     # if stddev <= 0.02: #make this a setting? Coleman 2025
-                    if med_first_derivative >= 0.2 and stddev <= 0.05:
-
+                    if med_first_derivative >= median_derivative_limit and stddev <= 0.05:
                         nvalues.append([n_value, stddev, time_point])  # remove time_point from here if it does not work - Coleman
                     else:
                         # Determine reason(s) for filtering
                         reasons = []
-                        if med_first_derivative < 0.2:
+                        if med_first_derivative < median_derivative_limit:
                             reasons.append("derivative too small")
                         if stddev > 0.05:
                             reasons.append("stddev too large")
@@ -295,18 +293,12 @@ class Experimental_NValueCalculator:
 
                     if save_data:
                         n_value_data.append(n_data)
-
                 except ValueError as e:
                     print("EXCEPTION OCCURRED WITH {}!".format(row))
 
             has_error = False
 
-            # append error message if no valid time points could be used
-            if len(nvalues) == 0:
-                has_error = True
-                nv_data = timepoints_statement
-
-            if not has_error:
+            if not has_error and len(nvalues) > 0:
                 # calculate standard deviation of n values and exclude any outliers - Ben D
                 nv = [n[0] if n[0] is not np.nan else -1 for n in nvalues]
                 FN_stddev = [n[1] if n[0] is not np.nan else -1 for n in nvalues]
@@ -315,25 +307,14 @@ class Experimental_NValueCalculator:
                 filtered_out_FN_stddev = [n[1] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
                 filtered_out_times = [n[2] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
 
-                nv_std = np.std(nv, dtype=np.float64)
+                # nv_std = np.std(nv, dtype=np.float64)
                 avg_nv = np.median(nv)  # change this to median, Coleman
-                avg_FN_std = np.median(FN_stddev)
+                # avg_FN_std = np.median(FN_stddev)
                 mad_nv = np.median(np.abs(nv - avg_nv))  # MAD about the median
 
                 # Guard against the (rare) case where all nv are identical
                 if mad_nv == 0:
                     mad_nv = np.finfo(float).eps  # smallest positive float
-
-                # below, instead of removing outliers, we use the median
-                '''
-                for i, value in enumerate(nv):
-                    # remove any n values that aren't within 1 standard deviation - Ben D   Return this if necessary, Coleman 
-                    if value > avg_nv + (2*nv_std) or value < avg_nv - (2* nv_std):
-                        filtered_out_nv.append(nv.pop(i))
-                        filtered_out_FN_stddev.append(FN_stddev.pop(i))
-                        filtered_out_times.append(time_points.pop(i))
-                        reason_for_filtering.append('outside 2 stddev')
-                '''
 
                 threshold = 3.5
                 scale = 0.6745 * mad_nv  # rescales MAD to σ‑equivalent
@@ -346,11 +327,6 @@ class Experimental_NValueCalculator:
                         filtered_out_FN_stddev.append(FN_stddev.pop(i))
                         filtered_out_times.append(time_points.pop(i))
                         reason_for_filtering.append('|modified z| > 3.5 (MAD)')
-
-                # if there aren't any values left, append error message
-                if not nv:
-                    has_error = True
-                    nv_data = timepoints_statement
 
                 if not has_error:
                     # recalculate average n-value and standard deviation with outliers removed - Ben Driggs
@@ -365,7 +341,25 @@ class Experimental_NValueCalculator:
 
                     # added the median of the FN_std
                     nv_data = [float(avg_nv), float(nv_std), int(num_points), float(cv), float(avg_FN_std), float(lower_margin),
-                               float(upper_margin), nv, time_points, filtered_out_nv, filtered_out_times, reason_for_filtering]
+                               float(upper_margin), nv, time_points, filtered_out_nv, filtered_out_FN_stddev, filtered_out_times,
+                               reason_for_filtering]
+            else:
+                # if there were no valid nvalues
+                avg_nv = np.nan
+                nv_std = np.nan
+                num_points = np.nan
+                cv = np.nan
+                avg_FN_std = np.nan
+                lower_margin = np.nan
+                upper_margin = np.nan
+                nv = np.nan
+                time_points = np.nan
+                filtered_out_nv = [n[0] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
+                filtered_out_FN_stddev = [n[1] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
+                filtered_out_times = [n[2] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
+
+                nv_data = [avg_nv, nv_std, num_points, cv, avg_FN_std, lower_margin, upper_margin, nv, time_points,
+                           filtered_out_nv, filtered_out_FN_stddev, filtered_out_times, reason_for_filtering]
 
             # apply average n value to each time point - Ben D
             for row in partition[1].itertuples(index=False):
