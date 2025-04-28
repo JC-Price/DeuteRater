@@ -148,6 +148,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.use_individual_rts, True),
             setting_string_info(self.interpolate_n_values, "interpolate_n_values",
                                 settings.interpolate_n_values, True),
+            setting_numerical_info(self.med_derivative_limit, "med_derivative_limit",
+                                   settings.med_derivative_limit, False),
+            setting_numerical_info(self.nv_stddev_limit, "nv_stddev_limit",
+                                   settings.nv_stddev_limit, False),
         ]
         self.setWindowTitle("Settings Menu")
         for setting_object in self.all_settings:
@@ -284,6 +288,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                     settings.use_individual_rts, True),
                 setting_string_info(self.interpolate_n_values, "interpolate_n_values",
                                     settings.interpolate_n_values, True),
+                setting_numerical_info(self.med_derivative_limit, "med_derivative_limit",
+                                       settings.med_derivative_limit, False),
+                setting_numerical_info(self.nv_stddev_limit, "nv_stddev_limit",
+                                       settings.nv_stddev_limit, False),
             ]
             for setting_object in self.all_settings:
                 setting_object.set_object_value()
@@ -305,10 +313,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.time_window, False),
             setting_numerical_info(self.ppm_error, "ppm_window",
                                    settings.ppm_window, True),
-            setting_string_info(self.use_chromatography_division,
-                                "use_chromatography_division",
-                                settings.use_chromatography_division,
-                                False),
+            setting_string_info(self.use_chromatography_division, "use_chromatography_division",
+                                settings.use_chromatography_division, False),
             setting_string_info(self.label_key, "label_key",
                                 settings.label_key, False),
             setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
@@ -319,10 +325,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.minimum_allowed_sequence_rate, False),
             setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
                                    settings.maximum_allowed_sequence_rate, False),
-            setting_string_info(self.graph_file_type,
-                                "graph_output_format",
-                                settings.graph_output_format,
-                                False),
+            setting_string_info(self.graph_file_type, "graph_output_format",
+                                settings.graph_output_format, False),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
                                    settings.abundance_manual_bias, False),
             setting_string_info(self.asymptope_type, "asymptote",
@@ -367,6 +371,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.use_individual_rts, True),
             setting_string_info(self.interpolate_n_values, "interpolate_n_values",
                                 settings.interpolate_n_values, True),
+            setting_numerical_info(self.med_derivative_limit, "med_derivative_limit",
+                                   settings.med_derivative_limit, False),
+            setting_numerical_info(self.nv_stddev_limit, "nv_stddev_limit",
+                                   settings.nv_stddev_limit, False),
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()
@@ -388,10 +396,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.time_window, False),
             setting_numerical_info(self.ppm_error, "ppm_window",
                                    settings.ppm_window, True),
-            setting_string_info(self.use_chromatography_division,
-                                "use_chromatography_division",
-                                settings.use_chromatography_division,
-                                False),
+            setting_string_info(self.use_chromatography_division, "use_chromatography_division",
+                                settings.use_chromatography_division, False),
             setting_string_info(self.label_key, "label_key",
                                 settings.label_key, False),
             setting_numerical_info(self.min_AA_length, "min_aa_sequence_length",
@@ -402,10 +408,8 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                    settings.minimum_allowed_sequence_rate, False),
             setting_numerical_info(self.max_allowed_rate, "maximum_allowed_sequence_rate",
                                    settings.maximum_allowed_sequence_rate, False),
-            setting_string_info(self.graph_file_type,
-                                "graph_output_format",
-                                settings.graph_output_format,
-                                False),
+            setting_string_info(self.graph_file_type, "graph_output_format",
+                                settings.graph_output_format, False),
             setting_numerical_info(self.abund_manual_bias, "abundance_manual_bias",
                                    settings.abundance_manual_bias, False),
             setting_string_info(self.asymptope_type, "asymptote",
@@ -450,6 +454,10 @@ class Rate_Setting_Menu(QtWidgets.QDialog, loaded_ui):
                                 settings.use_individual_rts, True),
             setting_string_info(self.interpolate_n_values, "interpolate_n_values",
                                 settings.interpolate_n_values, True),
+            setting_numerical_info(self.med_derivative_limit, "med_derivative_limit",
+                                   settings.med_derivative_limit, False),
+            setting_numerical_info(self.nv_stddev_limit, "nv_stddev_limit",
+                                   settings.nv_stddev_limit, False),
         ]
         for setting_object in self.all_settings:
             setting_object.set_object_value()

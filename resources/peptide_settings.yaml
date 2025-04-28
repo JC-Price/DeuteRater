@@ -247,3 +247,9 @@ use_individual_rts: !!bool False
 
 # toggle whether you want to interpolate n-values in n-value calculation module
 interpolate_n_values: !!bool False
+
+# sets the threshold for median first derivative filter during n-value calculations
+med_derivative_limit: !!float 0.2
+
+# sets limit for n-value standard deviations that will be accepted
+nv_stddev_limit: !!float 0.05

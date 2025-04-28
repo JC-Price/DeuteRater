@@ -134,9 +134,11 @@ save_n_value_data: bool
 max_allowed_enrichment: float
 use_individual_rts: bool
 interpolate_n_values: bool
+med_derivative_limit: float
+nv_stddev_limit: float
 
 
-# TODO: add quick explanation of how this works, inc. 'global' doc link
+# TODO: add quick explanation of how this works, inc. 'global' doc link - Ben Driggs
 def load(settings_path):
     # NOTE: Look at the python documentation for the 'global' statement if you
     #       Want to understand how this module works
@@ -366,6 +368,12 @@ def load(settings_path):
         global interpolate_n_values
         interpolate_n_values = s['interpolate_n_values']
 
+        global med_derivative_limit
+        med_derivative_limit = s['med_derivative_limit']
+
+        global nv_stddev_limit
+        nv_stddev_limit = s['nv_stddev_limit']
+
     except Exception as e:
         print(e)
         traceback.print_tb(e.__traceback__)
@@ -464,6 +472,8 @@ def freeze(path=None, settings_dict=None):
             "max_allowed_enrichment": max_allowed_enrichment,
             "use_individual_rts": use_individual_rts,
             "interpolate_n_values": interpolate_n_values,
+            "med_derivative_limit": med_derivative_limit,
+            "nv_stddev_limit": nv_stddev_limit,
         }
     if path:
         with open(path, 'w') as frozen_settings_file:

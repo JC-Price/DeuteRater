@@ -14,7 +14,7 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="20" column="1">
+   <item row="21" column="1">
     <widget class="QSpinBox" name="min_allowed_n_value">
      <property name="minimum">
       <number>1</number>
@@ -24,14 +24,14 @@
      </property>
     </widget>
    </item>
-   <item row="20" column="0">
+   <item row="21" column="0">
     <widget class="QLabel" name="label_25">
      <property name="text">
       <string>Minimum Allowed N Value</string>
      </property>
     </widget>
    </item>
-   <item row="21" column="1">
+   <item row="22" column="1">
     <widget class="QSpinBox" name="min_AA_length">
      <property name="minimum">
       <number>1</number>
@@ -41,7 +41,7 @@
      </property>
     </widget>
    </item>
-   <item row="19" column="0">
+   <item row="20" column="0">
     <widget class="QLabel" name="label_7">
      <property name="font">
       <font>
@@ -53,14 +53,14 @@
      </property>
     </widget>
    </item>
-   <item row="18" column="0">
+   <item row="19" column="0">
     <widget class="QLabel" name="label_31">
      <property name="text">
       <string>Retention Time Proximity Filter (min)</string>
      </property>
     </widget>
    </item>
-   <item row="18" column="1">
+   <item row="19" column="1">
     <widget class="QDoubleSpinBox" name="rt_prox_filter">
      <property name="minimum">
       <double>0.010000000000000</double>
@@ -200,14 +200,14 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="0">
+   <item row="22" column="0">
     <widget class="QLabel" name="label_24">
      <property name="text">
       <string>Minimum Peptide Length</string>
      </property>
     </widget>
    </item>
-   <item row="17" column="1">
+   <item row="18" column="1">
     <widget class="QSpinBox" name="mz_prox_filter">
      <property name="minimum">
       <number>1</number>
@@ -223,7 +223,7 @@
      </property>
     </widget>
    </item>
-   <item row="17" column="0">
+   <item row="18" column="0">
     <widget class="QLabel" name="label_27">
      <property name="text">
       <string>mz Proximity Filter (ppm)</string>
@@ -686,7 +686,7 @@
      </item>
     </widget>
    </item>
-   <item row="16" column="0">
+   <item row="17" column="0">
     <widget class="QLabel" name="label_">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -830,6 +830,58 @@
        <string>Yes</string>
       </property>
      </item>
+    </widget>
+   </item>
+   <item row="15" column="0">
+    <widget class="QLabel" name="label_57">
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Median First Derivative Limit</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="QDoubleSpinBox" name="med_derivative_limit">
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="0">
+    <widget class="QLabel" name="label_58">
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>N-Value Standard Deviation Limit</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="QDoubleSpinBox" name="nv_stddev_limit">
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
     </widget>
    </item>
    <item row="1" column="0">
