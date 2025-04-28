@@ -54,13 +54,16 @@
 - look at issue with rate output with columns with _x_x, _x_y etc. DONE (1/31/25)
 - fix time and enrichment, so it doesn't quit if copy/paste failed DONE (1/31/25)
 - add setting options for interpolated n-values DONE (4/25/25)
+- fix warnings during n-value calculations DONE (4/28/25)
+- add settings for med_first_derivative and std_dev in n-value calculator DONE (4/28/25)
+
+- remove n-value confidence value setting, replace with n-value stddev filter DONE (4/28/25)
 
 ### CHANGES/ADDITIONS ###
 - standardize DR setting capitalization and update ReadMe
 
 ### TESTING AND PACKAGING ###
 - check column names for sequence and make them generic
-- fix warnings during n-value calculations
 - fix issue with removing graph folder (main.py 846)
 - update ReadMe...
     - can't upload a settings file you used in another folder (unless you change paths) DONE
@@ -75,8 +78,11 @@
 - package and publish on GitHub
 
 ### NEXT STEPS ###
-- memory issue with extraction?
-- CPU not being limited in some machines
+- Upgrade environment/library with updated packages (especially pymzml)
+- Double check that available core recognition/throttling is working.
+- memory issue with extraction. Running DeuteRater again might fail.
+    - Coleman extracts and then will crash during fraction new.
+- CPU not being limited in some machine.
 - rename steps to be more descriptive?
 - add batch capability/setting to run multiple ID files (aka. one ID per mzML)
 - reorganize Settings_Menu.ui
