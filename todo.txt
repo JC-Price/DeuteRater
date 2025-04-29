@@ -1,3 +1,4 @@
+### FINISHED TASKS ###
 - replace rate_calculator.py DONE
 - bring in n-value calculator DONE
 - simplify time and enrichment input table, add option for calculating n-values DONE
@@ -56,15 +57,11 @@
 - add setting options for interpolated n-values DONE (4/25/25)
 - fix warnings during n-value calculations DONE (4/28/25)
 - add settings for med_first_derivative and std_dev in n-value calculator DONE (4/28/25)
-
+- fix issue with removing graph folder (main.py 846) DONE (4/29/25)
 - remove n-value confidence value setting, replace with n-value stddev filter DONE (4/28/25)
-
-### CHANGES/ADDITIONS ###
-- standardize DR setting capitalization and update ReadMe
 
 ### TESTING AND PACKAGING ###
 - check column names for sequence and make them generic
-- fix issue with removing graph folder (main.py 846)
 - update ReadMe...
     - can't upload a settings file you used in another folder (unless you change paths) DONE
     - add warning about keeping DR open for consecutive runs DONE
@@ -79,17 +76,15 @@
 - package and publish on GitHub
 
 ### NEXT STEPS ###
+- standardize DR setting capitalization and update ReadMe
 - Upgrade environment/library with updated packages (especially pymzml)
 - Double check that available core recognition/throttling is working.
 - memory issue with extraction. Running DeuteRater again might fail.
     - Coleman extracts and then will crash during fraction new.
-- CPU not being limited in some machine.
-- rename steps to be more descriptive?
-- add batch capability/setting to run multiple ID files (aka. one ID per mzML)
-- reorganize Settings_Menu.ui
-- figure out how to integrate fractional n-values
+- CPU not being limited in some machines.
+- rename DeuteRater steps to be more descriptive?
+- add batch capability/setting to run multiple ID files (aka. one ID per mzML) - ask Coleman
+- reorganize Settings_Menu.ui (maybe alphabetical, or group related settings for each step together)
 - fix issue where names are cut off in graph titles
 - add Ion Mobility
 
-
-- n values, essential vs non-essential amino acid n-values and how they change with conditions (diets - high/low protein)
