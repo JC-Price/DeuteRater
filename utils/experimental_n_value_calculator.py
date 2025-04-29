@@ -156,7 +156,7 @@ class Experimental_NValueCalculator:
 
         nv_function = partial(Experimental_NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
                               make_graphs=settings.graph_n_value_calculations, interpolate_n_values=settings.interpolate_n_values,
-                              median_derivative_limit=settings.med_derivative_limit)
+                              median_derivative_limit=settings.med_derivative_limit, n_value_stddev_limit=settings.nv_stddev_limit)
 
         results = list()
         n_value_data = list()
@@ -179,7 +179,9 @@ class Experimental_NValueCalculator:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
                 data, n = Experimental_NValueCalculator.analyze_group(self, group, settings.save_n_value_data,
                                                                       settings.graph_n_value_calculations,
-                                                                      settings.interpolate_n_values, settings.med_derivative_limit)
+                                                                      settings.interpolate_n_values,
+                                                                      settings.med_derivative_limit,
+                                                                      settings.nv_stddev_limit)
                 results.append(data)
                 n_data.append(n)
 
@@ -204,7 +206,7 @@ class Experimental_NValueCalculator:
                                           left_index=True,
                                           right_index=True)
 
-    def analyze_group(self, partition, save_data, make_graphs, interpolate_n_values, median_derivative_limit):
+    def analyze_group(self, partition, save_data, make_graphs, interpolate_n_values, median_derivative_limit, n_value_stddev_limit):
         """
         Generates emass information for each chemical formula and then sends each possible charge state to analyze_row()
 
@@ -214,6 +216,8 @@ class Experimental_NValueCalculator:
             save_data (bool): whether we will create n-value calculation data .tsv output
             make_graphs (bool): whether we will create graphs showing n-value calculation process
             interpolate_n_values (bool): whether to interpolate and calculate non-integer n-values.
+            median_derivative_limit (float): Setting to filter out n-values with a median first derivative greater than this limit.
+            nv_stddev_limit (float): Setting to filter out n-values with an n-value greater than this limit.
 
         Returns:
             pd.DataFrame: A DataFrame containing the n-value and associated standard deviation and detailed n-value calculation
@@ -273,22 +277,23 @@ class Experimental_NValueCalculator:
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
                     n_value, stddev, n_data, med_first_derivative, time_point = (
-                        Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs, interpolate_n_values))
+                        Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs,
+                                                                  interpolate_n_values, median_derivative_limit, n_value_stddev_limit))
 
                     # Only allow the append if the stddev is less than .02
                     # if stddev <= 0.02: #make this a setting? Coleman 2025
-                    if med_first_derivative >= median_derivative_limit and stddev <= 0.05:
-                        nvalues.append([n_value, stddev, time_point])  # remove time_point from here if it does not work - Coleman
+                    if med_first_derivative >= median_derivative_limit and stddev <= n_value_stddev_limit:
+                        nvalues.append([n_value, stddev, time_point, med_first_derivative])  # remove time_point from here if it does not work - Coleman
                     else:
                         # Determine reason(s) for filtering
                         reasons = []
                         if med_first_derivative < median_derivative_limit:
                             reasons.append("derivative too small")
-                        if stddev > 0.05:
+                        if stddev > n_value_stddev_limit:
                             reasons.append("stddev too large")
 
                         # Append to filtered list and reason list
-                        filtered_out_nvalues.append([n_value, stddev, time_point])
+                        filtered_out_nvalues.append([n_value, stddev, time_point, med_first_derivative])
                         reason_for_filtering.append(" and ".join(reasons))
 
                     if save_data:
@@ -302,9 +307,11 @@ class Experimental_NValueCalculator:
                 # calculate standard deviation of n values and exclude any outliers - Ben D
                 nv = [n[0] if n[0] is not np.nan else -1 for n in nvalues]
                 FN_stddev = [n[1] if n[0] is not np.nan else -1 for n in nvalues]
+                med_derivative = [n[3] for n in nvalues]
                 time_points = [n[2] if n[0] is not np.nan else -1 for n in nvalues]
                 filtered_out_nv = [n[0] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
                 filtered_out_FN_stddev = [n[1] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
+                filtered_out_med_derivative = [n[3] for n in filtered_out_nvalues]
                 filtered_out_times = [n[2] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
 
                 # nv_std = np.std(nv, dtype=np.float64)
@@ -340,13 +347,14 @@ class Experimental_NValueCalculator:
                     cv = float(nv_std / avg_nv)
 
                     # added the median of the FN_std
-                    nv_data = [float(avg_nv), float(nv_std), int(num_points), float(cv), float(avg_FN_std), float(lower_margin),
-                               float(upper_margin), nv, time_points, filtered_out_nv, filtered_out_FN_stddev, filtered_out_times,
-                               reason_for_filtering]
+                    nv_data = [float(avg_nv), float(nv_std), med_derivative, int(num_points), float(cv), float(avg_FN_std), float(lower_margin),
+                               float(upper_margin), nv, time_points, filtered_out_nv, filtered_out_FN_stddev, filtered_out_med_derivative,
+                               filtered_out_times, reason_for_filtering]
             else:
                 # if there were no valid nvalues
                 avg_nv = np.nan
                 nv_std = np.nan
+                med_derivative = np.nan
                 num_points = np.nan
                 cv = np.nan
                 avg_FN_std = np.nan
@@ -356,10 +364,11 @@ class Experimental_NValueCalculator:
                 time_points = np.nan
                 filtered_out_nv = [n[0] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
                 filtered_out_FN_stddev = [n[1] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
+                filtered_out_med_derivative = [n[3] for n in filtered_out_nvalues]
                 filtered_out_times = [n[2] if n[0] is not np.nan else -1 for n in filtered_out_nvalues]
 
-                nv_data = [avg_nv, nv_std, num_points, cv, avg_FN_std, lower_margin, upper_margin, nv, time_points,
-                           filtered_out_nv, filtered_out_FN_stddev, filtered_out_times, reason_for_filtering]
+                nv_data = [avg_nv, nv_std, med_derivative, num_points, cv, avg_FN_std, lower_margin, upper_margin, nv, time_points,
+                           filtered_out_nv, filtered_out_FN_stddev, filtered_out_med_derivative, filtered_out_times, reason_for_filtering]
 
             # apply average n value to each time point - Ben D
             for row in partition[1].itertuples(index=False):
@@ -381,15 +390,18 @@ class Experimental_NValueCalculator:
                 [partition[1].reset_index(drop=True), pd.DataFrame(data=error_statement, columns=output_columns)],
                 axis=1), []
 
-    def analyze_row(self, row, emass_results, save_data, make_graphs, interpolate_n_values):
+    def analyze_row(self, row, emass_results, save_data, make_graphs, interpolate_n_values, median_derivative_limit, nv_stddev_limit):
         """
         Calculates n-value for each row
 
         Parameters:
             row (pd.Series): Contains chemical formula, empirical intensity data, and enrichment level, and whether an n-value should be calculated
             emass_results (pd.DataFrame): Results from emass containing unlabeled & labeled intensity and m/z data.
-            save_data (bool): whether we will create n-value calculation data .tsv output
-            make_graphs (bool): whether we will create graphs showing n-value calculation process
+            save_data (bool): whether we will create n-value calculation data .tsv output.
+            make_graphs (bool): whether we will create graphs showing n-value calculation process.
+            interpolate_n_values (bool): whether to interpolate and calculate non-integer n-values.
+            median_derivative_limit (float): Setting to filter out n-values with a median first derivative greater than this limit.
+            nv_stddev_limit (float): Setting to filter out n-values with an n-value greater than this limit.
 
         Returns:
             Tuple: a tuple containing the given n-value, the stddev associated with it (will be empty if n-value was not calculated), and
@@ -690,7 +702,7 @@ class Experimental_NValueCalculator:
         n_value_info = []
 
         # if the make_graphs and stddev < 0.02: #remove the 0.2 filter for now
-        # if med_first_derivative >= 0.2 and stddev <= 0.05 and make_graphs:  # are we being too conservative here? 3/12/2025 -coleman
+        # TODO: if med_first_derivative >= median_derivative_limit and stddev <= n_value_stddev_limit and make_graphs:  # are we being too conservative here? 3/12/2025 -coleman
         if make_graphs:
             if not np.isnan(n_value):
                 # Plotting the unfiltered data
