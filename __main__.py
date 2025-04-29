@@ -38,7 +38,6 @@ import sys
 import multiprocessing as mp
 import time
 
-import numpy as np
 import csv
 import pandas as pd
 from tqdm import tqdm
@@ -59,7 +58,7 @@ import deuterater.settings as settings
 import deuterater.converter_settings as converter_settings
 from gui_software.Rate_Settings import Rate_Setting_Menu
 
-# when compiling/building for an executable, set all of these to True, otherwise leave as False
+# when compiling/building for an executable, set these to True, otherwise leave as False
 # copy "exe_mode = False" and search using ctrl+shift+f to find each instance
 exe_mode = False
 if exe_mode:
@@ -115,11 +114,11 @@ fraction_new_calculation = deuterater_step("frac_new_output.tsv", [
                                                "Identification Charge", "n_isos", "n_value",
                                                "Lipid Name", "cf", "abundances", "mzs", "time", "enrichment",
                                                "sample_group"])
-# TODO: what lipid columns do we need here? - Ben D
 rate_calculation = deuterater_step("rate_by_sequence.tsv", ["Protein_ID", "Protein_Name",
                                                             "Sequence", "n_isos", "time", "sample_group", "enrichment",
                                                             "abundances", "Theoretical Unlabeled Normalized Abundances",
                                                             "n_isos", "n_value"], [])
+
 # create a dictionary, so we can call the deuterater_step objects
 step_object_dict = {
     "Extract": Extract_object,
@@ -128,9 +127,9 @@ step_object_dict = {
     "Calculate Baseline Enrichment": delta_by_enrichment,
     "Calculate Fraction New": fraction_new_calculation,
     "Rate Calculation": rate_calculation}
+
 #  converter only does something other than make a file with a header for 
-# id files made with Peaks.  each version is slightly different so needs a different
-# analysis
+# id files made with Peaks.  each version is slightly different so needs a different analysis
 convert_options = ["Peptide Template", "Lipid Template"]
 
 # columns for the extractor that absolutely need data (others can autofill or are just for user information)
@@ -141,13 +140,11 @@ required_peptide_data_extractor_data = ["Sequence", "Protein ID", "Precursor Ret
 required_lipid_data_extractor_data = ['Precursor Retention Time (sec)', 'Precursor m/z',
                                       'Identification Charge', "Lipid Unique Identifier", "Lipid Name"]
 autofill_peptide_columns = ["Peptide Theoretical Mass", "cf", "literature_n"]
-autofill_lipid_columns = []  # TODO: are there any columns for lipids that need auto-filling? - Ben D
-# need to autofill: Peptide Theoretical Mass, cf? 	neutromers_to_extract, literature_n
+autofill_lipid_columns = []  # TODO: are there any columns for lipids that we can auto-fill? - Ben D
+# need to autofill: Peptide Theoretical Mass, cf?, neutromers_to_extract, literature_n
 
 
 # default converter option
-default_converter = "Peptide Template"
-# TODO: may need to adjust the header or shove in the n-value calculator
 protein_converter_header = ['Sequence', 'Protein ID', 'Protein Name', 'Precursor Retention Time (sec)', 'rt_start',
                             'rt_end', 'rt_width', 'Precursor m/z', 'Peptide Theoretical Mass', 'Identification Charge',
                             'ptm', 'avg_ppm', 'start_loc', 'end_loc', 'num_peptides', 'num_unique', 'accessions',
@@ -180,12 +177,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # make_temp_file(default_rate_settings, rate_settings_file)
         self.file_loc = location
 
-        # set up the id file options
-        self.guide_file_options.addItems(convert_options)
-        # set the default value for the converter
-        index = self.guide_file_options.findText(default_converter)
-        self.guide_file_options.setCurrentIndex(index)
-
         self.GuideFileButton.clicked.connect(self.create_guide_file)
         self.RateCalculationButton.clicked.connect(self._calc_rates)
         self.actionSettings.triggered.connect(self.change_settings)
@@ -198,91 +189,24 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         self.Logo.setScaledContents(True)
         self.setWindowTitle("DeuteRater")
 
-    # prompt the user for necessary Peaks outputs
-
-    def Peaks_File_Collection(self, header_checker_object):
-        #  get the files we need
-        # TODO switch to reading from a folder instead of individual files?$
-        QtWidgets.QMessageBox.information(self, "Info", ("Please select the "
-                                                         "files you would like to turn into a guide file. The order is \""
-                                                         "proteins.csv\", \"protein-peptides.csv\", \"feature.csv\""))
-
-        protein_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
-                                                                        "Choose protein file to Load", self.file_loc,
-                                                                        "CSV (*.csv)")
-        if protein_file == "":
-            return ""
-        else:
-            has_needed_columns = header_checker_object.protein_file_check(protein_file)
-            if not has_needed_columns:
-                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(
-                    protein_file)))
-                return ""
-            self.file_loc = os.path.dirname(protein_file)
-
-        protein_peptide_file, file_type = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Choose protein_peptide file to Load", self.file_loc,
-            "CSV (*.csv)")
-        if protein_peptide_file == "":
-            return ""
-        else:
-            has_needed_columns = header_checker_object.protein_peptide_check(protein_peptide_file)
-            if not has_needed_columns:
-                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(
-                    protein_peptide_file)))
-                return ""
-
-            self.file_loc = os.path.dirname(protein_peptide_file)
-
-        feature_file, file_type = QtWidgets.QFileDialog.getOpenFileName(self,
-                                                                        "Choose features file to Load", self.file_loc,
-                                                                        "CSV (*.csv)")
-        if feature_file == "":
-            return ""
-        else:
-            has_needed_columns = header_checker_object.features_check(feature_file)
-            if not has_needed_columns:
-                QtWidgets.QMessageBox.information(self, "Error", ("File {} is "
-                                                                  "missing needed columns. Please correct and try again".format(
-                    feature_file)))
-                return ""
-
-            self.file_loc = os.path.dirname(feature_file)
-        return [protein_file, protein_peptide_file, feature_file]
-
     # this is to govern the different guide file functions
     def create_guide_file(self):
         # guide_file_type = str(self.guide_file_options.currentText())
-        guide_file_type = str(self.guide_file_options.currentText())
-        # collect any guide files needed
-        # template doesn't need one since it just needs one output
-        # if guide_file_type in ["Peaks 8.5", "Peaks X+", "Peaks XPro"]:
-        #     input_files = self.Peaks_File_Collection(convert_needed_headers[guide_file_type])
-
-        # guide_file_type has to be first or input_files may not be defined
-        # if guide_file_type != "Template" and input_files == "":
-        #     return
-        # if guide_file_type != "Template":
-        #     # do the actual calculations
-        #     converter = convert_options[guide_file_type](input_files,
-        #                                                  guide_settings_file)
-        #     converter.convert()
 
         # get output file
         QtWidgets.QMessageBox.information(self, "Info", ("Your guide file was "
                                                          "created. Please select the output file location"))
-        while (True):
+        while True:
             save_file, filetype = QtWidgets.QFileDialog.getSaveFileName(self,
-                                                                        "Provide Save File", self.file_loc,
+                                                                        "Select location and name for your guide file", self.file_loc,
                                                                         "CSV (*.csv)")
-            if save_file == "": return
+            if save_file == "":
+                return
             try:
                 # if guide_file_type != "Template":
                 #     converter.write(save_file)
                 # else:
-                if guide_file_type == "Lipid Template":
+                if self.PeptideButton.isChecked():
                     # Create lipid ID file template
                     df = pd.DataFrame(columns=lipid_converter_header)
                     df.loc[0] = lipid_template_example
@@ -324,7 +248,7 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         # first we need to check which steps are checked 
         worklist = self.check_table_checklist()
         #  only proceed if we have steps to perform
-        if worklist == []:
+        if not worklist:
             QtWidgets.QMessageBox.information(self, "Error", ("No options were "
                                                               "checked. Please check steps to perform and try again"))
             return
@@ -409,9 +333,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
         make_table_in_order = True
         for analysis_step in worklist:
             if analysis_step == "Extract":
-                # import tracemalloc
-                # import psutil
-                # tracemalloc.start()
                 # no if for this one, if extract is here it is the start
                 id_file = self.collect_single_file("ID", "Extract", "CSV (*.csv)")
                 if id_file == "":
@@ -459,7 +380,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     previous_output_file = step_object_dict[
                         "Provide Time and Enrichment"].full_filename
 
-                    self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file, max_enrichment=settings.max_allowed_enrichment)
+                    self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file,
+                                                               max_enrichment=settings.max_allowed_enrichment)
                     self.get_data_table.exec_()
 
                     # don't make the table twice
@@ -480,7 +402,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     extractor.load()
                     extractor.run()
                     extractor.write()
-                    # need to delete classes when they're done or they may linger in RAM
+
+                    # need to delete classes when they're done, or they may linger in RAM
                     del extractor
 
                 # this takes awhile so only bother with it if necessary
@@ -492,7 +415,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                     divider.divide()
                     del divider
             # if we've already done this (make_table_in_order is false) there is no need
-            #  to 
             elif analysis_step == "Provide Time and Enrichment" and make_table_in_order:
                 # if coming right after a list
                 if not extracted_files:
@@ -516,7 +438,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                 # the table will handle the output
                 previous_output_file = step_object_dict[
                     analysis_step].full_filename
-                self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file, max_enrichment=settings.max_allowed_enrichment)
+                self.get_data_table = TimeEnrichmentWindow(self, extracted_files, previous_output_file,
+                                                           max_enrichment=settings.max_allowed_enrichment)
                 self.get_data_table.exec_()
 
             # now we need to merge the various extracted files into one file
@@ -584,7 +507,8 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
                         analysis_step,
                         "spreadsheet (*.csv *.tsv)"
                     )
-                    if previous_output_file == "": return
+                    if previous_output_file == "":
+                        return
                     infile_is_good = self.check_input(
                         step_object_dict[analysis_step],
                         previous_output_file, biomolecule_type)
