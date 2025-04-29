@@ -61,6 +61,7 @@
 - remove n-value confidence value setting, replace with n-value stddev filter DONE (4/28/25)
 
 ### TESTING AND PACKAGING ###
+- remove redundant guide file options on main gui
 - check column names for sequence and make them generic
 - update ReadMe...
     - can't upload a settings file you used in another folder (unless you change paths) DONE
