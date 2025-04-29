@@ -74,6 +74,7 @@
     - add note about using different retention times for each mzML and add details about Time and Enrichment Table
     - include note that we aren't checking for peptides with extremely similar mz and rt
     - add note about calculating lipid rate curve asymptote
+    - median first derivative and n-value standard deviation settings
 - update license in each module
 - package and publish on GitHub
 
