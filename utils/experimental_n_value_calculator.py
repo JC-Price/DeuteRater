@@ -217,7 +217,7 @@ class Experimental_NValueCalculator:
             make_graphs (bool): whether we will create graphs showing n-value calculation process
             interpolate_n_values (bool): whether to interpolate and calculate non-integer n-values.
             median_derivative_limit (float): Setting to filter out n-values with a median first derivative greater than this limit.
-            nv_stddev_limit (float): Setting to filter out n-values with an n-value greater than this limit.
+            n_value_stddev_limit (float): Setting to filter out n-values with an n-value greater than this limit.
 
         Returns:
             pd.DataFrame: A DataFrame containing the n-value and associated standard deviation and detailed n-value calculation
