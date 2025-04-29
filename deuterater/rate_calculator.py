@@ -421,16 +421,19 @@ class RateCalculator:
 
             # try to find confidence interval. Sometimes covariance will be negative, in which case we won't be able to calculate one.
             # If so, we'll set confint to np.NaN and we won't draw any error lines
-            confint = None
+            confint_k = None
             for value in np.diag(pcov):
                 if value < 0:
-                    confint = np.NaN
+                    confint_k = np.NaN
                     break
-            if confint is None:
+            if confint_k is None:
                 try:
-                    confint = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
+                    confint_k = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[0]
+                    confint_a = t.ppf(.975, num_files - len(popt)) * np.sqrt(np.diag(pcov))[1] if len(popt) > 1 else settings.fixed_asymptote_value #coleman 2025
+
                 except Exception as e:
-                    confint = np.NaN
+                    confint_k = np.NaN
+                    confint_a = np.NaN if len(popt) > 1 else settings.fixed_asymptote_value
 
             try:
                 y_predicted = dur.simple(xs, rate, asymptote, settings.proliferation_adjustment)
@@ -441,26 +444,45 @@ class RateCalculator:
                     common_name, sample_group_name, calc_type, num_measurements,
                     num_unique_times, unique_length, num_files)
                 return result, group
+            if len(popt) > 1: #coleman 2025
+                result = {
+                    'analyte_id': id_name,
+                    'analyte_name': common_name,
+                    'group_name': sample_group_name,
+                    '{} rate'.format(calc_type): rate,
+                    '{} asymptote'.format(calc_type): asymptote,
+                    '{} 95pct_confidence_K'.format(calc_type): confint_k,
+                    '{} 95pct_confidence_A'.format(calc_type): confint_a,
+                    '{} half life'.format(calc_type): RateCalculator._halflife(rate),
+                    '{} R2'.format(calc_type): r_2,
+                    "{} files observed in".format(calc_type): num_files,
+                    '{} num_measurements'.format(calc_type): num_measurements,
+                    '{} num_time_points'.format(calc_type): num_unique_times,
+                    '{} uniques'.format(calc_type): unique_length,
+                    '{} exceptions'.format(calc_type): "",
+                    "rate_graph_time_points_x": "; ".join(map(str, list(xs))),
+                    "normed_isotope_data_y": "; ".join(map(str, list(ys)))
+                }
+            else: #coleman 2025
+                result = {
+                    'analyte_id': id_name,
+                    'analyte_name': common_name,
+                    'group_name': sample_group_name,
+                    '{} rate'.format(calc_type): rate,
+                    '{} asymptote'.format(calc_type): asymptote,
+                    '{} 95pct_confidence_K'.format(calc_type): confint_k,
+                    '{} half life'.format(calc_type): RateCalculator._halflife(rate),
+                    '{} R2'.format(calc_type): r_2,
+                    "{} files observed in".format(calc_type): num_files,
+                    '{} num_measurements'.format(calc_type): num_measurements,
+                    '{} num_time_points'.format(calc_type): num_unique_times,
+                    '{} uniques'.format(calc_type): unique_length,
+                    '{} exceptions'.format(calc_type): "",
+                    "rate_graph_time_points_x": "; ".join(map(str, list(xs))),
+                    "normed_isotope_data_y": "; ".join(map(str, list(ys)))
+                }
 
-            result = {
-                'analyte_id': id_name,
-                'analyte_name': common_name,
-                'group_name': sample_group_name,
-                '{} rate'.format(calc_type): rate,
-                '{} asymptote'.format(calc_type): asymptote,
-                '{} 95pct_confidence'.format(calc_type): confint,
-                '{} half life'.format(calc_type): RateCalculator._halflife(rate),
-                '{} R2'.format(calc_type): r_2,
-                "{} files observed in".format(calc_type): num_files,
-                '{} num_measurements'.format(calc_type): num_measurements,
-                '{} num_time_points'.format(calc_type): num_unique_times,
-                '{} uniques'.format(calc_type): unique_length,
-                '{} exceptions'.format(calc_type): "",
-                f"{calc_type}_rate_graph_time_points": "; ".join(map(str, list(xs))),
-                f"{calc_type}_normed_isotope_data": "; ".join(map(str, list(ys)))
-            }
-
-            if confint is not np.NaN:
+            if confint_k is not np.NaN:
                 result['{} std_error'.format(calc_type)] = np.sqrt(np.diag(pcov))[0]
             else:
                 result['{} std_error'.format(calc_type)] = np.NaN
@@ -479,7 +501,7 @@ class RateCalculator:
                 graph_title = "{}_{}_{}\nk={:.3f}, a={:.3f}, r-squared={}".format(id_name[:-1],
                                                                                   sample_group_name, fn_col,
                                                                                   result[f'{calc_type} rate'],
-                                                                                  result['{} rate'.format(calc_type)],
+                                                                                  asymptote,# what it used to be result['{} rate'.format(calc_type)]
                                                                                   round(r_2, 3))
                 if "dietary_lit_n_avg" in list(group.columns):
                     lit_n_str = ""
@@ -495,23 +517,23 @@ class RateCalculator:
                 graph_name = None
                 graph_title = None
             try:
-                if r_2 >= 0.5:
+                if r_2 > 0.6:
                     graph_folder = graph_folders[0]
                 else:
                     graph_folder = graph_folders[1]
                 if settings.graph_output_format == "none":
                     print("No graphs were generated. Change DeuteRater settings if you want graphs to be generated.")
                 elif biomolecule_type == "Lipid":
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                    graph_rate(graph_name, xs, ys, rate, asymptote, confint_k,
                                rate_eq, graph_folder, max_time,
                                settings.asymptote, calc_type=fn_col, full_data=group, title=graph_title)
                 else:
                     # if biomolecule_type == "Peptide":
-                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                    #     graph_rate(graph_name, xs, ys, rate, asymptote, confint_k,
                     #                rate_eq, graph_folder, max_time,
                     #                settings.asymptote, devs, title=graph_title)
                     # else:
-                    graph_rate(graph_name, xs, ys, rate, asymptote, confint,
+                    graph_rate(graph_name, xs, ys, rate, asymptote, confint_k,
                                rate_eq, graph_folder, max_time,
                                settings.asymptote, title=graph_title)
             except Exception as c:
