@@ -44,8 +44,7 @@ import concurrent.futures as cf
 from tqdm import tqdm  # noqa: 401
 
 import deuterater.settings as settings
-import utils.NValueCalculator as nvct
-import utils.experimental_n_value_calculator as envct
+import utils.n_value_calculator as nvct
 
 import resources.peptide_utils as peputils
 
@@ -56,7 +55,7 @@ experimental subject and the enrichment, as well as which extracted filters to c
 
 Therefore this will add the users data on subjects and deuterium enrichment,
 do some basic filtering, calculate a literature n value based on aa_labeling_sites.tsv (for peptides) or 
-an empirical n value based on theory using NValueCalculator.py (for lipids) and then merge them all into one file
+an empirical n value based on theory using old_NValueCalculator.py (for lipids) and then merge them all into one file
 
 may merge with initial_intensity_calculator, which has a similar basic filtering
 role and occurs immediately afterwards
@@ -74,8 +73,6 @@ class CombineExtractedFiles:
         self.needed_columns = needed_columns
         self.biomolecule_type = biomolecule_type
         self.graph_folder = graph_folder
-
-        # settings.use_empir_n_value = True
 
         # collect necessary components to determine n_value from amino acids
         if self.biomolecule_type == "Peptide":
@@ -97,10 +94,6 @@ class CombineExtractedFiles:
                 filepath_or_buffer=str(self.enrichment_path),
                 sep=','
             )
-
-        # self._file_data.dropna(inplace=True, how="all")
-        # self._enrichment_data.dropna(inplace=True, how="all")
-        # self._data_dict = self.collect_enrichment_data()
         
         # if multiprocessing need to set that up. more than 60 cores causes problems for windows
         if settings.recognize_available_cores is True:
@@ -111,7 +104,6 @@ class CombineExtractedFiles:
         if self._n_processors > 60:
             self._n_processors = 60
 
-        # self._mp_pool = mp.Pool(self._n_processors)
         self.out_path = out_path
         self.model = None
 
@@ -193,22 +185,17 @@ class CombineExtractedFiles:
                 column_list.sort()
                 self.model["molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
             else:
-                column_list = list(self.model.columns[self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier", "Sequence", 'Protein ID'])])
+                column_list = list(self.model.columns[self.model.columns.isin(["Adduct", "sample_group", "Lipid Unique Identifier",
+                                                                               "Sequence", 'Protein ID'])])
                 column_list.sort()
                 self.model["adduct_molecule_sg"] = self.model[column_list].agg("_".join, axis=1)
 
-            # We don't want to calculate N-values for Day 0 data or for enrichment less than 0.005 - Ben Driggs
-            # n_val_df = self.model
-            # calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
-            calculator = envct.Experimental_NValueCalculator(self.model, self.settings_path, self.biomolecule_type, self.out_path, graphs_location=self.graph_folder)
+            calculator = nvct.NValueCalculator(self.model, self.settings_path, self.biomolecule_type,
+                                               self.out_path, graphs_location=self.graph_folder)
             calculator.run()
             self.model = calculator.full_df
 
             full_df = self.model.copy()
-
-            # Determine what the highest time point is and only look at those rows
-            # highest_timepoint = max(full_df['time'].unique())
-            # lipid_groups = full_df.groupby(by='adduct_molecule_sg')
 
             # TODO: Since we already have calculated the average n-value, what aspects of this reproducibility code do we need? - Ben D
             # # Compare reproducibility across reps

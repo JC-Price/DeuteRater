@@ -84,7 +84,7 @@ def bootstrap_median_ci(data, n_iterations=1000, ci=95, seed=None):
     return lower_margin, upper_margin
 
 
-class Experimental_NValueCalculator:
+class NValueCalculator:
     def __init__(self, dataframe, settings_path, biomolecule_type, out_path, graphs_location=None):
         # this DataFrame should only contain the correct columns
         settings.load(settings_path)
@@ -154,7 +154,7 @@ class Experimental_NValueCalculator:
 
         groups = self.prepared_df.groupby('divider', sort=False)
 
-        nv_function = partial(Experimental_NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
+        nv_function = partial(NValueCalculator.analyze_group, self, save_data=settings.save_n_value_data,
                               make_graphs=settings.graph_n_value_calculations, interpolate_n_values=settings.interpolate_n_values,
                               median_derivative_limit=settings.med_derivative_limit, n_value_stddev_limit=settings.nv_stddev_limit)
 
@@ -177,7 +177,7 @@ class Experimental_NValueCalculator:
 
         elif settings.debug_level >= 1:
             for group in tqdm(groups, desc="Calculating n-values: ", total=len(groups)):
-                data, n = Experimental_NValueCalculator.analyze_group(self, group, settings.save_n_value_data,
+                data, n = NValueCalculator.analyze_group(self, group, settings.save_n_value_data,
                                                                       settings.graph_n_value_calculations,
                                                                       settings.interpolate_n_values,
                                                                       settings.med_derivative_limit,
@@ -235,10 +235,10 @@ class Experimental_NValueCalculator:
             # just choose the smaller cf, or which cf we want to use.
             if self.biomolecule_type == "Peptide":
                 num_h_adduct = np.inf
-                num_h_no_adduct, chem_f, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+                num_h_no_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
             else:
-                num_h_adduct, chem_f, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
-                num_h_no_adduct, _, _ = Experimental_NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
+                num_h_adduct, chem_f, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["adduct_chemical_formula"])
+                num_h_no_adduct, _, _ = NValueCalculator.parse_cf(partition[1].iloc[0]["chemical_formula"])
 
             if num_h_no_adduct < num_h_adduct:
                 num_h = num_h_no_adduct
@@ -277,7 +277,7 @@ class Experimental_NValueCalculator:
                 # Calculate n-value and standard deviation, gather n-value calculation data if setting is turned on
                 try:
                     n_value, stddev, n_data, med_first_derivative, time_point = (
-                        Experimental_NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs,
+                        NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs,
                                                                   interpolate_n_values, median_derivative_limit, n_value_stddev_limit))
 
                     # Only allow the append if the stddev is less than .02
@@ -769,7 +769,7 @@ def main():
     filename = "../n_value_debug_data.tsv"
     settings_path = "../resources/temp_settings.yaml"
     df = pd.read_csv(filename, sep='\t')
-    calculator = Experimental_NValueCalculator(df, settings_path, "Lipid", "../n_value_test")
+    calculator = NValueCalculator(df, settings_path, "Lipid", "../n_value_test")
     calculator.run()
     calculator.full_df.to_csv(filename[:-4] + "_nvalue.tsv", sep='\t')
 
