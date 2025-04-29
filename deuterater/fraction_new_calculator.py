@@ -109,9 +109,9 @@ class FractionNewCalculator:
         # self._mp_pool = mp.Pool(self._n_processors)
         
         if model_path[-4:] == ".tsv":
-            self.model = pd.read_csv(model_path, sep='\t')
+            self.model = pd.read_csv(model_path, sep='\t', low_memory=False)
         elif model_path[-4:] == ".csv":
-            self.model = pd.read_csv(model_path)
+            self.model = pd.read_csv(model_path, low_memory=False)
         else:  # should never trigger unless we are fiddling with the gui
             raise ValueError("invalid file extension")
 
