@@ -60,23 +60,25 @@
 - fix issue with removing graph folder (main.py 846) DONE (4/29/25)
 - remove n-value confidence value setting, replace with n-value stddev filter DONE (4/28/25)
 - remove redundant guide file options on main gui DONE (4/29/25)
+- update ReadMe... DONE (4/30/25)
+    - can't upload a settings file you used in another folder (unless you change paths) DONE (4/30/25)
+    - add warning about keeping DR open for consecutive runs DONE (4/30/25)
+    - make sure all screenshots match current version DONE (4/30/25)
+        - a lot of the error message screenshots say DeuteRater-H etc. DONE (4/30/25)
+    - update columns and explanations for each step/file DONE (4/30/25)
+    - add note about using different retention times for each mzML and add details about Time and Enrichment Table DONE (4/30/25)
+    - include note that we aren't checking for peptides with extremely similar mz and rt DONE (4/30/25)
+    - add note about calculating lipid rate curve asymptote DONE (4/30/25)
+    - median first derivative and n-value standard deviation settings DONE (4/30/25)
+- update license in each module DONE (4/30/25)
 
 ### TESTING AND PACKAGING ###
-- check column names for sequence and make them generic
-- update ReadMe...
-    - can't upload a settings file you used in another folder (unless you change paths) DONE
-    - add warning about keeping DR open for consecutive runs DONE
-    - update columns and explanations for each step/file
-    - make sure all screenshots match current version
-        - a lot of the error message screenshots say DeuteRater-H etc.
-    - add note about using different retention times for each mzML and add details about Time and Enrichment Table
-    - include note that we aren't checking for peptides with extremely similar mz and rt
-    - add note about calculating lipid rate curve asymptote
-    - median first derivative and n-value standard deviation settings
-- update license in each module
 - package and publish on GitHub
 
 ### NEXT STEPS ###
+- check column names for sequence and make them generic
+- add DeuteRater tools to github (https://github.com/JC-Price/DeuteRater_Tools)
+- when using use_individual_rts setting (extractor.py), add checks to make sure proper columns are provided and quit gracefully if not
 - tqdm does add to computing time. Is it worth removing for long steps like extraction and n-value calculations? - Ben Driggs
 - standardize DR setting capitalization and update ReadMe
 - Upgrade environment/library with updated packages (especially pymzml)
@@ -89,4 +91,3 @@
 - reorganize Settings_Menu.ui (maybe alphabetical, or group related settings for each step together)
 - fix issue where names are cut off in graph titles
 - add Ion Mobility
-
