@@ -566,7 +566,6 @@ class MainGuiObject(QtWidgets.QMainWindow, loaded_ui):
 
             # this step calls the fitter and runs it
             elif analysis_step == "Rate Calculation":
-
                 if previous_output_file == "":
                     previous_output_file = self.collect_single_file(
                         "Calculate Fraction New",

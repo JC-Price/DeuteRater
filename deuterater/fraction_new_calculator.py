@@ -46,11 +46,6 @@ from utils.emass import parse_cf, fn_emass, normalize
 
 import deuterater.settings as settings
 
-# TODO: Bring over any dependencies
-# TODO: Add required columns to __main__.py
-# TODO: Add fraction_new_calculation step to workflow in __main__.py
-# TODO: Debug
-
 
 # at this point we have far too many columns to be practical
 # this is not a problem for theory since that is largely a combination of

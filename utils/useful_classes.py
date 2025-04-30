@@ -129,6 +129,7 @@ class setting_numerical_info(object):
         else:
             return self.current_value == float(self.data_object.value())
 
+
 class setting_string_info(object):
     # arguments are the same as setting_numerical_info except true_false
     # true_false determines if it is a yes no(True) or just a string

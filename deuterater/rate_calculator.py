@@ -444,7 +444,7 @@ class RateCalculator:
                     common_name, sample_group_name, calc_type, num_measurements,
                     num_unique_times, unique_length, num_files)
                 return result, group
-            if len(popt) > 1: #coleman 2025
+            if len(popt) > 1:  # coleman 2025
                 result = {
                     'analyte_id': id_name,
                     'analyte_name': common_name,
@@ -463,7 +463,7 @@ class RateCalculator:
                     "rate_graph_time_points_x": "; ".join(map(str, list(xs))),
                     "normed_isotope_data_y": "; ".join(map(str, list(ys)))
                 }
-            else: #coleman 2025
+            else:  # coleman 2025
                 result = {
                     'analyte_id': id_name,
                     'analyte_name': common_name,
