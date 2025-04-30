@@ -1,5 +1,5 @@
 """
-Copyright (c) 2024 Bradley Naylor, Christian Andersen, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
+Copyright (c) 2025 Bradley Naylor, Christian Andersen, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
     Coleman Nielsen, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
@@ -278,7 +278,7 @@ class NValueCalculator:
                 try:
                     n_value, stddev, n_data, med_first_derivative, time_point = (
                         NValueCalculator.analyze_row(self, row, emass_results, save_data, make_graphs,
-                                                                  interpolate_n_values, median_derivative_limit, n_value_stddev_limit))
+                                                     interpolate_n_values, median_derivative_limit, n_value_stddev_limit))
 
                     # Only allow the append if the stddev is less than .02
                     # if stddev <= 0.02: #make this a setting? Coleman 2025
@@ -702,8 +702,7 @@ class NValueCalculator:
         n_value_info = []
 
         # if the make_graphs and stddev < 0.02: #remove the 0.2 filter for now
-        # TODO: if med_first_derivative >= median_derivative_limit and stddev <= n_value_stddev_limit and make_graphs:  # are we being too conservative here? 3/12/2025 -coleman
-        if make_graphs:
+        if med_first_derivative >= median_derivative_limit and stddev <= nv_stddev_limit and make_graphs:  # are we being too conservative here? 3/12/2025 -coleman
             if not np.isnan(n_value):
                 # Plotting the unfiltered data
                 plt.plot(unfiltered_fraction_new['n_D'], unfiltered_fraction_new['n_value_corrected_stddev'],

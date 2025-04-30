@@ -1,5 +1,5 @@
 """
-Copyright (c) 2024 Bradley Naylor, Christian Andersen, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
+Copyright (c) 2025 Bradley Naylor, Christian Andersen, Michael Porter, Kyle Cutler, Chad Quilling, Benjamin Driggs,
     Coleman Nielsen, J.C. Price, and Brigham Young University
 All rights reserved.
 Redistribution and use in source and binary forms,
