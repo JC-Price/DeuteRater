@@ -422,6 +422,7 @@ class RateCalculator:
             # try to find confidence interval. Sometimes covariance will be negative, in which case we won't be able to calculate one.
             # If so, we'll set confint to np.NaN and we won't draw any error lines
             confint_k = None
+            confint_a = None
             for value in np.diag(pcov):
                 if value < 0:
                     confint_k = np.NaN
