@@ -32,10 +32,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-"""
-class and functions for supporting the extractor
-"""
-
 try:
     from obs.envelope import Envelope  # noqa: 401
     from obs.peak import Peak
@@ -48,12 +44,19 @@ except:
     import DeuteRater.deuterater.settings as settings
 
 from numpy import mean, median, std, argsort
+import matplotlib.pyplot as plt
+
+import os
+os.environ["MPLCONFIGDIR"] = "./mpl_config"
+
+"""
+class and functions for supporting the extractor
+"""
 
 
 class ID(object):
-    '''Contains isotoptic envelope data
-
-
+    """Contains isotoptic envelope data
+    
     Attributes
     ----------
     _envelopes : :obj:`list` of :obj:`Envelope`
@@ -80,7 +83,7 @@ class ID(object):
         The maximum m0 abundance of the identification's isotopic envelopes
     mads : :obj:`list` of float
         The median absolute deviations of abundances at each peak location
-    '''
+    """
     # defining '__slots__' lets the python interpreter know what fields
     # we will be defining in the class
     __slots__ = (
@@ -504,8 +507,6 @@ class ID(object):
                                 np.array(right_points).astype("int32"))
         
         if should_plot:
-            import matplotlib.pyplot as plt
-            
             plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
             gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
             
@@ -570,8 +571,6 @@ class ID(object):
             neutromer_maximums.append(max_cuts)
         
         if should_plot:
-            import matplotlib.pyplot as plt
-            
             plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
             gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
             

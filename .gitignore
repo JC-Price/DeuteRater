@@ -20,3 +20,4 @@ __main__.spec
 /build
 /dist
 utils/temp.py
+altered-template.spec

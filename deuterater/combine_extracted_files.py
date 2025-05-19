@@ -55,7 +55,7 @@ experimental subject and the enrichment, as well as which extracted filters to c
 
 Therefore this will add the users data on subjects and deuterium enrichment,
 do some basic filtering, calculate a literature n value based on aa_labeling_sites.tsv (for peptides) or 
-an empirical n value based on theory using old_NValueCalculator.py (for lipids) and then merge them all into one file
+an empirical n value based on theory using n_value_calculator.py and then merge them all into one file
 
 may merge with initial_intensity_calculator, which has a similar basic filtering
 role and occurs immediately afterwards

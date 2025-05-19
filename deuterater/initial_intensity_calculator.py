@@ -33,18 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import traceback
 
-"""
-as with combine_extracted_files, this provides some basic filtering and 
-calculations that are relatively simple on their own, but need to be done and it's
-easier here than in the main calculation function
-
-The main filters here are n value and sequence length must be sufficiently large
-to be confident we are going to actually see good signal to noise. Finally we must
-use the emass algorithm to calculate the unenriched relative isotopic envelope
-
-may merge into combine_extracted_files.py
-"""
-
 from tqdm import tqdm
 import pandas as pd
 import multiprocessing as mp
@@ -56,8 +44,18 @@ from functools import partial
 
 from utils.emass import emass
 import deuterater.settings as settings
-import utils.old_NValueCalculator as nvct
-import resources.peptide_utils as peptide_utils
+
+"""
+as with combine_extracted_files, this provides some basic filtering and
+calculations that are relatively simple on their own, but need to be done and it's
+easier here than in the main calculation function
+
+The main filters here are n value and sequence length must be sufficiently large
+to be confident we are going to actually see good signal to noise. Finally we must
+use the emass algorithm to calculate the unenriched relative isotopic envelope
+
+may merge into combine_extracted_files.py
+"""
 
 max_isos = 5  # constant based on the n_isos based on the mass (done in the extractor)
 p0_guess = 1  # seems to work for most fits. if it causes problems we can adjust

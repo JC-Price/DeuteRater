@@ -1,12 +1,12 @@
 ID_weight: 0.7
-aa_labeling_sites_path: C:\Users\admin\Desktop\DeuteRater-dev\resources\aa_labeling_sites.tsv
+aa_labeling_sites_path: C:\Users\Tayle\MyStorage\PriceLab\DeuteRater_Stuff\DeuteRater-v6\resources\aa_labeling_sites.tsv
 abundance_agreement_filter: 0.1
 abundance_manual_bias: 0.0
 abundance_type: M0
 adduct_weight: 1.0
 allowed_neutromer_peak_variance: 64
 allowed_peak_variance_min: 0.1
-asymptote: Fixed
+asymptote: Variable
 baseline_lookback: 100
 bias_calculation: none
 chunk_size: 50
@@ -39,7 +39,7 @@ min_envelopes_to_combine: 10
 minimum_allowed_sequence_rate: 0.0
 minimum_nonzero_points: 3
 ms_level: 1
-n_processors: 2
+n_processors: 60
 n_value_cv_limit: 0.1
 nv_stddev_limit: 0.05
 peak_lookahead: 1
@@ -50,7 +50,7 @@ peptide_analyte_name_column: Protein_Name
 ppm_window: 30
 proliferation_adjustment: 0.0
 r2_threshold: 0.5
-recognize_available_cores: true
+recognize_available_cores: false
 rel_height: 0.9
 remove_filters: false
 s_n_filter: 0.0
@@ -65,7 +65,7 @@ time_window: 1.5
 trim_ids_to_mzml_bounds: false
 unique_sequence_column: Sequence
 use_chromatography_division: 'No'
-use_empir_n_value: false
+use_empir_n_value: true
 use_individual_rts: false
 use_outlier_removal: false
 variance_weight: 1.0

@@ -47,6 +47,9 @@ import traceback
 import re
 import matplotlib.pyplot as plt
 
+import os
+os.environ["MPLCONFIGDIR"] = "./mpl_config"
+
 output_columns = ["n_value", "n_value_stddev", "median_first_derivatives", "num_nv_time_points", "cv", "Median_FN_stddev",
                   "n_val_lower_margin", "n_val_upper_margin", "All_n_values", "N_value_time_points", "Filtered_out_N_values",
                   "Filtered_out_stddevs", "Filtered_out_median_first_derivatives", "Filtered_out_N_value_time_points",

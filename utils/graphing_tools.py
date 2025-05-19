@@ -34,10 +34,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import pandas as pd
 
 import deuterater.settings as settings
+
+import os
+os.environ["MPLCONFIGDIR"] = "./mpl_config"
 
 main_line_symbol = 'k-'
 # error_line_symbol = 'k--'
