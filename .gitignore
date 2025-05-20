@@ -21,3 +21,4 @@ __main__.spec
 /dist
 utils/temp.py
 altered-template.spec
+convert_script.ps1

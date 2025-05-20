@@ -44,7 +44,7 @@ except:
     import DeuteRater.deuterater.settings as settings
 
 from numpy import mean, median, std, argsort
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 import os
 os.environ["MPLCONFIGDIR"] = "./mpl_config"
@@ -507,19 +507,20 @@ class ID(object):
                                 np.array(right_points).astype("int32"))
         
         if should_plot:
-            plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
-            gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
-            
-            plt.plot(combined_data, label="Combined", color=plot_colors[0])
-            plt.plot(gaussian_curves, label='Combined Gaussian', zorder=2, color=gaussian_colors[0])
-            plt.vlines(x=full_peak_width_list[2], ymin=0, ymax=max(peak_finding), label="Start of Window", color="r")
-            plt.vlines(x=full_peak_width_list[3], ymin=0, ymax=max(peak_finding), label="End of Window", color="g")
-            plt.vlines(x=peaks, ymin=0, ymax=max(peak_finding), label="Max Intensity in Window", color="lightgrey")
-            
-            plt.title(str(self.mz))
-            plt.legend()
-            # plt.xticks(range(0, len(self._get_rt_list()), 25), [str(i) for i in self._get_rt_list(True)[0::25]])
-            plt.show()
+            pass
+            # plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
+            # gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
+            #
+            # plt.plot(combined_data, label="Combined", color=plot_colors[0])
+            # plt.plot(gaussian_curves, label='Combined Gaussian', zorder=2, color=gaussian_colors[0])
+            # plt.vlines(x=full_peak_width_list[2], ymin=0, ymax=max(peak_finding), label="Start of Window", color="r")
+            # plt.vlines(x=full_peak_width_list[3], ymin=0, ymax=max(peak_finding), label="End of Window", color="g")
+            # plt.vlines(x=peaks, ymin=0, ymax=max(peak_finding), label="Max Intensity in Window", color="lightgrey")
+            #
+            # plt.title(str(self.mz))
+            # plt.legend()
+            # # plt.xticks(range(0, len(self._get_rt_list()), 25), [str(i) for i in self._get_rt_list(True)[0::25]])
+            # plt.show()
         
         self._neutromer_peak_variance(should_plot)
         
@@ -571,15 +572,16 @@ class ID(object):
             neutromer_maximums.append(max_cuts)
         
         if should_plot:
-            plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
-            gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
-            
-            for i in range(self.n_isos):
-                plt.plot(peaks_list[i], label=f"M{i}", color=plot_colors[i])
-                plt.plot(gaussian_curves[i], label=f'Gaussian M{i}', zorder=2, color=gaussian_colors[i])
-            
-            plt.title(str(self.mz))
-            plt.legend()
-            plt.show()
+            pass
+            # plot_colors = ['tab:blue', 'tab:orange', 'tab:purple', 'olivedrab', 'chocolate']
+            # gaussian_colors = ['b', 'orangered', 'indigo', 'lawngreen', 'saddlebrown']
+            #
+            # for i in range(self.n_isos):
+            #     plt.plot(peaks_list[i], label=f"M{i}", color=plot_colors[i])
+            #     plt.plot(gaussian_curves[i], label=f'Gaussian M{i}', zorder=2, color=gaussian_colors[i])
+            #
+            # plt.title(str(self.mz))
+            # plt.legend()
+            # plt.show()
         
         self.neutromer_peak_maximums = neutromer_maximums

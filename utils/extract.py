@@ -43,7 +43,7 @@ import deuterater.settings as settings
 import utils.mzml as dml
 import utils.math as dmt
 from utils.exc import EmptyIdChunkWarning
-from constants import NEUTRON
+from utils.constants import NEUTRON
 
 from obs.peak import Peak
 from obs.envelope import Envelope
