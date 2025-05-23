@@ -1,0 +1,24 @@
+# how to determine the number of peaks to look for
+mass_cutoffs:
+  # initial cutoff is at zero
+  - [0, 3]
+  - [1500, 4]
+  - [2400, 5]
+  # addition cutoffs follow
+  # - [2400, 5]
+
+# required_unique: !!int 0
+
+study_type: "tissue"
+
+aa_elemental_composition_path: "aa_elem_compositions.tsv"
+
+aa_labeling_sites_path: "aa_labeling_sites.tsv"
+  
+elements_path: "elements.tsv"
+
+# ppm_cutoff: 2
+
+# score_cutoff: 0
+
+# rt_min_distance: 3

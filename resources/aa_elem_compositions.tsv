@@ -1,0 +1,31 @@
+amino_acid	amino_acid_name	C	H	N	O	S	P
+A	alanine	3	5	1	1	0	0
+C	cysteine-IAM modified	5	8	2	2	1	0
+D	aspartate	4	5	1	3	0	0
+E	glutamate	5	7	1	3	0	0
+F	phenylalanine	9	9	1	1	0	0
+G	glycine	2	3	1	1	0	0
+H	histidine	6	7	3	1	0	0
+I	isoleucine	6	11	1	1	0	0
+K	lysine	6	12	2	1	0	0
+L	leucine	6	11	1	1	0	0
+M	methionine	5	9	1	1	1	0
+N	asparigine	4	6	2	2	0	0
+P	proline	5	7	1	1	0	0
+Q	glutamine	5	8	2	2	0	0
+R	arginine	6	12	4	1	0	0
+S	serine	3	5	1	2	0	0
+T	threonine	4	7	1	2	0	0
+V	valine	5	9	1	1	0	0
+W	tryptophan	11	10	2	1	0	0
+Y	tyrosine	9	9	1	2	0	0
+m	oxidized methionine	5	9	1	2	1	0
+q	pyrollidine from Q	5	5	1	2	0	0
+1	Ubiquitin of K	10	18	4	3	0	0
+2	Ubiquitin of T	8	13	3	4	0	0
+3	Ubiquitin of S	7	11	3	4	0	0
+4	Ubiquitin of C	9	14	4	4	0	0
+s	Phosphorylation of S	3	6	1	5	0	1
+t	Phosphorylation of T	4	8	1	5	0	1
+y	Phosphorylation of Y	9	10	1	5	0	1
+k	Acetylation of K	8	14	3	2	0	0
